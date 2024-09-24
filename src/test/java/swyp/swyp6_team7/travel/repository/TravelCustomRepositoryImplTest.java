@@ -22,10 +22,13 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,8 +69,7 @@ class TravelCustomRepositoryImplTest {
                 .userPw("1234")
                 .userName("모잉")
                 .userGender(Users.Gender.M)
-                .userBirthYear("2000")
-                .userPhone("01012345678")
+                .userAgeGroup(Users.AgeGroup.TEEN)
                 .userRegDate(LocalDateTime.now())
                 .userStatus(Users.MemberStatus.ABLE)
                 .build());
@@ -143,6 +145,82 @@ class TravelCustomRepositoryImplTest {
             System.out.println(result.toString());
         }
         assertThat(results.getContent().size()).isEqualTo(0);
+    }
+
+    @DisplayName("findAllByPreferredTags: 사용자의 선호 태그와 콘텐츠 태그의 중복이 많은 순서대로 콘텐츠를 정렬한다")
+    @Test
+    public void findAllByPreferredTags() {
+        // given
+        //travelRepository.deleteAll();
+        Tag tag1 = tagRepository.save(Tag.of("한국"));
+        Tag tag2 = tagRepository.save(Tag.of("투어"));
+        Tag tag3 = tagRepository.save(Tag.of("도시"));
+        Tag tag4 = tagRepository.save(Tag.of("여유"));
+        List<String> preferredTags = new ArrayList<>(List.of("한국", "투어", "도시"));
+
+
+        Travel travel2 = travelRepository.save(Travel.builder()
+                .userNumber(1)
+                .viewCount(0)
+                .periodType(PeriodType.NONE)
+                .genderType(GenderType.NONE)
+                .createdAt(LocalDateTime.now())
+                .dueDate(LocalDate.now())
+                .status(TravelStatus.IN_PROGRESS)
+                .build());
+        //tags: 한국 -> 1개
+        travelTagRepository.save(TravelTag.of(travel2, tag1));
+
+        Travel travel3 = travelRepository.save(Travel.builder()
+                .userNumber(1)
+                .viewCount(0)
+                .periodType(PeriodType.NONE)
+                .genderType(GenderType.NONE)
+                .createdAt(LocalDateTime.now())
+                .status(TravelStatus.IN_PROGRESS)
+                .build());
+        //tags: 한국, 투어 -> 2개
+        travelTagRepository.save(TravelTag.of(travel3, tag1));
+        travelTagRepository.save(TravelTag.of(travel3, tag2));
+
+        Travel travel4 = travelRepository.save(Travel.builder()
+                .userNumber(1)
+                .viewCount(0)
+                .periodType(PeriodType.NONE)
+                .genderType(GenderType.NONE)
+                .createdAt(LocalDateTime.now())
+                .dueDate(LocalDate.now().plusDays(1))
+                .status(TravelStatus.IN_PROGRESS)
+                .build());
+        //tags: 한국, 여유 -> 1개
+        travelTagRepository.save(TravelTag.of(travel4, tag1));
+        travelTagRepository.save(TravelTag.of(travel4, tag4));
+
+        Travel travel5 = travelRepository.save(Travel.builder()
+                .userNumber(1)
+                .viewCount(0)
+                .periodType(PeriodType.NONE)
+                .genderType(GenderType.NONE)
+                .createdAt(LocalDateTime.now())
+                .status(TravelStatus.IN_PROGRESS)
+                .build());
+        //tags: 한국, 투어, 도시 -> 3개
+        travelTagRepository.save(TravelTag.of(travel5, tag1));
+        travelTagRepository.save(TravelTag.of(travel5, tag2));
+        travelTagRepository.save(TravelTag.of(travel5, tag3));
+
+        // when
+        List<TravelRecommendDto> result = travelRepository.findAllByPreferredTags(preferredTags);
+
+        // then
+        assertThat(result.size()).isEqualTo(5); //0, 1, 2, 1, 3
+        List<Integer> preferredNum = result.stream()
+                .map(dto -> dto.getPreferredNumber())
+                .toList();
+        assertThat(Collections.frequency(preferredNum, 0)).isEqualTo(1);
+        assertThat(Collections.frequency(preferredNum, 1)).isEqualTo(2);
+        assertThat(Collections.frequency(preferredNum, 2)).isEqualTo(1);
+        assertThat(Collections.frequency(preferredNum, 3)).isEqualTo(1);
     }
 
     @DisplayName("search: 제목에 keyword가 포함된 데이터를 찾을 수 있다")

@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
+import swyp.swyp6_team7.travel.dto.response.TravelRecommendResponse;
 import swyp.swyp6_team7.travel.service.TravelHomeService;
+
+import java.security.Principal;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -31,4 +35,15 @@ public class TravelHomeController {
                 .body(result);
     }
 
+    @GetMapping("/api/travels/recommend")
+    public ResponseEntity<List<TravelRecommendResponse>> getRecommendTravels(Principal principal) {
+
+        List<TravelRecommendResponse> result = travelHomeService.getRecommendTravelsByUser(principal)
+                .stream()
+                .map(dto -> new TravelRecommendResponse(dto))
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(result);
+    }
 }

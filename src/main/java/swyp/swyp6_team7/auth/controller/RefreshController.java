@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -36,8 +40,13 @@ public class RefreshController {
                         Users user = userRepository.findByUserEmail(userEmail)
                                 .orElseThrow(() -> new IllegalArgumentException("이메일을 찾을 수 없습니다."));
 
+                        // GrantedAuthority에서 역할 리스트 추출
+                        List<String> roles = user.getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)  // 권한을 String으로 변환
+                                .collect(Collectors.toList());
+
                         // 새로운 Access Token 발급
-                        String newAccessToken = jwtProvider.createAccessToken(user.getUserEmail(), user.getRoles());
+                        String newAccessToken = jwtProvider.createAccessToken(user.getUserEmail(), roles);
                         return ResponseEntity.ok("Bearer " + newAccessToken);
                     }
                 }

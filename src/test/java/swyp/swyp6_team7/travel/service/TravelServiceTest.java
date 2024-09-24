@@ -32,8 +32,7 @@ class TravelServiceTest {
                 .userPw("1234")
                 .userName("username")
                 .userGender(Users.Gender.M)
-                .userBirthYear("2000")
-                .userPhone("01012345678")
+                .userAgeGroup(Users.AgeGroup.TEEN)
                 .userRegDate(LocalDateTime.now())
                 .userStatus(Users.MemberStatus.ABLE)
                 .build();

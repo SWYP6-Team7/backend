@@ -15,7 +15,7 @@ public class JwtProvider {
     private final long refreshTokenValidity = 7 * 24 * 60 * 60 * 1000; // 1주일
 
     // Access Token 생성
-    public String createAccessToken(String userEmail, List<String> roles) {
+    public String createAccessToken(String userEmail,  List<String> roles) {
         return createToken(userEmail, roles, accessTokenValidity);
     }
 
@@ -27,7 +27,7 @@ public class JwtProvider {
     // 공통적으로 토큰 생성하는 로직
     public String createToken(String userEmail, List<String> roles, long validityInMilliseconds) {
         Claims claims = Jwts.claims().setSubject(userEmail);
-        if (roles != null) {
+        if (roles != null &&!roles.isEmpty()) {
             claims.put("roles", roles);
         }
 

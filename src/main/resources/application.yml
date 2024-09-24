@@ -14,3 +14,5 @@ custom:
   jwt:
     secretKey: oRzn5UpJmgRXxtOLMBG+jNhz2aAjPXHESKdjz4hFea5GNLnB9bVeVXKxKcZtxU+DlGZ4nHGO7xrXYhTkEhe2Zg==
     expirationMs: 3600000 # 토큰 만료 시간 (1시간 = 3600000ms)
+
+  admin-secret-key: tZ37HBGNyfUZVzgXGiv1OEBHvmgCyVB7

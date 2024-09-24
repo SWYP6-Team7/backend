@@ -11,17 +11,24 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import swyp.swyp6_team7.auth.service.CustomUserDetails;
+import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.io.IOException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
+    private final UserLoginHistoryService userLoginHistoryService;
 
-    public JwtFilter(JwtProvider jwtProvider, UserDetailsService userDetailsService) {
+    public JwtFilter(JwtProvider jwtProvider, UserDetailsService userDetailsService, UserLoginHistoryService userLoginHistoryService) {
         this.jwtProvider = jwtProvider;
         this.userDetailsService = userDetailsService;
+        this.userLoginHistoryService = userLoginHistoryService;
     }
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -59,6 +66,16 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     // SecurityContext에 인증 정보 설정
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    // SecurityContext에서 인증된 정보 가져오기
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+                    if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+                        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+                        Users user = customUserDetails.getUser();
+                        userLoginHistoryService.saveLoginHistory(user);  // 로그인 이력 저장
+                    }
+
                 } catch (UsernameNotFoundException e) {
                     // 인증 실패 시 처리
                     // 로그를 남기거나 예외를 처리

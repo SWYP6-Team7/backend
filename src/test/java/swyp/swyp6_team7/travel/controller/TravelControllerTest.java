@@ -27,7 +27,6 @@ import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,15 +69,10 @@ class TravelControllerTest {
                 .userPw("1234")
                 .userName("username")
                 .userGender(Users.Gender.M)
-                .userBirthYear("2000")
-                .userPhone("01012345678")
-                .userRole("user")
+                .userAgeGroup(Users.AgeGroup.TEEN)
                 .userRegDate(LocalDateTime.now())
                 .userStatus(Users.MemberStatus.ABLE)
                 .build());
-        List<String> roles = new ArrayList<>();
-        roles.add("ROLE_USER");
-        user.setRoles(roles);
 
         SecurityContext context = SecurityContextHolder.getContext();
         context.setAuthentication(new UsernamePasswordAuthenticationToken(user, user.getUserPw(), user.getAuthorities()));

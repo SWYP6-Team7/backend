@@ -2,10 +2,13 @@ package swyp.swyp6_team7.member.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.Map;
 
@@ -13,9 +16,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class MemberController {
     private final MemberService memberService;
+    private final UserLoginHistoryService userLoginHistoryService;
 
-    public MemberController(MemberService memberService) {
+    public MemberController(MemberService memberService,UserLoginHistoryService userLoginHistoryService) {
         this.memberService = memberService;
+        this.userLoginHistoryService = userLoginHistoryService;
     }
 
     @PostMapping("/users/new")
@@ -38,4 +43,11 @@ public class MemberController {
             return ResponseEntity.badRequest().body(e.getMessage());  // 이미 사용 중인 이메일
         }
     }
+    // 관리자 회원 가입
+    @PostMapping("/admins/new")
+    public ResponseEntity<?> createAdmin(@RequestBody UserRequestDto userRequestDto){
+        memberService.createAdmin(userRequestDto);
+        return new ResponseEntity<>("Admin successfully registered", HttpStatus.CREATED);
+    }
+
 }

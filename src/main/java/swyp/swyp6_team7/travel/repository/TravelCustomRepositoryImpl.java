@@ -1,7 +1,8 @@
 package swyp.swyp6_team7.travel.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,14 +18,14 @@ import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.QTravel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
+import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
-import swyp.swyp6_team7.travel.dto.response.QTravelDetailResponse;
-import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
-import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
-import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
+import swyp.swyp6_team7.travel.dto.response.*;
 import swyp.swyp6_team7.travel.util.TravelSearchConstant;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
@@ -103,6 +104,67 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
+    }
+
+    @Override
+    public List<TravelRecommendDto> findAllByPreferredTags(List<String> preferredTags) {
+
+        NumberExpression<Long> matchingTagCount = new CaseBuilder()
+                .when(travel.travelTags.isEmpty()).then(Expressions.nullExpression())
+                .when(tag.name.in(preferredTags)).then(Expressions.constant(1L))
+                .otherwise(Expressions.nullExpression()).count();
+
+        List<Tuple> tuples = queryFactory
+                .select(
+                        travel.number,
+                        matchingTagCount
+                )
+                .from(travel)
+                .leftJoin(travel.travelTags, travelTag)
+                .leftJoin(travelTag.tag, tag)
+                .where(
+                        statusInProgress()
+                )
+                .groupBy(travel.number)
+                .orderBy(
+                        matchingTagCount.desc(),
+                        travel.dueDate.asc()
+                ).fetch();
+        //log.info("tuples: " + tuples);
+
+        List<Integer> travels = tuples.stream()
+                .map(t -> t.get(travel.number))
+                .toList();
+        log.info("travelsNumber: " + travels);
+
+        Map<Integer, Integer> travelMap = new HashMap<>();
+        for (Tuple tuple : tuples) {
+            travelMap.put(tuple.get(travel.number), tuple.get(matchingTagCount).intValue());
+        }
+
+
+        List<TravelRecommendDto> content = queryFactory
+                .select(travel)
+                .from(travel)
+                .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
+                .leftJoin(travel.travelTags, travelTag)
+                .leftJoin(travelTag.tag, tag)
+                .where(
+                        travel.number.in(travels)
+                )
+                .transform(groupBy(travel.number).list(
+                        Projections.constructor(TravelRecommendDto.class,
+                                travel,
+                                users.userNumber,
+                                users.userName,
+                                list(tag.name)
+                                ))
+                );
+
+        content.stream()
+                .forEach(dto -> dto.updatePreferredNumber(travelMap.get(dto.getTravelNumber())));
+
+        return content;
     }
 
 
