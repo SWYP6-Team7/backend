@@ -346,7 +346,7 @@ public class CommentService {
         Comment comment = commentRepository.findByCommentNumber(commentNumber)
                 .orElseThrow(() -> new IllegalArgumentException("comment not found: " + commentNumber));
 
-        validateCommentWriterOrTravelWriter(commentNumber, userNumber);
+        validateCommentWriterOrPostWriter(commentNumber, userNumber);
 
         try {
             // 답글 삭제
@@ -372,9 +372,9 @@ public class CommentService {
     }
 
 
-    // 댓글 작성자 혹은 게시글 작성자인지 검증하는 메소드
+    //게시글 작성자인지 검증하는 메소드
     @Transactional(readOnly = true)
-    public void validateCommentWriterOrTravelWriter(int commentNumber, int userNumber) {
+    public void validatePostWriter(int commentNumber, int userNumber) {
 
         //존재하는 댓글인지 확인
         Comment comment = commentRepository.findByCommentNumber(commentNumber)
@@ -393,7 +393,7 @@ public class CommentService {
 
         // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자 혹은 게시글 작성자인지 확인
         if (userNumber != postWriterNumber) {
-            throw new IllegalArgumentException("댓글 작성자 혹은 게시글 작성자에게만 유효한 동작입니다.");
+            throw new IllegalArgumentException("게시글 작성자에게만 유효한 동작입니다.");
         }
     }
 
@@ -408,7 +408,35 @@ public class CommentService {
 
         // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자인지 확인
         if (comment.getUserNumber() != userNumber) {
-            throw new IllegalArgumentException("해당 댓글 작성자가 아닙니다.");
+            throw new IllegalArgumentException("댓글 작성자에게만 유효한 동작입니다.");
+        }
+    }
+
+    // 댓글 작성자 혹은 게시글 작성자인지 검증하는 메소드
+    @Transactional(readOnly = true)
+    public void validateCommentWriterOrPostWriter(int commentNumber, int userNumber) {
+
+        //존재하는 댓글인지 확인
+        Comment comment = commentRepository.findByCommentNumber(commentNumber)
+                .orElseThrow(() -> new IllegalArgumentException("comment not found: " + commentNumber));
+
+        int postWriterNumber = 0;
+        if (comment.getRelatedType().equals("travel")) {
+            // 댓글 번호로 게시글 번호 가져오기
+            int travelNumber = comment.getRelatedNumber();
+            // 게시글 번호로 작성자 회원 번호 가져오기
+            postWriterNumber = travelRepository.findByNumber(travelNumber).get().getUserNumber();
+        } else if (comment.getRelatedType().equals("community")) {
+            int communityNumber = comment.getRelatedNumber();
+            postWriterNumber = communityRepository.findByPostNumber(communityNumber).get().getUserNumber();
+        }
+
+        // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자인지 확인
+        int commentWriter = comment.getUserNumber();
+
+        // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자 혹은 게시글 작성자인지 확인
+        if (userNumber != postWriterNumber | commentWriter!= userNumber) {
+            throw new IllegalArgumentException("댓글 작성자 혹은 게시글 작성자에게만 유효한 동작입니다.");
         }
     }
 
