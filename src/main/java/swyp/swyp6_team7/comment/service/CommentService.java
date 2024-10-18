@@ -435,7 +435,7 @@ public class CommentService {
         int commentWriter = comment.getUserNumber();
 
         // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자 혹은 게시글 작성자인지 확인
-        if (userNumber != postWriterNumber | commentWriter!= userNumber) {
+        if (userNumber != postWriterNumber && commentWriter!= userNumber) {
             throw new IllegalArgumentException("댓글 작성자 혹은 게시글 작성자에게만 유효한 동작입니다.");
         }
     }
