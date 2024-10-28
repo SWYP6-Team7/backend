@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.server.ResponseStatusException;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.config.TestConfig;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
@@ -126,10 +128,10 @@ public class UserServiceTest {
         Mockito.when(userRepository.findByUserEmail(email)).thenReturn(Optional.of(new Users()));
 
         // when & then
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
             memberService.signUp(userRequestDto);
         });
-
-        assertEquals("이미 사용 중인 이메일입니다.", exception.getMessage());
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertEquals("이미 사용 중인 이메일입니다.", exception.getReason());
     }
 }
