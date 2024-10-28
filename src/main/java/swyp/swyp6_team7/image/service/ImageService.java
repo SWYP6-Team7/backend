@@ -119,11 +119,6 @@ public class ImageService {
                 throw new IllegalArgumentException("업데이트 전 DB  데이터에 오류가 있습니다.");
             }
 
-
-
-
-
-
         } else if ("community".equals(relatedType)) {
 
             // 1 대 다
@@ -165,6 +160,11 @@ public class ImageService {
     public void deleteTempImage(String temUrl) {
         String tempKey = s3KeyHandler.getKeyByUrl(temUrl);
         s3Uploader.deleteFile(tempKey);
+
+
+
     }
+
+    //
 
 }

@@ -20,6 +20,7 @@ public class TravelDetailResponse {
     private int userNumber;     //주최자 번호
     private String userName;    //주최자 이름
     private String userAgeGroup; //주최자 연령대
+    private String profileUrl;  //주최자 프로필 이미지 url
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
     private String location;
@@ -42,7 +43,7 @@ public class TravelDetailResponse {
 
     @Builder
     public TravelDetailResponse(
-            int travelNumber, int userNumber, String userName, String userAgeGroup, LocalDateTime createdAt,
+            int travelNumber, int userNumber, String userName, String userAgeGroup, String profileUrl, LocalDateTime createdAt,
             String location, String title, String details, int viewCount, int enrollCount, int bookmarkCount,
             int nowPerson, int maxPerson, String genderType, LocalDate dueDate, String periodType,
             List<String> tags, String postStatus, boolean hostUserCheck, Long enrollmentNumber,
@@ -52,6 +53,7 @@ public class TravelDetailResponse {
         this.userNumber = userNumber;
         this.userName = userName;
         this.userAgeGroup = userAgeGroup;
+        this.profileUrl = profileUrl;
         this.createdAt = createdAt;
         this.location = location;
         this.title = title;
@@ -72,13 +74,14 @@ public class TravelDetailResponse {
     }
 
     public TravelDetailResponse(
-            TravelDetailDto travelDetail,
+            TravelDetailDto travelDetail, String hostProfileImageUrl,
             int enrollCount, int bookmarkCount
     ) {
         this.travelNumber = travelDetail.getTravel().getNumber();
         this.userNumber = travelDetail.getHostNumber();
         this.userName = travelDetail.getHostName();
         this.userAgeGroup = travelDetail.getHostAgeGroup();
+        this.profileUrl = hostProfileImageUrl;
         this.createdAt = travelDetail.getTravel().getCreatedAt();
         this.location = travelDetail.getTravel().getLocationName();
         this.title = travelDetail.getTravel().getTitle();
@@ -116,6 +119,7 @@ public class TravelDetailResponse {
                 ", userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
                 ", userAgeGroup='" + userAgeGroup + '\'' +
+                ", profileUrl='" + profileUrl + '\'' +
                 ", createdAt=" + createdAt +
                 ", location='" + location + '\'' +
                 ", title='" + title + '\'' +

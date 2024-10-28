@@ -1,9 +1,16 @@
 package swyp.swyp6_team7.auth.jwt;
 
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Value;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 
+import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,10 +18,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class JwtProviderTest {
 
     private JwtProvider jwtProvider;
+    private JwtBlacklistService jwtBlacklistService;
 
     @BeforeEach
     public void setUp() {
-        jwtProvider = new JwtProvider();
+        // JwtBlacklistService를 Mockito로 모킹
+        jwtBlacklistService = Mockito.mock(JwtBlacklistService.class);
+
+        // 안전한 256비트의 SecretKey 생성
+        SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+        // SecretKey를 Base64로 인코딩하여 String으로 변환
+        String encodedSecretKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+
+        // JwtProvider에 Base64 인코딩된 secretKey와 모킹된 JwtBlacklistService 전달
+        jwtProvider = new JwtProvider(encodedSecretKey, jwtBlacklistService);  // String 전달
     }
 
     @Test

@@ -10,13 +10,14 @@ public class CompanionInfoDto {
     private Integer userNumber;
     private String userName;
     private String ageGroup;
-
+    private String profileUrl;
 
     @QueryProjection
-    public CompanionInfoDto(Integer userNumber, String userName, AgeGroup ageGroup) {
+    public CompanionInfoDto(Integer userNumber, String userName, AgeGroup ageGroup, String profileUrl) {
         this.userNumber = userNumber;
         this.userName = userName;
         this.ageGroup = ageGroup.getValue();
+        this.profileUrl = profileUrl;
     }
 
     @Override
@@ -25,6 +26,7 @@ public class CompanionInfoDto {
                 "userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
                 ", ageGroup='" + ageGroup + '\'' +
+                ", profileUrl='" + profileUrl + '\'' +
                 '}';
     }
 }

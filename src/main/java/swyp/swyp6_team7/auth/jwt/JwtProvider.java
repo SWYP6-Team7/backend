@@ -4,15 +4,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
+
+import java.util.Base64;
 import java.util.List;
 import java.util.Date;
 
 @Component
 public class JwtProvider {
-    private final String secretKey = "oRzn5UpJmgRXxtOLMBG+jNhz2aAjPXHESKdjz4hFea5GNLnB9bVeVXKxKcZtxU+DlGZ4nHGO7xrXYhTkEhe2Zg==";
+    private  final byte[] secretKey;
     private final long accessTokenValidity = 15 * 60 * 1000; // 15분
     private final long refreshTokenValidity = 7 * 24 * 60 * 60 * 1000; // 1주일
+    private final JwtBlacklistService jwtBlacklistService;
+
+    public JwtProvider(@Value("${custom.jwt.secretKey}") String secretKey,JwtBlacklistService jwtBlacklistService){
+        this.secretKey = Base64.getDecoder().decode(secretKey);
+        this.jwtBlacklistService = jwtBlacklistService;
+    }
 
     // Access Token 생성
     public String createAccessToken(String userEmail, Integer userNumber, List<String> roles) {
@@ -44,6 +54,10 @@ public class JwtProvider {
     }
 
     public boolean validateToken(String token) {
+
+        if (jwtBlacklistService.isTokenBlacklisted(token)) {
+            return false; // 블랙리스트에 있으면 토큰을 무효화
+        }
         // JWT 가 유효한지 검증
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
@@ -73,5 +87,11 @@ public class JwtProvider {
         } else {
             throw new JwtException("유효하지 않은 Refresh Token입니다.");
         }
+    }
+    // JWT 토큰의 만료 시간을 추출하는 메서드 추가
+    public long getExpiration(String token) {
+        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        Date expiration = claims.getExpiration();  // 만료 시간 추출
+        return expiration.getTime();  // 만료 시간을 밀리초로 반환
     }
 }

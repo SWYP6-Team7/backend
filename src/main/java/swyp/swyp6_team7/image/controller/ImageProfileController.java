@@ -53,6 +53,10 @@ public class ImageProfileController {
     @DeleteMapping("/temp")
     public ResponseEntity<String> deleteTempImage(@RequestBody TempDeleteRequestDto request, Principal principal) {
 
+        //user number 가져오기
+        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+
+
         try {
             imageService.deleteTempImage(request.getDeletedTempUrl());
             // 성공 시 204

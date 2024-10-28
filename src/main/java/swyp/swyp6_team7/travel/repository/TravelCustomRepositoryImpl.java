@@ -16,11 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
-
 import swyp.swyp6_team7.bookmark.entity.QBookmark;
-
 import swyp.swyp6_team7.location.domain.LocationType;
-
+import swyp.swyp6_team7.location.domain.QLocation;
 import swyp.swyp6_team7.member.entity.QUsers;
 import swyp.swyp6_team7.tag.domain.QTag;
 import swyp.swyp6_team7.tag.domain.QTravelTag;
@@ -36,7 +34,6 @@ import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.util.TravelSearchConstant;
 import swyp.swyp6_team7.travel.util.TravelSearchSortingType;
-import swyp.swyp6_team7.location.domain.QLocation;
 
 import java.util.HashMap;
 import java.util.List;

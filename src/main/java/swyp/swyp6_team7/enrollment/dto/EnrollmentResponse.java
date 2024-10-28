@@ -19,6 +19,7 @@ public class EnrollmentResponse {
     private long enrollmentNumber;
     private String userName;
     private String userAgeGroup;
+    private String profileUrl;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime enrolledAt;
     private String message;
@@ -27,13 +28,13 @@ public class EnrollmentResponse {
     @Builder
     @QueryProjection
     public EnrollmentResponse(
-            long enrollmentNumber, String userName,
-            AgeGroup ageGroup, LocalDateTime enrolledAt,
-            String message, EnrollmentStatus status
+            long enrollmentNumber, String userName, AgeGroup ageGroup, String profileUrl,
+            LocalDateTime enrolledAt, String message, EnrollmentStatus status
     ) {
         this.enrollmentNumber = enrollmentNumber;
         this.userName = userName;
         this.userAgeGroup = ageGroup.getValue();
+        this.profileUrl = profileUrl;
         this.enrolledAt = enrolledAt;
         this.message = message;
         this.status = status.toString();

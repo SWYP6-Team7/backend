@@ -4,6 +4,7 @@ import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.NotificationMessageType;
+import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
 import swyp.swyp6_team7.notification.entity.TravelNotification;
 import swyp.swyp6_team7.travel.domain.Travel;
 
@@ -57,20 +58,22 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelNewCommentMessageToHost(Travel targetTravel) {
-        return Notification.builder()
+    public static TravelCommentNotification travelNewCommentMessageToHost(Travel targetTravel) {
+        return TravelCommentNotification.builder()
                 .receiverNumber(targetTravel.getUserNumber())
                 .title(NotificationMessageType.TRAVEL_NEW_COMMENT_HOST.getTitle())
                 .content(NotificationMessageType.TRAVEL_NEW_COMMENT_HOST.getContent(targetTravel.getTitle()))
+                .travelNumber(targetTravel.getNumber())
                 .isRead(false)
                 .build();
     }
 
-    public static Notification travelNewCommentMessageToEnrollments(Travel targetTravel, int enrolledUserNumber) {
-        return Notification.builder()
+    public static TravelCommentNotification travelNewCommentMessageToEnrollments(Travel targetTravel, int enrolledUserNumber) {
+        return TravelCommentNotification.builder()
                 .receiverNumber(enrolledUserNumber)
                 .title(NotificationMessageType.TRAVEL_NEW_COMMENT_ENROLLMENT.getTitle())
                 .content(NotificationMessageType.TRAVEL_NEW_COMMENT_ENROLLMENT.getContent(targetTravel.getTitle()))
+                .travelNumber(targetTravel.getNumber())
                 .isRead(false)
                 .build();
     }

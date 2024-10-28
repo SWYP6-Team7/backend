@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.LoginService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
@@ -19,6 +21,7 @@ import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 //@RequestMapping("/api")
@@ -27,13 +30,23 @@ public class LoginController {
     private final UserLoginHistoryService userLoginHistoryService;
     private final MemberService memberService;
     private final UserRepository userRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
-    public LoginController(LoginService loginService, UserLoginHistoryService userLoginHistoryService, MemberService memberService,UserRepository userRepository) {
+    private final JwtProvider jwtProvider;
+    private final JwtBlacklistService jwtBlacklistService;
+
+
+
+    public LoginController(LoginService loginService, UserLoginHistoryService userLoginHistoryService,
+                           MemberService memberService,UserRepository userRepository,
+                           JwtProvider jwtProvider, JwtBlacklistService jwtBlacklistService) {
         this.loginService = loginService;
         this.userLoginHistoryService = userLoginHistoryService;
         this.memberService = memberService;
         this.userRepository = userRepository;
+        this.jwtBlacklistService = jwtBlacklistService;
+        this.jwtProvider = jwtProvider;
     }
 
 
@@ -51,6 +64,18 @@ public class LoginController {
             Map<String, String> tokenMap = loginService.login(loginRequestDto);
             String accessToken = tokenMap.get("accessToken");
             String refreshToken = tokenMap.get("refreshToken");
+
+            // 기존에 로그인되어 있던 사용자의 이전 Access Token을 블랙리스트에 등록
+            String authorizationHeader = response.getHeader("Authorization");
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String oldAccessToken = authorizationHeader.substring(7);  // "Bearer " 이후 토큰 추출
+                if (oldAccessToken != null && jwtProvider.validateToken(oldAccessToken)) {
+                    long expirationTime = jwtProvider.getExpiration(oldAccessToken);
+                    long refreshTokenExpirationTime = jwtProvider.getExpiration(refreshToken);
+                    jwtBlacklistService.addToBlacklist(refreshToken, refreshTokenExpirationTime);// 리프레시 토큰을 Redis에 저장 (만료 시간 설정)
+                    jwtBlacklistService.addToBlacklist(oldAccessToken, expirationTime);  // 기존 Access Token을 블랙리스트에 등록
+                }
+            }
 
             // 리프레시 토큰을 HttpOnly 쿠키로 설정
             ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)

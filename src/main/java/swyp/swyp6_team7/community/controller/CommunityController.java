@@ -30,7 +30,6 @@ import java.security.Principal;
 public class CommunityController {
     private final CommunityService communityService;
     private final MemberService memberService;
-    private final CommunityCustomRepository communityCustomRepository;
     private final CategoryRepository categoryRepository;
     private final CommunityListService communityListService;
 

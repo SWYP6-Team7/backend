@@ -74,7 +74,7 @@ spring:
 
 custom:
   jwt:
-    secretKey: dGVzdGtleXlvdXJzZWNyZXRrZXl5b3Vyc2VjcmV0a2V5
+    secretKey: 4bE1Gq6/StHsrBXcOzc04rFQzUpENVYPay6c/Sl5H6M=
     expirationMs: 3600000 # 토큰 만료 시간 (1시간 = 3600000ms)
 app:
   data-loader:

@@ -30,6 +30,8 @@ public class CommentListReponseDto {
     private int travelWriterNumber; //게시글의 작성자 회원 번호
     private String imageUrl;        //댓글 작성자의 프로필 이미지
 
+    private Boolean commented;      //답글 작성 여부
+
 
     public static String formatDate(LocalDateTime date) {
         return date.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
@@ -37,7 +39,7 @@ public class CommentListReponseDto {
 
 
 
-    public static CommentListReponseDto fromEntity(Comment comment, String writer, long repliesCount, long likes, boolean liked, int travelWriterNumber, String imageUrl) {
+    public static CommentListReponseDto fromEntity(Comment comment, String writer, long repliesCount, long likes, boolean liked, int travelWriterNumber, String imageUrl, Boolean commented) {
         return new CommentListReponseDto(
                 comment.getCommentNumber(),
                 comment.getUserNumber(),
@@ -52,6 +54,7 @@ public class CommentListReponseDto {
                 liked,
                 travelWriterNumber
                 ,imageUrl
+                ,commented
         );
     }
 
@@ -71,6 +74,7 @@ public class CommentListReponseDto {
                 ", liked=" + liked + '\'' +
                 ", travelWriterNumber=" + travelWriterNumber +
                 ", imageUrl='" + imageUrl + '\'' +
+                "commented=" + commented +
                 '}';
     }
 

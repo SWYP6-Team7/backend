@@ -25,7 +25,7 @@ jobs:
         run: echo "${{ secrets.APPLICATION_CREDENTIALS }}" > ./src/main/resources/application-credentials.yml
 
       - name: Create application-credentials.yml for test
-        run: echo "${{ secrets.APPLICATION_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml
+        run: echo "${{ secrets.APPLICATION_TEST_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml
 
       - name: Test and Build
         run: |

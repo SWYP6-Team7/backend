@@ -4,3 +4,7 @@ spring:
     include:
       - credentials
       - s3
+  servlet:
+    multipart:
+      max-file-size: 100MB   # 업로드 가능한 개별 파일의 최대 크기
+      max-request-size: 100MB # 하나의 요청에서 전송할 수 있는 최대 데이터 크기

@@ -18,6 +18,7 @@ import swyp.swyp6_team7.image.service.ImageService;
 import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
+import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -71,7 +72,8 @@ public class CommunityService {
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다." + postNumber));
 
         // 게시글 작성자 명 가져오기
-        String postWriter = userRepository.findByUserNumber(community.getUserNumber()).get().getUserName();
+        Users PostWriter = userRepository.findByUserNumber(community.getUserNumber()).get();
+        String postWriter = PostWriter.getUserName();
 
         String CategoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber()).getCategoryName();
 
@@ -84,7 +86,7 @@ public class CommunityService {
         boolean liked = likeStatus.isLiked(); //좋아요 여부
 
         // 게시글 작성자 프로필 이미지 url 가져오기
-        String profileImageUrl = imageService.getImageDetailByNumber("profile", userNumber, 0).getUrl();
+        String profileImageUrl = imageService.getImageDetailByNumber("profile", PostWriter.getUserNumber(), 0).getUrl();
 
         //데이터 Dto에 담기
         CommunityDetailResponseDto detailResponse = CommunityDetailResponseDto.builder()

@@ -13,13 +13,10 @@ import swyp.swyp6_team7.comment.dto.request.CommentUpdateRequestDto;
 import swyp.swyp6_team7.comment.dto.response.CommentDetailResponseDto;
 import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.service.CommentService;
-import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
-import swyp.swyp6_team7.likes.service.LikeService;
-import swyp.swyp6_team7.member.entity.Users;
+
 import swyp.swyp6_team7.member.service.MemberService;
 
 import java.security.Principal;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor

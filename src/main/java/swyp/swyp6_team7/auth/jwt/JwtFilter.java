@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import swyp.swyp6_team7.auth.service.CustomUserDetails;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
@@ -25,11 +26,14 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
     private final UserLoginHistoryService userLoginHistoryService;
+    private final JwtBlacklistService jwtBlacklistService;
 
-    public JwtFilter(JwtProvider jwtProvider, UserDetailsService userDetailsService, UserLoginHistoryService userLoginHistoryService) {
+    public JwtFilter(JwtProvider jwtProvider, UserDetailsService userDetailsService,
+                     UserLoginHistoryService userLoginHistoryService,JwtBlacklistService jwtBlacklistService) {
         this.jwtProvider = jwtProvider;
         this.userDetailsService = userDetailsService;
         this.userLoginHistoryService = userLoginHistoryService;
+        this.jwtBlacklistService = jwtBlacklistService;
     }
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -81,7 +85,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
                     // SecurityContext에서 인증된 정보 가져오기
-                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    var authentication = SecurityContextHolder.getContext().getAuthentication();
 
                     if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
                         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();

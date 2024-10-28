@@ -3,7 +3,6 @@ package swyp.swyp6_team7.travel.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +12,7 @@ import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.comment.service.CommentService;
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
+import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -42,6 +42,7 @@ public class TravelService {
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ImageRepository imageRepository;
     private final TravelTagService travelTagService;
     private final MemberService memberService;
     private final LocationRepository locationRepository;
@@ -83,13 +84,17 @@ public class TravelService {
         Integer requestUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         TravelDetailDto travelDetail = travelRepository.getDetailsByNumber(travelNumber, requestUserNumber);
 
+        //주최자 프로필 이미지(만약 못찾을 경우 default 이미지 url)
+        String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
+                .orElse("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
+
         //enrollment 개수
         int enrollmentCount = enrollmentRepository.countByTravelNumber(travelNumber);
 
         //bookmark 개수
         int bookmarkCount = bookmarkRepository.countByTravelNumber(travelNumber);
 
-        TravelDetailResponse detailResponse = new TravelDetailResponse(travelDetail, enrollmentCount, bookmarkCount);
+        TravelDetailResponse detailResponse = new TravelDetailResponse(travelDetail, hostProfileImageUrl, enrollmentCount, bookmarkCount);
 
         //로그인 요청자 주최 여부, 신청 확인
         if (travelDetail.getHostNumber() == requestUserNumber) {
@@ -146,8 +151,6 @@ public class TravelService {
         travel.delete();
 
 
-
-
     }
 
     private void authorizeTravelOwner(Travel travel) {
@@ -174,6 +177,7 @@ public class TravelService {
     public void updateEnrollmentLastViewedAt(int travelNumber, LocalDateTime lastViewedAt) {
         travelRepository.updateEnrollmentsLastViewedAtByNumber(travelNumber, lastViewedAt);
     }
+
     public List<Travel> getTravelsByDeletedUser(Integer deletedUserNumber) {
         return travelRepository.findByDeletedUserNumber(deletedUserNumber);
     }
