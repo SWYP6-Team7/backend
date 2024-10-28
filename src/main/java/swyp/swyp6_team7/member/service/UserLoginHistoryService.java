@@ -21,12 +21,10 @@ public class UserLoginHistoryService {
 
     @Transactional
     public void saveLoginHistory(Users user) {
-        System.out.println("로그인 이력 저장 시도: " + user.getUserEmail()); // 로그인 시도하는 유저 이메일 로그 출력
         UserLoginHistory loginHistory = new UserLoginHistory();
         loginHistory.setUser(user);
         loginHistory.setHisLoginDate(LocalDateTime.now());
         userLoginHistoryRepository.save(loginHistory);  // 로그인 시 이력 저장
-        System.out.println("로그인 이력 저장 완료"); // 저장 완료 로그 출력
     }
 
     @Transactional
