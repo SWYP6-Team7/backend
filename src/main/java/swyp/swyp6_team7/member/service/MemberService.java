@@ -1,11 +1,14 @@
 package swyp.swyp6_team7.member.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.*;
@@ -25,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class MemberService {
 
     private final UserRepository userRepository;
@@ -65,90 +69,97 @@ public class MemberService {
 
 
     public Map<String, Object> signUp(UserRequestDto userRequestDto) {
-
-        // 이메일 중복 체크
-        if (userRepository.findByUserEmail(userRequestDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-
-        // 태그 개수 검증 - 최대 5개까지 허용
-        if (userRequestDto.getPreferredTags().size() > 5) {
-            throw new IllegalArgumentException("태그는 최대 5개까지만 선택할 수 있습니다.");
-        }
-
-        // Argon2로 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(userRequestDto.getPassword());
-
-        // 성별 ENUM 변환
-        Gender gender = Gender.valueOf(userRequestDto.getGender().toUpperCase());
-
-        // 연령대 ENUM 변환 및 검증
-        AgeGroup ageGroup;
         try {
+            // 이메일 중복 체크
+            if (userRepository.findByUserEmail(userRequestDto.getEmail()).isPresent()) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
 
-            ageGroup = AgeGroup.fromValue(userRequestDto.getAgegroup());
+            // 태그 개수 검증 - 최대 5개까지 허용
+            if (userRequestDto.getPreferredTags().size() > 5) {
+                throw new IllegalArgumentException("태그는 최대 5개까지만 선택할 수 있습니다.");
+            }
 
+            // Argon2로 비밀번호 암호화
+            String encodedPassword = passwordEncoder.encode(userRequestDto.getPassword());
+
+            // 성별 ENUM 변환
+            Gender gender = Gender.valueOf(userRequestDto.getGender().toUpperCase());
+
+            // 연령대 ENUM 변환 및 검증
+            AgeGroup ageGroup;
+            try {
+
+                ageGroup = AgeGroup.fromValue(userRequestDto.getAgegroup());
+
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid age group provided.");
+            }
+
+            // 기본 상태를 ABLE로 설정 (회원 상태 ENUM 사용)
+            UserStatus status = UserStatus.ABLE;
+
+            UserRole role = UserRole.USER;
+
+
+            // Users 객체에 암호화된 비밀번호 설정
+            Users newUser = Users.builder()
+                    .userEmail(userRequestDto.getEmail())
+                    .userPw(encodedPassword)  // 암호화된 비밀번호 설정
+                    .userName(userRequestDto.getName())
+                    .userGender(gender)
+                    .userAgeGroup(ageGroup)
+                    .role(role) // 기본 역할 설정
+                    .userStatus(status)  // 기본 사용자 상태 설정
+                    .preferredTags(tagService.createTags(userRequestDto.getPreferredTags())) // 태그 처리
+                    .build();
+
+
+            // 사용자 저장
+            userRepository.save(newUser);
+
+
+            // 프로필 생성 요청
+            ProfileCreateRequest profileCreateRequest = new ProfileCreateRequest();
+            profileCreateRequest.setUserNumber(newUser.getUserNumber());
+            profileService.createProfile(profileCreateRequest);
+
+            // 선호 태그 연결 로직
+            if (userRequestDto.getPreferredTags() != null && !userRequestDto.getPreferredTags().isEmpty()) {
+                List<UserTagPreference> tagPreferences = userRequestDto.getPreferredTags().stream().map(tagName -> {
+                    Tag tag = tagService.findByName(tagName); // 태그가 없으면 생성
+                    UserTagPreference userTagPreference = new UserTagPreference();
+                    userTagPreference.setUser(newUser);
+                    userTagPreference.setTag(tag);
+                    return userTagPreference;
+                }).collect(Collectors.toList());
+
+                // 선호 태그 저장
+                userTagPreferenceRepository.saveAll(tagPreferences);
+            }
+
+            // 역할을 리스트로 변환하여 JWT 생성 시 전달
+            List<String> roles = List.of(newUser.getRole().name());  // ENUM을 String으로 변환하여 List로 만들기
+
+
+            // JWT 발급
+            long tokenExpirationTime = 3600000; // 토큰 만료 시간 추가(1시간)
+            String token = jwtProvider.createToken(newUser.getEmail(), newUser.getUserNumber(), roles, tokenExpirationTime);
+
+            // 응답 데이터에 userId와 accessToken 포함
+            Map<String, Object> response = new HashMap<>();
+            response.put("userNumber", newUser.getUserNumber());
+            response.put("email", newUser.getUserEmail());
+            response.put("accessToken", token);
+
+            return response;
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid age group provided.");
+            log.error("회원가입 중 오류 발생: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        } catch (Exception e) {
+            log.error("회원가입 중 알 수 없는 오류 발생: ", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류로 인해 회원가입에 실패했습니다.");
         }
-
-        // 기본 상태를 ABLE로 설정 (회원 상태 ENUM 사용)
-        UserStatus status = UserStatus.ABLE;
-
-        UserRole role = UserRole.USER;
-
-
-        // Users 객체에 암호화된 비밀번호 설정
-        Users newUser = Users.builder()
-                .userEmail(userRequestDto.getEmail())
-                .userPw(encodedPassword)  // 암호화된 비밀번호 설정
-                .userName(userRequestDto.getName())
-                .userGender(gender)
-                .userAgeGroup(ageGroup)
-                .role(role) // 기본 역할 설정
-                .userStatus(status)  // 기본 사용자 상태 설정
-                .preferredTags(tagService.createTags(userRequestDto.getPreferredTags())) // 태그 처리
-                .build();
-
-
-        // 사용자 저장
-        userRepository.save(newUser);
-
-
-        // 프로필 생성 요청
-        ProfileCreateRequest profileCreateRequest = new ProfileCreateRequest();
-        profileCreateRequest.setUserNumber(newUser.getUserNumber());
-        profileService.createProfile(profileCreateRequest);
-
-        // 선호 태그 연결 로직
-        if (userRequestDto.getPreferredTags() != null && !userRequestDto.getPreferredTags().isEmpty()) {
-            List<UserTagPreference> tagPreferences = userRequestDto.getPreferredTags().stream().map(tagName -> {
-                Tag tag = tagService.findByName(tagName); // 태그가 없으면 생성
-                UserTagPreference userTagPreference = new UserTagPreference();
-                userTagPreference.setUser(newUser);
-                userTagPreference.setTag(tag);
-                return userTagPreference;
-            }).collect(Collectors.toList());
-
-            // 선호 태그 저장
-            userTagPreferenceRepository.saveAll(tagPreferences);
-        }
-
-        // 역할을 리스트로 변환하여 JWT 생성 시 전달
-        List<String> roles = List.of(newUser.getRole().name());  // ENUM을 String으로 변환하여 List로 만들기
-
-
-        // JWT 발급
-        long tokenExpirationTime = 3600000; // 토큰 만료 시간 추가(1시간)
-        String token = jwtProvider.createToken(newUser.getEmail(), newUser.getUserNumber(), roles, tokenExpirationTime);
-
-        // 응답 데이터에 userId와 accessToken 포함
-        Map<String, Object> response = new HashMap<>();
-        response.put("userNumber", newUser.getUserNumber());
-        response.put("email", newUser.getUserEmail());
-        response.put("accessToken", token);
-
-        return response;
     }
 
     // 관리자 생성 메서드
