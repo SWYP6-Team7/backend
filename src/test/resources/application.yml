@@ -20,6 +20,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  slack:
+    webhook: ""
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration

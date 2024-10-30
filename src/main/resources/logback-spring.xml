@@ -1,0 +1,30 @@
+<configuration>
+    <!-- Slack 웹훅 URL 설정 -->
+    <springProperty scope="context" name="slackUrl" source="spring.slack.webhook"/>
+
+    <!-- Console 로깅 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Slack 알림을 위한 CustomAppender, ERROR 레벨로 제한 -->
+    <appender name="SLACK" class="swyp.swyp6_team7.global.slack.SlackAppender">
+        <url>${slackUrl}</url>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>  <!-- ERROR 레벨 이상만 필터링 -->
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>{"text": "Error occurred: %msg"}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root 로거 설정: Console과 Slack에만 ERROR 레벨 이상의 로그 전송 -->
+    <root level="ERROR">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SLACK"/>
+    </root>
+</configuration>
