@@ -49,23 +49,29 @@ public class SocialLoginService {
     }
     // 새로운 사용자를 저장하거나 기존 사용자 반환
     private Users processUser(Map<String, String> userInfo){
-        Optional<Users> existingUserOpt = userRepository.findByUserEmail(userInfo.get("email"));
-        Users user;
-        if (existingUserOpt.isPresent()) {
-            user = existingUserOpt.get();
-        } else {
-            // 새로운 유저 생성
-            user = createUserFromInfo(userInfo);
-            user = userRepository.save(user);  // 저장 후 반환
+        String socialLoginId = userInfo.get("socialNumber");
+
+        Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(socialLoginId);
+        if (existingSocialUser.isPresent()) {
+            return existingSocialUser.get().getUser();
         }
+
+        Users user = createUserFromInfo(userInfo);
+        user = userRepository.save(user);
+
+        saveSocialUser(userInfo, user);
+
         return user;
     }
     // SocialUsers 엔티티에 소셜 사용자 정보 저장
     private void saveSocialUser(Map<String, String> userInfo, Users user) {
-        Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(userInfo.get("socialNumber"));
+        String socialLoginId = userInfo.get("socialNumber");
+
+        // 소셜 고유 ID로 중복 확인하여 없을 때만 저장
+        Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(socialLoginId);
         if (existingSocialUser.isEmpty()) {
             SocialUsers socialUser = SocialUsers.builder()
-                    .socialLoginId(userInfo.get("socialNumber"))
+                    .socialLoginId(socialLoginId)
                     .socialEmail(userInfo.get("email"))
                     .user(user)
                     .socialProvider(SocialProvider.fromString(userInfo.get("provider")))
