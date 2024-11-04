@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.enrollment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ class EnrollmentControllerTest {
 
     @BeforeEach
     void setSecurityContext() {
-        userRepository.deleteAll();
+        //userRepository.deleteAll();
         user = userRepository.save(Users.builder()
                 .userEmail("abc@test.com")
                 .userPw("1234")
@@ -104,13 +105,20 @@ class EnrollmentControllerTest {
         context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
     }
 
-    @BeforeEach
-    void setUp(){
-        enrollmentRepository.deleteAll();
-        travelRepository.deleteAll();
-        locationRepository.deleteAll();
-    }
+//    @BeforeEach
+//    void setUp(){
+//        enrollmentRepository.deleteAll();
+//        travelRepository.deleteAll();
+//        locationRepository.deleteAll();
+//    }
 
+    @AfterEach
+    void tearDown() {
+        enrollmentRepository.deleteAllInBatch();
+        travelRepository.deleteAllInBatch();
+        locationRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+    }
 
     @DisplayName("create: 사용자는 여행 신청을 생성할 수 있다")
     @Test

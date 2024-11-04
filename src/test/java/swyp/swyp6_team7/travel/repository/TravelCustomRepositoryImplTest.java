@@ -117,10 +117,16 @@ class TravelCustomRepositoryImplTest {
                 .status(EnrollmentStatus.ACCEPTED)
                 .build());
     }
+
     @AfterEach
     void tearDown() {
         // 데이터 삭제
-        locationRepository.deleteAll();
+        travelTagRepository.deleteAllInBatch();
+        travelRepository.deleteAllInBatch();
+        tagRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        enrollmentRepository.deleteAllInBatch();
+        locationRepository.deleteAllInBatch();
     }
 
     @DisplayName("getDetailsByNumber: 여행콘텐츠 식별자로 디테일 정보를 가져온다")
@@ -128,7 +134,7 @@ class TravelCustomRepositoryImplTest {
     public void getDetailsByNumber() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -172,7 +178,7 @@ class TravelCustomRepositoryImplTest {
     public void findAllSortedByCreatedAt() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -211,7 +217,7 @@ class TravelCustomRepositoryImplTest {
         // given
         travelRepository.deleteAll();
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -233,7 +239,7 @@ class TravelCustomRepositoryImplTest {
         // given
         //travelRepository.deleteAll();
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -318,7 +324,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithKeyword() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -352,7 +358,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithKeywordThroughTitleAndLocation() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("영국"+System.currentTimeMillis())
+                .locationName("영국" + System.currentTimeMillis())
                 .locationType(LocationType.INTERNATIONAL)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -360,12 +366,12 @@ class TravelCustomRepositoryImplTest {
                 .title("추가 테스트 데이터")
                 .userNumber(1)
                 .viewCount(0)
-                .locationName("영국"+System.currentTimeMillis())
+                .locationName("영국" + System.currentTimeMillis())
                 .periodType(PeriodType.NONE)
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel2 = travelRepository.save(Travel.builder()
                 .title("영국 테스트 데이터")
@@ -396,7 +402,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithoutKeyword() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -430,7 +436,7 @@ class TravelCustomRepositoryImplTest {
     public void searchOnlyActivated() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -475,7 +481,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithPaging() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -512,7 +518,7 @@ class TravelCustomRepositoryImplTest {
         // given
         Tag tag = tagRepository.save(Tag.of("테스트"));
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -554,7 +560,7 @@ class TravelCustomRepositoryImplTest {
         Tag tag2 = tagRepository.save(Tag.of("투어"));
         Tag tag3 = tagRepository.save(Tag.of("도시"));
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -581,7 +587,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         //tags: 한국, 투어
         travelTagRepository.save(TravelTag.of(travel2, tag1));
@@ -610,7 +616,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithGenderFilter() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -622,7 +628,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.WOMAN_ONLY)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel2 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터2")
@@ -632,7 +638,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.MIXED)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel3 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터3")
@@ -642,7 +648,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.MAN_ONLY)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         TravelSearchCondition condition = TravelSearchCondition.builder()
                 .pageRequest(PageRequest.of(0, 5))
@@ -663,7 +669,7 @@ class TravelCustomRepositoryImplTest {
     public void searchWithPeriodFilter() {
         // given
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -675,7 +681,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel2 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터2")
@@ -685,7 +691,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel3 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터3")
@@ -695,7 +701,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         TravelSearchCondition condition = TravelSearchCondition.builder()
                 .pageRequest(PageRequest.of(0, 5))
@@ -720,7 +726,7 @@ class TravelCustomRepositoryImplTest {
         // given
         travelRepository.deleteAll();
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+System.currentTimeMillis())
+                .locationName("Seoul" + System.currentTimeMillis())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -733,7 +739,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel2 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터2")
@@ -744,7 +750,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         Travel travel3 = travelRepository.save(Travel.builder()
                 .title("추가 테스트 데이터3")
@@ -755,7 +761,7 @@ class TravelCustomRepositoryImplTest {
                 .genderType(GenderType.NONE)
                 .createdAt(LocalDateTime.now())
                 .status(TravelStatus.IN_PROGRESS)
-                        .location(savedLocation)
+                .location(savedLocation)
                 .build());
         TravelSearchCondition condition = TravelSearchCondition.builder()
                 .pageRequest(PageRequest.of(0, 5))
@@ -848,8 +854,6 @@ class TravelCustomRepositoryImplTest {
         assertThat(bothResults.getContent().stream().map(TravelSearchDto::getTitle))
                 .containsExactlyInAnyOrder("국내 여행", "해외 여행");
     }*/
-
-
 
 
 //    @DisplayName("findEnrollmentsByUserNumber: 사용자의 신청한 여행 목록 조회")
