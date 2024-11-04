@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 
 @Service
+@Slf4j
 public class SocialLoginService {
     private final UserRepository userRepository;
     private final SocialUserRepository socialUserRepository;
@@ -30,82 +32,121 @@ public class SocialLoginService {
 
     @Transactional
     public Users handleSocialLogin(String socialLoginId, String email) {
-        // SocialUsers 테이블에서 사용자 정보 가져오기
-        Optional<SocialUsers> optionalSocialUser = socialUserRepository.findBySocialLoginIdAndSocialEmail(socialLoginId, email);
+        log.info("소셜 로그인 처리 시작: socialLoginId={}, email={}", socialLoginId, email);
 
-        if (optionalSocialUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found in the database with the given social_login_id and email.");
+        try {
+            Optional<SocialUsers> optionalSocialUser = socialUserRepository.findBySocialLoginIdAndSocialEmail(socialLoginId, email);
+
+            if (optionalSocialUser.isEmpty()) {
+                log.warn("소셜 로그인 실패 - 데이터베이스에서 사용자 찾을 수 없음: socialLoginId={}, email={}", socialLoginId, email);
+                throw new IllegalArgumentException("User not found in the database with the given social_login_id and email.");
+            }
+
+            SocialUsers socialUser = optionalSocialUser.get();
+            log.info("소셜 로그인 성공: userNumber={}", socialUser.getUser().getUserNumber());
+            return socialUser.getUser();
+        } catch (Exception e) {
+            log.error("소셜 로그인 처리 중 오류 발생: socialLoginId={}, email={}", socialLoginId, email, e);
+            throw e;
         }
-
-        SocialUsers socialUser = optionalSocialUser.get();
-        return socialUser.getUser();  // 연결된 Users 정보 반환
     }
 
     private SocialLoginProvider getProvider(String provider) {
+        log.info("소셜 로그인 제공자 검색 시작: provider={}", provider);
+
         return socialLoginProviders.stream()
-                .filter(p -> p.supports(provider))  // 각 제공자 클래스에서 provider를 지원하는지 체크
+                .filter(p -> p.supports(provider))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported provider: " + provider));
+                .orElseThrow(() -> {
+                    log.warn("지원되지 않는 소셜 제공자: provider={}", provider);
+                    return new IllegalArgumentException("Unsupported provider: " + provider);
+                });
     }
     // 새로운 사용자를 저장하거나 기존 사용자 반환
     private Users processUser(Map<String, String> userInfo){
-        Optional<Users> existingUserOpt = userRepository.findByUserEmail(userInfo.get("email"));
-        Users user;
-        if (existingUserOpt.isPresent()) {
-            user = existingUserOpt.get();
-        } else {
-            // 새로운 유저 생성
-            user = createUserFromInfo(userInfo);
-            user = userRepository.save(user);  // 저장 후 반환
+        String email = userInfo.get("email");
+        log.info("사용자 처리 시작: email={}", email);
+
+        try {
+            Optional<Users> existingUserOpt = userRepository.findByUserEmail(email);
+            Users user;
+            if (existingUserOpt.isPresent()) {
+                user = existingUserOpt.get();
+                log.info("기존 사용자 발견: email={}", email);
+            } else {
+                user = createUserFromInfo(userInfo);
+                user = userRepository.save(user);
+                log.info("새 사용자 저장 성공: email={}", email);
+            }
+            return user;
+        } catch (Exception e) {
+            log.error("사용자 처리 중 오류 발생: email={}", email, e);
+            throw new RuntimeException("Failed to process user", e);
         }
-        return user;
     }
     // SocialUsers 엔티티에 소셜 사용자 정보 저장
     private void saveSocialUser(Map<String, String> userInfo, Users user) {
-        Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(userInfo.get("socialNumber"));
-        if (existingSocialUser.isEmpty()) {
-            SocialUsers socialUser = SocialUsers.builder()
-                    .socialLoginId(userInfo.get("socialNumber"))
-                    .socialEmail(userInfo.get("email"))
-                    .user(user)
-                    .socialProvider(SocialProvider.fromString(userInfo.get("provider")))
-                    .build();
+        String socialLoginId = userInfo.get("socialNumber");
+        log.info("소셜 사용자 정보 저장 시작: socialLoginId={}", socialLoginId);
 
-            socialUserRepository.save(socialUser);
+        try {
+            Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(socialLoginId);
+            if (existingSocialUser.isEmpty()) {
+                SocialUsers socialUser = SocialUsers.builder()
+                        .socialLoginId(socialLoginId)
+                        .socialEmail(userInfo.get("email"))
+                        .user(user)
+                        .socialProvider(SocialProvider.fromString(userInfo.get("provider")))
+                        .build();
+
+                socialUserRepository.save(socialUser);
+                log.info("소셜 사용자 정보 저장 성공: socialLoginId={}", socialLoginId);
+            }
+        } catch (Exception e) {
+            log.error("소셜 사용자 정보 저장 중 오류 발생: socialLoginId={}", socialLoginId, e);
+            throw new RuntimeException("Failed to save social user information", e);
         }
     }
     // 새로운 Users 엔티티 생성
     private Users createUserFromInfo(Map<String, String> userInfo) {
-        Users user = Users.builder()
-                .userEmail(userInfo.get("email"))
-                .userName(userInfo.get("name") != null ? userInfo.get("name") : "Unknown")
-                .userPw("social-login")  // 소셜 로그인 사용자는 패스워드 불필요
-                .userStatus(UserStatus.ABLE)
-                .userSocialTF(true)  // 소셜 로그인 여부 설정
-                .userRegDate(LocalDateTime.now())
-                .build();
+        log.info("새 사용자 생성 시작: email={}", userInfo.get("email"));
 
-        // 성별 처리 부분 추가
-        String gender = userInfo.get("gender");
-        if (gender != null) {
-            try {
-                user.setUserGender(Gender.valueOf(gender.toUpperCase()));  // 'M' 또는 'F'를 ENUM으로 변환
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("유효하지 않은 성별 값입니다: " + gender);  // 잘못된 값 처리
+        try {
+            Users user = Users.builder()
+                    .userEmail(userInfo.get("email"))
+                    .userName(userInfo.getOrDefault("name", "Unknown"))
+                    .userPw("social-login")
+                    .userStatus(UserStatus.ABLE)
+                    .userSocialTF(true)
+                    .userRegDate(LocalDateTime.now())
+                    .build();
+
+            String gender = userInfo.get("gender");
+            if (gender != null) {
+                try {
+                    user.setUserGender(Gender.valueOf(gender.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    log.warn("유효하지 않은 성별 값: gender={}", gender, e);
+                    throw new IllegalArgumentException("유효하지 않은 성별 값입니다: " + gender);
+                }
+            } else {
+                log.warn("성별 값이 없음");
+                throw new IllegalArgumentException("성별 값이 없습니다.");
             }
-        } else {
-            throw new IllegalArgumentException("성별 값이 없습니다.");  // 성별이 없으면 예외 처리
-        }
 
-        // 연령대 처리 (age 값에서 AgeGroup으로 변환)
-        String ageGroup = userInfo.get("ageGroup");
-        if (ageGroup != null) {
-            user.setUserAgeGroup(convertToAgeGroup(ageGroup));  // 연령대 변환 메서드 사용
-        } else {
-            throw new IllegalArgumentException("연령대 값이 없습니다.");
-        }
+            String ageGroup = userInfo.get("ageGroup");
+            if (ageGroup != null) {
+                user.setUserAgeGroup(convertToAgeGroup(ageGroup));
+            } else {
+                log.warn("연령대 값이 없음");
+                throw new IllegalArgumentException("연령대 값이 없습니다.");
+            }
 
-        return user;
+            return user;
+        } catch (Exception e) {
+            log.error("사용자 생성 중 오류 발생: email={}", userInfo.get("email"), e);
+            throw new RuntimeException("Failed to create user", e);
+        }
     }
     private AgeGroup convertToAgeGroup(String ageRange) {
         if (ageRange.startsWith("10")) {
