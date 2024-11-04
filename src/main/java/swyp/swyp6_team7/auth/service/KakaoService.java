@@ -43,7 +43,7 @@ public class KakaoService {
 
     @Transactional
     public Map<String, String> processKakaoLogin(String code) {
-        log.info("Kakao 로그인 처리 시작: code={}", code);
+        log.info("Kakao 사용자 정보 수집 및 저장 시작: code={}", code);
 
         try {
             Map<String, String> userInfo = kakaoProvider.getUserInfoFromKakao(code);
@@ -56,10 +56,10 @@ public class KakaoService {
             response.put("userStatus", user.getUserStatus().toString());
             response.put("socialLoginId", userInfo.get("socialLoginId"));
 
-            log.info("Kakao 로그인 처리 성공: userNumber={}", user.getUserNumber());
+            log.info("Kakao 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
             return response;
         } catch (Exception e) {
-            log.error("Kakao 로그인 처리 중 오류 발생", e);
+            log.error("Kakao 사용자 정보 수집 중 오류 발생", e);
             throw new RuntimeException("Failed to process Kakao login", e);
         }
 
@@ -124,7 +124,10 @@ public class KakaoService {
         log.info("소셜 사용자 저장 시작: email={}, socialLoginId={}", email, socialLoginId);
 
         try {
-            Users user = userRepository.findByUserEmail(email).orElseGet(() -> {
+            Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(socialLoginId);
+            if (existingSocialUser.isPresent()) {
+                return existingSocialUser.get().getUser();
+            } else {
                 Users newUser = new Users();
                 newUser.setUserEmail(email);
                 newUser.setUserName(nickname != null ? nickname : "Unknown");
@@ -134,20 +137,20 @@ public class KakaoService {
                 newUser.setUserSocialTF(true);
                 newUser.setUserStatus(UserStatus.PENDING);
                 log.info("새로운 소셜 사용자 생성: email={}", email);
-                return userRepository.save(newUser);
-            });
+                newUser = userRepository.save(newUser);
 
-            if (!socialUserRepository.existsBySocialLoginId(socialLoginId)) {
-                SocialUsers socialUser = new SocialUsers();
-                socialUser.setUser(user);
-                socialUser.setSocialLoginId(socialLoginId);
-                socialUser.setSocialEmail(email);
-                socialUser.setSocialProvider(SocialProvider.KAKAO);
-                socialUserRepository.save(socialUser);
-                log.info("SocialUsers 테이블에 소셜 사용자 정보 저장 완료: socialLoginId={}", socialLoginId);
+                if (!socialUserRepository.existsBySocialLoginId(socialLoginId)) {
+                    SocialUsers socialUser = new SocialUsers();
+                    socialUser.setUser(newUser);
+                    socialUser.setSocialLoginId(socialLoginId);
+                    socialUser.setSocialEmail(email);
+                    socialUser.setSocialProvider(SocialProvider.KAKAO);
+                    socialUserRepository.save(socialUser);
+                    log.info("SocialUsers 테이블에 소셜 사용자 정보 저장 완료: socialLoginId={}", socialLoginId);
+                }
+
+                return newUser;
             }
-
-            return user;
         } catch (Exception e) {
             log.error("소셜 사용자 저장 중 오류 발생", e);
             throw new RuntimeException("Failed to save social user", e);

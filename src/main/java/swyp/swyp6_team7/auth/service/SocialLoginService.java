@@ -64,6 +64,7 @@ public class SocialLoginService {
     }
     // 새로운 사용자를 저장하거나 기존 사용자 반환
     private Users processUser(Map<String, String> userInfo){
+
         String email = userInfo.get("email");
         log.info("사용자 처리 시작: email={}", email);
 
@@ -83,11 +84,14 @@ public class SocialLoginService {
             log.error("사용자 처리 중 오류 발생: email={}", email, e);
             throw new RuntimeException("Failed to process user", e);
         }
+
     }
     // SocialUsers 엔티티에 소셜 사용자 정보 저장
     private void saveSocialUser(Map<String, String> userInfo, Users user) {
         String socialLoginId = userInfo.get("socialNumber");
+
         log.info("소셜 사용자 정보 저장 시작: socialLoginId={}", socialLoginId);
+
 
         try {
             Optional<SocialUsers> existingSocialUser = socialUserRepository.findBySocialLoginId(socialLoginId);

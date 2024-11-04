@@ -10,6 +10,7 @@ import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,11 +49,11 @@ public class NaverService {
         }
     }
     public Map<String, String> processNaverLogin(String code, String state) {
-        log.info("Naver 로그인 처리 시작: code={}, state={}", code, state);
+        log.info("Naver 사용자 정보 수집 및 저장 시작: code={}, state={}", code, state);
 
         try {
             Map<String, String> userInfo = naverProvider.getUserInfoFromNaver(code, state);
-            saveSocialUser(
+            Users user = saveSocialUser(
                     userInfo.get("email"),
                     userInfo.get("name"),
                     userInfo.get("gender"),
@@ -61,8 +62,18 @@ public class NaverService {
                     userInfo.get("provider")
             );
 
-            log.info("Naver 로그인 처리 성공: userInfo={}", userInfo);
-            return userInfo;
+            Map<String, String> response = new HashMap<>();
+            response.put("userNumber", user.getUserNumber().toString());
+            response.put("name", user.getUserName());
+            response.put("email", user.getUserEmail());
+            response.put("gender", user.getUserGender().toString());
+            response.put("ageGroup",user.getUserAgeGroup().toString());
+            response.put("userStatus", user.getUserStatus().toString());
+            response.put("socialLoginId", userInfo.get("socialID"));
+            response.put("provider",userInfo.get("provider"));
+
+            log.info("Naver 사용자 정보 수집 및 저장 완료: userInfo={}", userInfo);
+            return response;
         } catch (Exception e) {
             log.error("Naver 로그인 처리 중 오류 발생: code={}, state={}", code, state, e);
             throw new RuntimeException("Failed to process Naver login", e);
@@ -71,7 +82,7 @@ public class NaverService {
 
     // Users와 SocialUsers에 저장하는 메서드
     @Transactional
-    private void saveSocialUser(String email, String name, String gender, String socialLoginId, String ageGroup, String provider) {
+    private Users saveSocialUser(String email, String name, String gender, String socialLoginId, String ageGroup, String provider) {
         log.info("소셜 사용자 저장 시작: email={}, socialLoginId={}", email, socialLoginId);
 
         try {
@@ -108,6 +119,7 @@ public class NaverService {
                 socialUserRepository.save(socialUser);
                 log.info("소셜 사용자 정보 저장 성공: socialLoginId={}", socialLoginId);
             }
+            return user;
         } catch (Exception e) {
             log.error("소셜 사용자 저장 중 오류 발생: email={}, socialLoginId={}", email, socialLoginId, e);
             throw new RuntimeException("Failed to save social user", e);
