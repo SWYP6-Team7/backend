@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.auth.service;
+package swyp.swyp6_team7.auth.details;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

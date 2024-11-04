@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.auth.service.CustomUserDetails;
+import swyp.swyp6_team7.auth.details.CustomUserDetails;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
