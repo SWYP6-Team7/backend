@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.auth.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class GoogleProvider implements SocialLoginProvider {
     @Value("${google.client-id}")
     private String clientId;
@@ -39,39 +41,45 @@ public class GoogleProvider implements SocialLoginProvider {
 
 
     public Map<String, String> getUserInfoFromGoogle(String code) {
-        // Access Token 가져오기
-        String accessToken = getAccessToken(code);
+        log.info("Google 사용자 정보 요청: code={}", code);
 
-        // 사용자 정보 요청
-        String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
+        try {
+            String accessToken = getAccessToken(code);
+            log.info("Google Access Token 획득 성공");
 
-        HttpEntity<String> request = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+            String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            try {
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
 
                 String socialLoginId = String.valueOf(result.get("sub")); // Google 고유 ID
                 String email = (String) result.get("email");
                 String name = (String) result.get("name");
 
+                log.info("Google 사용자 정보 파싱 성공: socialLoginId={}, email={}, name={}", socialLoginId, email, name);
                 return Map.of(
                         "socialLoginId", socialLoginId,
                         "email", email,
                         "name", name
                 );
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to parse user info from google", e);
+            } else {
+                log.warn("Google 사용자 정보 요청 실패: status={}", response.getStatusCode());
+                throw new RuntimeException("Failed to get user info from Google");
             }
-        } else {
-            throw new RuntimeException("Failed to get user info from google");
+        } catch (Exception e) {
+            log.error("Google 사용자 정보 파싱 중 오류 발생", e);
+            throw new RuntimeException("Failed to parse user info from Google", e);
         }
     }
 
     private String getAccessToken(String code) {
+        log.info("Google Access Token 요청: code={}",code);
+
         String tokenUrl = "https://oauth2.googleapis.com/token";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -90,12 +98,16 @@ public class GoogleProvider implements SocialLoginProvider {
         if (response.getStatusCode() == HttpStatus.OK) {
             try {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
-                return (String) result.get("access_token");
+                String accessToken = (String) result.get("access_token");
+                log.info("Google Access Token 파싱 성공");
+                return accessToken;
             } catch (Exception e) {
+                log.error("Google Access Token 파싱 중 오류 발생", e);
                 throw new RuntimeException("Failed to parse access token", e);
             }
         } else {
-            throw new RuntimeException("Failed to get access token");
+            log.warn("Google Access Token 요청 실패: status={}", response.getStatusCode());
+            throw new RuntimeException("Failed to get access token from Google");
         }
     }
 
