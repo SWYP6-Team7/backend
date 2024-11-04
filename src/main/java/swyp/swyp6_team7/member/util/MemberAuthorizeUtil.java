@@ -2,7 +2,7 @@ package swyp.swyp6_team7.member.util;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import swyp.swyp6_team7.auth.service.CustomUserDetails;
+import swyp.swyp6_team7.auth.details.CustomUserDetails;
 
 
 public class MemberAuthorizeUtil {
