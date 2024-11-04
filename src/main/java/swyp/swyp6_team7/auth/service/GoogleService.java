@@ -40,7 +40,7 @@ public class GoogleService {
 
     @Transactional
     public Map<String, String> processGoogleLogin(String code) {
-        log.info("Google 로그인 처리 시작: code={}", code);
+        log.info("Google 사용자 정보 수집 및 저장 시작: code={}", code);
         try {
             Map<String, String> userInfo = googleProvider.getUserInfoFromGoogle(code);
             Users user = saveSocialUser(userInfo);
@@ -52,10 +52,10 @@ public class GoogleService {
             response.put("userStatus", user.getUserStatus().toString());
             response.put("socialLoginId", userInfo.get("socialLoginId"));
 
-            log.info("Google 로그인 처리 성공: userNumber={}", user.getUserNumber());
+            log.info("Google 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
             return response;
         } catch (Exception e) {
-            log.error("Google 로그인 처리 중 오류 발생", e);
+            log.error("Google 사용자 정보 수집 중 오류 발생", e);
             throw new RuntimeException("Failed to process Google login", e);
         }
     }

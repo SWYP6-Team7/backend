@@ -43,7 +43,7 @@ public class KakaoService {
 
     @Transactional
     public Map<String, String> processKakaoLogin(String code) {
-        log.info("Kakao 로그인 처리 시작: code={}", code);
+        log.info("Kakao 사용자 정보 수집 및 저장 시작: code={}", code);
 
         try {
             Map<String, String> userInfo = kakaoProvider.getUserInfoFromKakao(code);
@@ -56,10 +56,10 @@ public class KakaoService {
             response.put("userStatus", user.getUserStatus().toString());
             response.put("socialLoginId", userInfo.get("socialLoginId"));
 
-            log.info("Kakao 로그인 처리 성공: userNumber={}", user.getUserNumber());
+            log.info("Kakao 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
             return response;
         } catch (Exception e) {
-            log.error("Kakao 로그인 처리 중 오류 발생", e);
+            log.error("Kakao 사용자 정보 수집 중 오류 발생", e);
             throw new RuntimeException("Failed to process Kakao login", e);
         }
 
