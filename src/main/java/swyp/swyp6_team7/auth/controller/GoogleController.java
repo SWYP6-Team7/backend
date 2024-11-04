@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.auth.controller;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@Slf4j
 public class GoogleController {
 
     private final GoogleService googleService;
@@ -33,19 +35,24 @@ public class GoogleController {
     // 구글 로그인 리디렉션
     @GetMapping("/login/oauth/google")
     public ResponseEntity<Void> googleLoginRedirect(HttpSession session) {
-        String state = UUID.randomUUID().toString(); // CSRF 방지용 state 값 생성
-        session.setAttribute("oauth_state", state);  // 세션에 state 값 저장
+        try {
+            String state = UUID.randomUUID().toString();  // CSRF 방지용 state 값 생성
+            session.setAttribute("oauth_state", state);   // 세션에 state 값 저장
+            String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + clientId
+                    + "&response_type=code"
+                    + "&scope=email%20profile"  // 이메일과 프로필 정보 요청
+                    + "&redirect_uri=" + redirectUri
+                    + "&state=" + state;
 
-        String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + clientId
-                + "&response_type=code"
-                + "&scope=email%20profile"  // 이메일과 프로필 정보 요청
-                + "&redirect_uri=" + redirectUri
-                + "&state=" + state;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create(googleAuthUrl));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(googleAuthUrl));
-
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+            log.info("Google 로그인 리디렉션 성공: state={}", state);
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        } catch (Exception e) {
+            log.error("Google 로그인 리디렉션 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // google 인증 후, 리다이렉트된 URI에서 코드를 처리
@@ -58,15 +65,17 @@ public class GoogleController {
         // 세션에서 저장한 state 값 가져오기
         String sessionState = (String) session.getAttribute("oauth_state");
         if (sessionState != null && !sessionState.equals(state)) {
+            log.warn("유효하지 않은 state 매개변수: sessionState={}, receivedState={}", sessionState, state);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid state parameter");
         }
 
         // Google 인증 코드로 로그인 처리
         try {
             Map<String, String> userInfo = googleService.processGoogleLogin(code);
+            log.info("Google 로그인 처리 성공: userInfo={}", userInfo);
             return ResponseEntity.ok(userInfo);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Google 로그인 처리 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Failed to process Google login: " + e.getMessage());
         }
@@ -75,8 +84,14 @@ public class GoogleController {
     }
     @PutMapping("/api/social/google/complete-signup")
     public ResponseEntity<Map<String, String>> completeGoogleSignup(@RequestBody SignupRequestDto signupData) {
-        // 클라이언트로부터 받은 추가 정보를 저장
-        Map<String, String> result = googleService.completeSignup(signupData);
-        return ResponseEntity.ok(result);
+        try {
+            Map<String, String> result = googleService.completeSignup(signupData);
+            log.info("Google 회원가입 완료 정보 저장 성공: userNumber={}", result.get("userNumber"));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Google 회원가입 완료 정보 저장 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to complete Google signup"));
+        }
     }
 }
