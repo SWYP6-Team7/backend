@@ -3,7 +3,6 @@ package swyp.swyp6_team7.travel.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
@@ -16,7 +15,6 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
-import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
@@ -39,7 +37,6 @@ import java.util.List;
 public class TravelService {
 
     private final TravelTagService travelTagService;
-    private final MemberService memberService;
     private final CommentService commentService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -52,17 +49,9 @@ public class TravelService {
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
 
         // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
-        Location location = locationRepository.findByLocationName(request.getLocationName())
-                .orElseGet(() -> {
-                    Location newLocation = Location.builder()
-                            .locationName(request.getLocationName())
-                            .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
-                            .build();
-                    return locationRepository.save(newLocation);
-                });
+        Location location = getLocation(request.getLocationName());
 
         Travel savedTravel = travelRepository.save(request.toTravelEntity(loginUserNumber, location));
-        log.info("savedTravel = " + savedTravel.toString());
         List<String> tags = travelTagService.create(savedTravel, request.getTags()).stream()
                 .map(tag -> tag.getName())
                 .toList();
@@ -70,17 +59,33 @@ public class TravelService {
         return savedTravel;
     }
 
-    public TravelDetailResponse getDetailsByNumber(int travelNumber) {
+    private Location getLocation(String locationName) {
+        Location location = locationRepository.findByLocationName(locationName)
+                .orElseGet(() -> {
+                    Location newLocation = Location.builder()
+                            .locationName(locationName)
+                            .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
+                            .build();
+                    log.info("Location 생성 - locationName: {}", newLocation.getLocationName());
+                    return locationRepository.save(newLocation);
+                });
+        return location;
+    }
+
+    public TravelDetailResponse getDetailsByNumber(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("travel not found: " + travelNumber));
+                .orElseThrow(() -> new IllegalArgumentException("Travel not found: " + travelNumber));
 
         if (travel.getStatus() == TravelStatus.DRAFT) {
-            authorizeTravelOwner(travel);
+            if (travel.getUserNumber() != requestUserNumber) {
+                log.warn("DRAFT 상태의 여행 조회 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
+                throw new IllegalArgumentException("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
+            }
         } else if (travel.getStatus() == TravelStatus.DELETED) {
-            throw new IllegalArgumentException("Deleted Travel.");
+            log.warn("Deleted 상태의 여행 콘텐츠는 상세 조회할 수 없습니다 - travelNumber: {}", travelNumber);
+            throw new IllegalArgumentException("Deleted 상태의 여행 콘텐츠입니다.");
         }
 
-        Integer requestUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         TravelDetailDto travelDetail = travelRepository.getDetailsByNumber(travelNumber, requestUserNumber);
 
         //주최자 프로필 이미지(만약 못찾을 경우 default 이미지 url)
@@ -93,6 +98,7 @@ public class TravelService {
         //bookmark 개수
         int bookmarkCount = bookmarkRepository.countByTravelNumber(travelNumber);
 
+        // TravelDetailResponse 생성
         TravelDetailResponse detailResponse = new TravelDetailResponse(travelDetail, hostProfileImageUrl, enrollmentCount, bookmarkCount);
 
         //로그인 요청자 주최 여부, 신청 확인
@@ -101,7 +107,6 @@ public class TravelService {
         } else {
             Enrollment enrollmented = enrollmentRepository
                     .findOneByUserNumberAndTravelNumber(requestUserNumber, travelNumber);
-            //log.info("enrollmented = " + enrollmented);
             detailResponse.setEnrollmentNumber(enrollmented);
         }
 
@@ -114,32 +119,33 @@ public class TravelService {
     }
 
     @Transactional
-    public void update(int travelNumber, TravelUpdateRequest travelUpdate) {
+    public Travel update(int travelNumber, TravelUpdateRequest request, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
                 .orElseThrow(() -> new IllegalArgumentException("travel not found: " + travelNumber));
 
-        authorizeTravelOwner(travel);
+        if (travel.getUserNumber() != requestUserNumber) {
+            log.warn("여행 수정 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
+            throw new IllegalArgumentException("여행 수정 권한이 없습니다.");
+        }
 
         // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
-        Location location = locationRepository.findByLocationName(travelUpdate.getLocationName())
-                .orElseGet(() -> {
-                    Location newLocation = Location.builder()
-                            .locationName(travelUpdate.getLocationName())
-                            .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
-                            .build();
-                    return locationRepository.save(newLocation);
-                });
+        Location location = getLocation(request.getLocationName());
 
-        Travel updatedTravel = travel.update(travelUpdate, location);
-        List<String> updatedTags = travelTagService.update(updatedTravel, travelUpdate.getTags());
+        Travel updatedTravel = travel.update(request, location);
+        //List<String> updatedTags = travelTagService.update(updatedTravel, request.getTags());
+        travelTagService.update(updatedTravel, request.getTags());
+        return updatedTravel;
     }
 
     @Transactional
-    public void delete(int travelNumber) {
+    public void delete(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
                 .orElseThrow(() -> new IllegalArgumentException("travel not found: " + travelNumber));
 
-        authorizeTravelOwner(travel);
+        if (travel.getUserNumber() != requestUserNumber) {
+            log.warn("여행 삭제 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
+            throw new IllegalArgumentException("여행 삭제 권한이 없습니다.");
+        }
 
         //댓글 삭제
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber("travel", travel.getNumber());
@@ -148,16 +154,7 @@ public class TravelService {
         }
 
         travel.delete();
-
-
-    }
-
-    private void authorizeTravelOwner(Travel travel) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        int userNumber = memberService.findByEmail(userName).getUserNumber();
-        if (travel.getUserNumber() != userNumber) {
-            throw new IllegalArgumentException("Forbidden Travel");
-        }
+        travelRepository.save(travel);
     }
 
 

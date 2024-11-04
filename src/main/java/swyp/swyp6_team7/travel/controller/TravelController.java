@@ -38,14 +38,17 @@ public class TravelController {
         logger.info("Travel 생성 완료 - createdTravel: {}", createdTravel);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(travelService.getDetailsByNumber(createdTravel.getNumber()));
+                .body(travelService.getDetailsByNumber(createdTravel.getNumber(), loginUserNumber));
     }
 
     @GetMapping("/api/travel/detail/{travelNumber}")
     public ResponseEntity<TravelDetailResponse> getDetailsByNumber(
             @PathVariable("travelNumber") int travelNumber
     ) {
-        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber);
+        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Travel 상세 조회 요청 - userId: {}", loginUserNumber);
+
+        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber, loginUserNumber);
         travelService.addViewCount(travelNumber); //조회수 update
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -57,14 +60,22 @@ public class TravelController {
             @PathVariable("travelNumber") int travelNumber,
             @RequestBody TravelUpdateRequest request
     ) {
-        travelService.update(travelNumber, request);
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Travel 수정 요청 - userId: {}", loginUserNumber);
+
+        Travel updatedTravel = travelService.update(travelNumber, request, loginUserNumber);
+        logger.info("Travel 수정 완료 - updatedTravel: {}", updatedTravel);
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(travelService.getDetailsByNumber(travelNumber));
+                .body(travelService.getDetailsByNumber(travelNumber, loginUserNumber));
     }
 
     @DeleteMapping("/api/travel/{travelNumber}")
     public ResponseEntity delete(@PathVariable("travelNumber") int travelNumber) {
-        travelService.delete(travelNumber);
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Travel 삭제 요청 - userId: {}", loginUserNumber);
+
+        travelService.delete(travelNumber, loginUserNumber);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -92,6 +103,7 @@ public class TravelController {
                 .tags(selectedTags)
                 .sortingType(selectedSortingType)
                 .build();
+        log.info("Travel 조회 요청 - search condition: {}", condition.toString());
 
         Page<TravelSearchDto> travels = travelService.search(condition);
         return ResponseEntity.status(HttpStatus.OK)
