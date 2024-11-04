@@ -2,12 +2,15 @@ package swyp.swyp6_team7.travel.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
@@ -16,7 +19,6 @@ import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.service.TravelService;
 
-import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -24,13 +26,17 @@ import java.util.List;
 @RestController
 public class TravelController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TravelController.class);
     private final TravelService travelService;
 
     @PostMapping("/api/travel")
-    public ResponseEntity<TravelDetailResponse> create(
-            @RequestBody @Validated TravelCreateRequest request, Principal principal
-    ) {
-        Travel createdTravel = travelService.create(request, principal.getName());
+    public ResponseEntity<TravelDetailResponse> create(@RequestBody @Validated TravelCreateRequest request) {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Travel 생성 요청 - userId: {}", loginUserNumber);
+
+        Travel createdTravel = travelService.create(request, loginUserNumber);
+        logger.info("Travel 생성 완료 - createdTravel: {}", createdTravel);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(travelService.getDetailsByNumber(createdTravel.getNumber()));
     }

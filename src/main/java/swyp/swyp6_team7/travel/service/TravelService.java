@@ -16,7 +16,6 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.tag.service.TravelTagService;
@@ -39,20 +38,19 @@ import java.util.List;
 @Service
 public class TravelService {
 
+    private final TravelTagService travelTagService;
+    private final MemberService memberService;
+    private final CommentService commentService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
     private final ImageRepository imageRepository;
-    private final TravelTagService travelTagService;
-    private final MemberService memberService;
     private final LocationRepository locationRepository;
     private final CommentRepository commentRepository;
-    private final CommentService commentService;
 
     @Transactional
-    public Travel create(TravelCreateRequest request, String email) {
+    public Travel create(TravelCreateRequest request, int loginUserNumber) {
 
-        Users user = memberService.findByEmail(email);
         // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
         Location location = locationRepository.findByLocationName(request.getLocationName())
                 .orElseGet(() -> {
@@ -63,7 +61,8 @@ public class TravelService {
                     return locationRepository.save(newLocation);
                 });
 
-        Travel savedTravel = travelRepository.save(request.toTravelEntity(user.getUserNumber(), location));
+        Travel savedTravel = travelRepository.save(request.toTravelEntity(loginUserNumber, location));
+        log.info("savedTravel = " + savedTravel.toString());
         List<String> tags = travelTagService.create(savedTravel, request.getTags()).stream()
                 .map(tag -> tag.getName())
                 .toList();
