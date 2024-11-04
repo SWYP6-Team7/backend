@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,11 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
@@ -32,12 +29,11 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,33 +51,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TravelControllerTest {
 
     @Autowired
-    protected MockMvc mockMvc;
+    private MockMvc mockMvc;
+
     @Autowired
-    protected ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
+
     @Autowired
     private WebApplicationContext context;
+
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Autowired
     TravelRepository travelRepository;
+
     @Autowired
     UserRepository userRepository;
+
     @Autowired
     LocationRepository locationRepository;
 
     Users user;
 
-    @BeforeEach
-    void mockMvcSetup() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .build();
-        travelRepository.deleteAll();
-    }
 
     @BeforeEach
     void setSecurityContext() {
-        userRepository.deleteAll();
         user = userRepository.save(Users.builder()
                 .userNumber(1)
                 .userEmail("abc@test.com")
@@ -97,66 +91,62 @@ class TravelControllerTest {
         var userDetails = userDetailsService.loadUserByUsername(user.getUserEmail());
         SecurityContext context = SecurityContextHolder.getContext();
         context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-
-//        SecurityContext context = SecurityContextHolder.getContext();
-//        UsernamePasswordAuthenticationToken authenticationToken =
-//                new UsernamePasswordAuthenticationToken(user, user.getUserPw(), user.getAuthorities());
-//
-//        context.setAuthentication(new UsernamePasswordAuthenticationToken(user, user.getUserPw(), user.getAuthorities()));
     }
+
     @AfterEach
     void tearDown() {
-        // 데이터 삭제
-        travelRepository.deleteAll();
-        locationRepository.deleteAll();
+        travelRepository.deleteAllInBatch();
+        locationRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다")
     @Test
     public void create() throws Exception {
         // given
-        locationRepository.deleteAll();
-        travelRepository.deleteAll();
-        String url = "/api/travel";
         Location travelLocation = Location.builder()
-                .locationName("Seoul")
+                .locationName("서울")
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
+
         TravelCreateRequest request = TravelCreateRequest.builder()
-                .title("Controller create")
+                .locationName("Seoul")
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType(GenderType.MIXED.toString())
+                .dueDate(LocalDate.of(2024, 11, 4))
+                .periodType(PeriodType.ONE_WEEK.toString())
+                .tags(List.of())
                 .completionStatus(true)
-                .locationName(savedLocation.getLocationName())
                 .build();
 
-
-        Principal principal = Mockito.mock(Principal.class);
-        Mockito.when(principal.getName()).thenReturn(user.getEmail());
-
         // when
-        ResultActions resultActions = mockMvc.perform(post(url)
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .principal(principal)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
-        resultActions.andExpect(status().isCreated());
-        List<Travel> travels = travelRepository.findAll();
-        assertThat(travels.size()).isEqualTo(1);
-        assertThat(travels.get(0).getTitle()).isEqualTo("Controller create");
-        assertThat(travels.get(0).getUserNumber()).isEqualTo(user.getUserNumber());
+        resultActions.andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userNumber").value(user.getUserNumber()))
+                .andExpect(jsonPath("$.location").value("Seoul"))
+                .andExpect(jsonPath("$.title").value("여행 제목"))
+                .andExpect(jsonPath("$.details").value("여행 내용"))
+                .andExpect(jsonPath("$.dueDate").value("2024-11-04"))
+                .andExpect(jsonPath("$.postStatus").value(TravelStatus.IN_PROGRESS.toString()));
     }
 
 
     @DisplayName("getDetailsByNumber: 여행 콘텐츠 단건 상세 정보 조회에 성공한다")
     @Test
-    @DirtiesContext
+    //@DirtiesContext
     public void getDetailsByNumber() throws Exception {
         // given
         String url = "/api/travel/detail/{travelNumber}";
         Travel savedTravel = createTravel(user.getUserNumber(), TravelStatus.IN_PROGRESS);
         Location travelLocation = Location.builder()
-                .locationName("Jeju-"+ UUID.randomUUID().toString())
+                .locationName("Jeju-" + UUID.randomUUID().toString())
                 .locationType(LocationType.DOMESTIC)
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
@@ -194,13 +184,13 @@ class TravelControllerTest {
 
     @DisplayName("getDetailsByNumber: Deleted 상태의 콘텐츠 단건 조회를 하면 예외가 발생")
     @Test
-    @DirtiesContext
+    //@DirtiesContext
     public void getDetailsByNumberDeletedException() throws Exception {
         // given
         String url = "/api/travel/detail/{travelNumber}";
         Travel savedTravel = createTravel(user.getUserNumber(), TravelStatus.DELETED);
         Location travelLocation = Location.builder()
-                .locationName("Seoul"+ UUID.randomUUID().toString())
+                .locationName("Seoul" + UUID.randomUUID().toString())
                 .locationType(LocationType.DOMESTIC)
                 .build();
 
@@ -220,7 +210,7 @@ class TravelControllerTest {
         Location savedLocation = locationRepository.save(travelLocation);
         return travelRepository.save(Travel.builder()
                 .title("Travel Controller")
-                        .location(travelLocation)
+                .location(travelLocation)
                 .userNumber(userNumber)
                 .genderType(GenderType.NONE)
                 .periodType(PeriodType.NONE)
