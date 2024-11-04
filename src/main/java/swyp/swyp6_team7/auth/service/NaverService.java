@@ -2,6 +2,7 @@ package swyp.swyp6_team7.auth.service;
 
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.auth.provider.NaverProvider;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class NaverService {
 
     private final NaverProvider naverProvider;
@@ -31,69 +33,84 @@ public class NaverService {
         String naverAuthUrl = "https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id="
                 + naverProvider.getClientId() + "&redirect_uri=" + naverProvider.getRedirectUri() + "&state=" + state;
 
+        log.info("Naver 로그인 URL 생성: {}", naverAuthUrl);
         return naverAuthUrl;
     }
 
     public Map<String, String> getUserInfoFromNaver(String code, String state) {
-        // NaverProvider에서 사용자 정보 가져오기
-        return naverProvider.getUserInfoFromNaver(code, state);
+        log.info("Naver 사용자 정보 요청: code={}, state={}", code, state);
+
+        try {
+            return naverProvider.getUserInfoFromNaver(code, state);
+        } catch (Exception e) {
+            log.error("Naver 사용자 정보 요청 중 오류 발생: code={}, state={}", code, state, e);
+            throw new RuntimeException("Failed to get user info from Naver", e);
+        }
     }
     public Map<String, String> processNaverLogin(String code, String state) {
-        // 1. NaverProvider에서 사용자 정보 가져오기
-        Map<String, String> userInfo = naverProvider.getUserInfoFromNaver(code, state);
+        log.info("Naver 로그인 처리 시작: code={}, state={}", code, state);
 
-        // 2. 사용자 정보가 성공적으로 받아졌다면 DB에 저장
-        saveSocialUser(
-                userInfo.get("email"),
-                userInfo.get("name"),
-                userInfo.get("gender"),
-                userInfo.get("socialID"),  // 네이버의 고유 소셜 ID
-                userInfo.get("ageGroup"),
-                userInfo.get("provider")
-        );
+        try {
+            Map<String, String> userInfo = naverProvider.getUserInfoFromNaver(code, state);
+            saveSocialUser(
+                    userInfo.get("email"),
+                    userInfo.get("name"),
+                    userInfo.get("gender"),
+                    userInfo.get("socialID"),
+                    userInfo.get("ageGroup"),
+                    userInfo.get("provider")
+            );
 
-        // 3. 필요한 추가 로직 처리 후 반환 (예: 토큰 생성, 사용자 세션 관리 등)
-        return userInfo;
+            log.info("Naver 로그인 처리 성공: userInfo={}", userInfo);
+            return userInfo;
+        } catch (Exception e) {
+            log.error("Naver 로그인 처리 중 오류 발생: code={}, state={}", code, state, e);
+            throw new RuntimeException("Failed to process Naver login", e);
+        }
     }
 
     // Users와 SocialUsers에 저장하는 메서드
     @Transactional
     private void saveSocialUser(String email, String name, String gender, String socialLoginId, String ageGroup, String provider) {
-        // 로그 추가
-        System.out.println("Saving user: " + email);
+        log.info("소셜 사용자 저장 시작: email={}, socialLoginId={}", email, socialLoginId);
 
-        // Users 테이블에서 해당 이메일로 사용자 찾기
-        Optional<Users> existingUser = userRepository.findByUserEmail(email);
+        try {
+            Optional<Users> existingUser = userRepository.findByUserEmail(email);
 
-        Users user;
-        if (existingUser.isPresent()) {
-            user = existingUser.get();  // 기존 사용자 정보
-        } else {
-            // 사용자 정보가 없으면 새로 생성
-            user = new Users();
-            user.setUserEmail(email);
-            user.setUserName(name);
-            user.setUserPw("social-login");
-            if (gender != null && !gender.isEmpty()) {
-                user.setUserGender(Gender.valueOf(gender));
-            }  // 성별 변환 처리
-            user.setUserAgeGroup(AgeGroup.fromValue(ageGroup));
-            user.setUserSocialTF(true);  // 소셜 로그인 여부 true
-            user.setUserStatus(UserStatus.ABLE);
-            user.setRole(UserRole.USER);
-            userRepository.save(user);
-            System.out.println("User saved: " + user.getUserEmail());
-        }
+            Users user;
+            if (existingUser.isPresent()) {
+                user = existingUser.get();
+                log.info("기존 사용자 발견: email={}", email);
+            } else {
+                user = new Users();
+                user.setUserEmail(email);
+                user.setUserName(name);
+                user.setUserPw("social-login");
+                if (gender != null && !gender.isEmpty()) {
+                    user.setUserGender(Gender.valueOf(gender.toUpperCase()));
+                }
+                user.setUserAgeGroup(AgeGroup.fromValue(ageGroup));
+                user.setUserSocialTF(true);
+                user.setUserStatus(UserStatus.ABLE);
+                user.setRole(UserRole.USER);
 
-        // SocialUsers 테이블에 소셜 정보 저장
-        if (!socialUserRepository.existsBySocialLoginId(socialLoginId)) {
-            SocialUsers socialUser = new SocialUsers();
-            socialUser.setUser(user);
-            socialUser.setSocialLoginId(socialLoginId);
-            socialUser.setSocialEmail(email);
-            socialUser.setSocialProvider(SocialProvider.fromString(provider));
-            socialUserRepository.save(socialUser);
-            System.out.println("Social user saved: " + socialLoginId);
+                user = userRepository.save(user);
+                log.info("새 사용자 저장 성공: email={}", email);
+            }
+
+            if (!socialUserRepository.existsBySocialLoginId(socialLoginId)) {
+                SocialUsers socialUser = new SocialUsers();
+                socialUser.setUser(user);
+                socialUser.setSocialLoginId(socialLoginId);
+                socialUser.setSocialEmail(email);
+                socialUser.setSocialProvider(SocialProvider.fromString(provider));
+
+                socialUserRepository.save(socialUser);
+                log.info("소셜 사용자 정보 저장 성공: socialLoginId={}", socialLoginId);
+            }
+        } catch (Exception e) {
+            log.error("소셜 사용자 저장 중 오류 발생: email={}, socialLoginId={}", email, socialLoginId, e);
+            throw new RuntimeException("Failed to save social user", e);
         }
 
     }

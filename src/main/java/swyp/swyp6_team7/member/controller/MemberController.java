@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,9 +16,14 @@ import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class MemberController {
+
     private final MemberService memberService;
     private final MemberDeletedService memberDeletedService;
     private final UserLoginHistoryService userLoginHistoryService;
@@ -35,45 +41,62 @@ public class MemberController {
 
     @PostMapping("/users/new")
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody UserRequestDto userRequestDto) {
+        log.info("회원 가입 요청: {}", userRequestDto.getEmail());
         // DTO 객체를 사용하여 회원 가입 처리
         try {
-            // 재가입 제한 검증 (탈퇴 후 3개월 이내 재가입 불가)
-            memberDeletedService.validateReRegistration(userRequestDto.getEmail());
             Map<String, Object> response = memberService.signUp(userRequestDto);
+            log.info("회원 가입 성공: {}", userRequestDto.getEmail());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            log.error("회원 가입 실패 - 중복된 이메일: {}",userRequestDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error",e.getMessage()));  // 409 Conflict 반환
         }
     }
     // 이메일 중복 확인 엔드포인트
     @GetMapping("/users-email")
     public ResponseEntity<String> checkEmailDuplicate(@RequestParam("email") String email) {
+        log.info("이메일 중복 확인 요청: {}",email);
         try {
-            memberService.checkEmailDuplicate(email);  // 이메일 중복 확인 서비스 호출
+            memberDeletedService.validateReRegistration(email);
+            memberService.checkEmailDuplicate(email);
+            log.info("이메일 사용 가능: {}",email);
             return ResponseEntity.ok("사용 가능한 이메일입니다.");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());  // 이미 사용 중인 이메일
+            if (e.getMessage().contains("3개월")) {
+                log.warn("재가입 제한: {} - 3개월 내에 재가입 불가", email);
+            } else {
+                log.warn("이메일 중복: {} - 이미 사용 중인 이메일", email);
+            }
+
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     // 관리자 회원 가입
     @PostMapping("/admins/new")
     public ResponseEntity<?> createAdmin(@RequestBody UserRequestDto userRequestDto){
+        log.info("관리자 회원 가입 요청: {}", userRequestDto.getEmail());
         memberService.createAdmin(userRequestDto);
+        log.info("관리자 회원 가입 성공: {}", userRequestDto.getEmail());
         return new ResponseEntity<>("Admin successfully registered", HttpStatus.CREATED);
     }
     // 회원 탈퇴
     @DeleteMapping("/user/delete")
     public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+        log.info("회원 탈퇴 요청");
         try {
             String jwtToken = token.replace("Bearer ", "");
             Integer userNumber = jwtProvider.getUserNumber(jwtToken);
+            log.info("회원 번호 추출 완료: {}", userNumber);
 
             // 회원 탈퇴 서비스 호출
             memberService.deleteUser(userNumber);
+            log.info("회원 탈퇴 성공: 회원 번호 {}",userNumber);
             return ResponseEntity.noContent().build(); // 204 No Content
         } catch (IllegalArgumentException e) {
+            log.error("회원 탈퇴 실패 - 회원을 찾을 수 없음");
             return ResponseEntity.notFound().build(); // 404 Not Found
         } catch (Exception e) {
+            log.error("회원 탈퇴 실패 - 서버 오류",e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // 500 Internal Server Error
         }
     }

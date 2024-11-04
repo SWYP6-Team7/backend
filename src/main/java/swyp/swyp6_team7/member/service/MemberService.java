@@ -2,6 +2,7 @@ package swyp.swyp6_team7.member.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,8 +40,8 @@ public class MemberService {
     private final TagService tagService;
     private final UserTagPreferenceRepository userTagPreferenceRepository;
 
-    private final String adminSecretKey = "tZ37HBGNyfUZVzgXGiv1OEBHvmgCyVB7";
-
+    @Value("${custom.admin-secret-key}")
+    private String adminSecretKey;
 
     @Autowired
     public MemberService(
@@ -63,12 +64,16 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public Users findByEmail(String email) {
+        log.info("이메일로 사용자 찾기 요청: email={}", email);
         return userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> {
+                    log.error("사용자를 찾을 수 없음: email={}", email);
+                    return new IllegalArgumentException("존재하지 않는 사용자입니다.");
+                });
     }
 
-
     public Map<String, Object> signUp(UserRequestDto userRequestDto) {
+        log.info("회원가입 요청: email={}", userRequestDto.getEmail());
         try {
             // 이메일 중복 체크
             if (userRepository.findByUserEmail(userRequestDto.getEmail()).isPresent()) {
@@ -89,35 +94,26 @@ public class MemberService {
             // 연령대 ENUM 변환 및 검증
             AgeGroup ageGroup;
             try {
-
                 ageGroup = AgeGroup.fromValue(userRequestDto.getAgegroup());
 
             } catch (IllegalArgumentException e) {
+                log.error("잘못된 연령대 값 제공: ageGroup={}", userRequestDto.getAgegroup(), e);
                 throw new IllegalArgumentException("Invalid age group provided.");
             }
-
-            // 기본 상태를 ABLE로 설정 (회원 상태 ENUM 사용)
-            UserStatus status = UserStatus.ABLE;
-
-            UserRole role = UserRole.USER;
-
 
             // Users 객체에 암호화된 비밀번호 설정
             Users newUser = Users.builder()
                     .userEmail(userRequestDto.getEmail())
-                    .userPw(encodedPassword)  // 암호화된 비밀번호 설정
+                    .userPw(encodedPassword)
                     .userName(userRequestDto.getName())
                     .userGender(gender)
                     .userAgeGroup(ageGroup)
-                    .role(role) // 기본 역할 설정
-                    .userStatus(status)  // 기본 사용자 상태 설정
+                    .role(UserRole.USER)
+                    .userStatus(UserStatus.ABLE)
                     .preferredTags(tagService.createTags(userRequestDto.getPreferredTags())) // 태그 처리
                     .build();
-
-
-            // 사용자 저장
             userRepository.save(newUser);
-
+            log.info("회원가입 성공: userNumber={}", newUser.getUserNumber());
 
             // 프로필 생성 요청
             ProfileCreateRequest profileCreateRequest = new ProfileCreateRequest();
@@ -138,13 +134,8 @@ public class MemberService {
                 userTagPreferenceRepository.saveAll(tagPreferences);
             }
 
-            // 역할을 리스트로 변환하여 JWT 생성 시 전달
-            List<String> roles = List.of(newUser.getRole().name());  // ENUM을 String으로 변환하여 List로 만들기
-
-
             // JWT 발급
-            long tokenExpirationTime = 3600000; // 토큰 만료 시간 추가(1시간)
-            String token = jwtProvider.createToken(newUser.getEmail(), newUser.getUserNumber(), roles, tokenExpirationTime);
+            String token = jwtProvider.createToken(newUser.getEmail(), newUser.getUserNumber(), List.of(newUser.getRole().name()), 3600000);
 
             // 응답 데이터에 userId와 accessToken 포함
             Map<String, Object> response = new HashMap<>();

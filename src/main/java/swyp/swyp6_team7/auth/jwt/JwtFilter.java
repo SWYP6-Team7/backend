@@ -12,14 +12,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import swyp.swyp6_team7.auth.service.CustomUserDetails;
+import swyp.swyp6_team7.auth.details.CustomUserDetails;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.io.IOException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {

@@ -1,19 +1,19 @@
 package swyp.swyp6_team7.auth.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import swyp.swyp6_team7.auth.dto.SocialUserDTO;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class KakaoProvider implements SocialLoginProvider {
 
     @Value("${kakao.client-id}")
@@ -40,19 +40,20 @@ public class KakaoProvider implements SocialLoginProvider {
 
 
     public Map<String, String> getUserInfoFromKakao(String code) {
-        // Access Token 가져오기
-        String accessToken = getAccessToken(code);
+        log.info("Kakao 사용자 정보 요청: code={}", code);
 
-        // 사용자 정보 요청
-        String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
+        try {
+            String accessToken = getAccessToken(code);
+            log.info("Kakao Access Token 획득 성공");
 
-        HttpEntity<String> request = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+            String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            try {
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
 
                 Map<String, Object> kakaoAccount = (Map<String, Object>) result.get("kakao_account");
@@ -61,19 +62,24 @@ public class KakaoProvider implements SocialLoginProvider {
                 String socialLoginId = String.valueOf(result.get("id"));
                 String nickname = (String) profile.get("nickname");
 
+                log.info("Kakao 사용자 정보 파싱 성공: socialLoginId={}, nickname={}", socialLoginId, nickname);
                 return Map.of(
                         "socialLoginId", socialLoginId,
                         "nickname", nickname
                 );
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to parse user info from Kakao", e);
+            } else {
+                log.warn("Kakao 사용자 정보 요청 실패: status={}", response.getStatusCode());
+                throw new RuntimeException("Failed to get user info from Kakao");
             }
-        } else {
-            throw new RuntimeException("Failed to get user info from Kakao");
+        } catch (Exception e) {
+            log.error("Kakao 사용자 정보 파싱 중 오류 발생", e);
+            throw new RuntimeException("Failed to parse user info from Kakao", e);
         }
     }
 
     private String getAccessToken(String code) {
+        log.info("Kakao Access Token 요청: code={}", code);
+
         String tokenUrl = "https://kauth.kakao.com/oauth/token";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -92,11 +98,15 @@ public class KakaoProvider implements SocialLoginProvider {
         if (response.getStatusCode() == HttpStatus.OK) {
             try {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
-                return (String) result.get("access_token");
+                String accessToken = (String) result.get("access_token");
+                log.info("Kakao Access Token 파싱 성공");
+                return accessToken;
             } catch (Exception e) {
-                throw new RuntimeException("Failed to parse access token", e);
+                log.error("Kakao Access Token 파싱 중 오류 발생", e);
+                throw new RuntimeException("Failed to parse access token from Kakao", e);
             }
         } else {
+            log.warn("Kakao Access Token 요청 실패: status={}", response.getStatusCode());
             throw new RuntimeException("Failed to get access token");
         }
     }

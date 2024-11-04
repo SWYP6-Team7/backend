@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.auth.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class NaverProvider implements SocialLoginProvider{
 
     @Value("${naver.client-id}")
@@ -47,19 +49,20 @@ public class NaverProvider implements SocialLoginProvider{
 
 
     public Map<String, String> getUserInfoFromNaver(String code, String state) {
-        // 1. Access Token 가져오기
-        String accessToken = getAccessToken(code, state);
+        log.info("Naver 사용자 정보 요청: code={}, state={}", code, state);
 
-        // 2. Access Token으로 사용자 정보 요청
-        String userInfoUrl = "https://openapi.naver.com/v1/nid/me";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
+        try {
+            String accessToken = getAccessToken(code, state);
+            log.info("Naver Access Token 획득 성공");
 
-        HttpEntity<String> request = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+            String userInfoUrl = "https://openapi.naver.com/v1/nid/me";
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            try {
+            HttpEntity<String> request = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
                 Map<String, Object> responseBody = (Map<String, Object>) result.get("response");
 
@@ -69,19 +72,24 @@ public class NaverProvider implements SocialLoginProvider{
                 userInfo.put("name", (String) responseBody.get("name"));
                 userInfo.put("gender", (String) responseBody.get("gender"));
                 userInfo.put("ageGroup", getAgeGroup((String) responseBody.get("age")));
-                userInfo.put("socialID", (String) responseBody.get("id")); // 네이버의 소셜 고유 ID
+                userInfo.put("socialID", (String) responseBody.get("id"));
                 userInfo.put("provider", "naver");
 
+                log.info("Naver 사용자 정보 파싱 성공: userInfo={}", userInfo);
                 return userInfo;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to parse user info from Naver", e);
+            } else {
+                log.warn("Naver 사용자 정보 요청 실패: status={}", response.getStatusCode());
+                throw new RuntimeException("Failed to get user info from Naver");
             }
-        } else {
-            throw new RuntimeException("Failed to get user info from Naver");
+        } catch (Exception e) {
+            log.error("Naver 사용자 정보 파싱 중 오류 발생", e);
+            throw new RuntimeException("Failed to parse user info from Naver", e);
         }
     }
 
     private String getAccessToken(String code, String state) {
+        log.info("Naver Access Token 요청: code={}, state={}", code, state);
+
         String tokenUrl = "https://nid.naver.com/oauth2.0/token";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -100,11 +108,15 @@ public class NaverProvider implements SocialLoginProvider{
         if (response.getStatusCode() == HttpStatus.OK) {
             try {
                 Map<String, Object> result = objectMapper.readValue(response.getBody(), Map.class);
-                return (String) result.get("access_token");
+                String accessToken = (String) result.get("access_token");
+                log.info("Naver Access Token 파싱 성공");
+                return accessToken;
             } catch (Exception e) {
-                throw new RuntimeException("Failed to parse access token", e);
+                log.error("Naver Access Token 파싱 중 오류 발생", e);
+                throw new RuntimeException("Failed to parse access token from Naver", e);
             }
         } else {
+            log.warn("Naver Access Token 요청 실패: status={}", response.getStatusCode());
             throw new RuntimeException("Failed to get access token");
         }
     }

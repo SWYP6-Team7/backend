@@ -2,8 +2,8 @@ package swyp.swyp6_team7.auth.controller;
 
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,14 +24,12 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-//@RequestMapping("/api")
+@Slf4j
 public class LoginController {
     private final LoginService loginService;
     private final UserLoginHistoryService userLoginHistoryService;
     private final MemberService memberService;
     private final UserRepository userRepository;
-
-    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     private final JwtProvider jwtProvider;
     private final JwtBlacklistService jwtBlacklistService;
@@ -54,13 +52,13 @@ public class LoginController {
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response) {
         if (loginRequestDto.getEmail() == null || loginRequestDto.getEmail().isEmpty() ||
                 loginRequestDto.getPassword() == null || loginRequestDto.getPassword().isEmpty()) {
-            logger.warn("이메일과 비밀번호가 입력되지 않았습니다.");
+            log.warn("이메일과 비밀번호가 입력되지 않았습니다.");
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "이메일과 비밀번호는 필수입니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // 400 Bad Request 반환
         }
         try {
-            logger.info("로그인 요청 - 이메일: {}", loginRequestDto.getEmail());
+            log.info("로그인 요청 - 이메일: {}", loginRequestDto.getEmail());
             Map<String, String> tokenMap = loginService.login(loginRequestDto);
             String accessToken = tokenMap.get("accessToken");
             String refreshToken = tokenMap.get("refreshToken");
@@ -97,21 +95,21 @@ public class LoginController {
             responseMap.put("userId", String.valueOf(user.getUserNumber()));
             responseMap.put("accessToken", accessToken);
 
-            logger.info("로그인 성공 - userId: {}", user.getUserNumber());
+            log.info("로그인 성공 - userId: {}", user.getUserNumber());
             return ResponseEntity.ok(responseMap); // Access Token 반환
 
         } catch (UsernameNotFoundException e) {
-            logger.error("로그인 실패 - Email Not Found: {}", loginRequestDto.getEmail(), e);
+            log.error("로그인 실패 - Email Not Found: {}", loginRequestDto.getEmail(), e);
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);  // 404 Not Found 반환
         } catch (BadCredentialsException e) {
-            logger.error("로그인 실패 - Unauthorized: {}", loginRequestDto.getEmail(), e);
+            log.error("로그인 실패 - Unauthorized: {}", loginRequestDto.getEmail(), e);
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse); // 401 Unauthorized 반환
         } catch (IllegalArgumentException e) {
-            logger.error("로그인 실패 - Bad Request", e);
+            log.error("로그인 실패 - Bad Request", e);
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);  // 400 Bad Request 반환
