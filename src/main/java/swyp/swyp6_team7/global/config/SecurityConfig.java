@@ -42,13 +42,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/notices/**").hasRole("ADMIN") // DELETE는 관리자만 가능
 
                         // 마이페이지 관련 권한 설정
-                        .requestMatchers("/api/profile/**").authenticated() // 마이페이지는 로그인한 사용자만 접근 가능
+                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers("/api/logout").authenticated()
 
                         // 기타 경로
                         .requestMatchers(
                                 "/api/admins/new",
                                 "/api/login",
-                                "/api/logout",
                                 "/api/users/new",
                                 "/api/token/refresh",
                                 "/api/social/login",
