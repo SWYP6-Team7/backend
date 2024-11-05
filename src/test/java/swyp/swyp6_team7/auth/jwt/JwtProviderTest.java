@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.auth.jwt;
 
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +12,9 @@ import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -128,5 +131,41 @@ class JwtProviderTest {
 
         // When & Then
         assertThrows(JwtException.class, () -> jwtProvider.refreshAccessToken(invalidRefreshToken));  // 잘못된 토큰으로 리프레시 요청 시 예외가 발생해야 함
+    }
+
+    @Test
+    void testRefreshAccessTokenAfterAccessTokenExpiration() throws InterruptedException {
+        // Given
+        String userEmail = "test@example.com";
+        Integer userNumber = 1;
+        List<String> roles = List.of("ROLE_USER");
+
+        // SecretKey 직접 생성
+        SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+        // 만료된 Access Token 생성 (현재보다 1초 이전으로 만료 시간 설정)
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() - 900000); // 현재 시간보다 1초 전
+        String expiredAccessToken = Jwts.builder()
+                .setSubject(userEmail)
+                .claim("userNumber", userNumber)
+                .claim("roles", roles)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+
+        String refreshToken = jwtProvider.createRefreshToken(userEmail, userNumber);
+
+        // 만료된 Access Token을 리프레시 토큰으로 재발급
+        assertFalse(jwtProvider.validateToken(expiredAccessToken));  // 만료된 토큰은 유효하지 않아야 함
+
+        // When: 만료된 Access Token을 Refresh Token으로 재발급 요청
+        String newAccessToken = jwtProvider.refreshAccessToken(refreshToken);
+
+        // Then
+        assertNotNull(newAccessToken);  // 새로운 Access Token이 생성되어야 함
+        assertTrue(jwtProvider.validateToken(newAccessToken));  // 새 Access Token이 유효해야 함
+        assertNotEquals(expiredAccessToken, newAccessToken);  // 새로 발급된 Access Token은 이전 것과 달라야 함
     }
 }
