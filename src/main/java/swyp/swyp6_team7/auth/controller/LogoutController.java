@@ -42,7 +42,6 @@ public class LogoutController {
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         log.info("로그아웃 요청 수신");
 
-
         // 현재 인증된 유저 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
@@ -93,17 +92,17 @@ public class LogoutController {
                 SecurityContextHolder.clearContext();
                 log.info("SecurityContext 인증 정보 제거 완료");
 
-
                 return ResponseEntity.ok("Logout successful");
             } else {
                 log.warn("인증된 사용자가 CustomUserDetails가 아님");
             }
         } else {
             log.warn("로그아웃 요청 시 인증 정보가 없음");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
         }
 
         log.error("로그아웃 실패 - 인증된 사용자가 없음");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No user is logged in");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
 
     }
 }
