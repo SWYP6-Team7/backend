@@ -31,6 +31,7 @@ import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -110,13 +111,14 @@ class TravelControllerTest {
                 .build();
         Location savedLocation = locationRepository.save(travelLocation);
 
+        LocalDate dueDate = LocalDate.now().plusDays(1);
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("Seoul")
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType(GenderType.MIXED.toString())
-                .dueDate(LocalDate.of(2024, 11, 4))
+                .dueDate(dueDate)
                 .periodType(PeriodType.ONE_WEEK.toString())
                 .tags(List.of())
                 .completionStatus(true)
@@ -133,7 +135,7 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.location").value("Seoul"))
                 .andExpect(jsonPath("$.title").value("여행 제목"))
                 .andExpect(jsonPath("$.details").value("여행 내용"))
-                .andExpect(jsonPath("$.dueDate").value("2024-11-04"))
+                .andExpect(jsonPath("$.dueDate").value(dueDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
                 .andExpect(jsonPath("$.postStatus").value(TravelStatus.IN_PROGRESS.toString()));
     }
 
