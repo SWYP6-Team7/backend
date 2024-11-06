@@ -82,6 +82,7 @@ class CompanionServiceTest {
         companionRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         travelRepository.deleteAllInBatch();
+        locationRepository.deleteAllInBatch();
     }
 
     @DisplayName("findCompanionInfo: 특정 여행의 companion 정보를 가져올 수 있다")

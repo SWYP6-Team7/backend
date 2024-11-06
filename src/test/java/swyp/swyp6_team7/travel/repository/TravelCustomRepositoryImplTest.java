@@ -124,9 +124,9 @@ class TravelCustomRepositoryImplTest {
         travelTagRepository.deleteAllInBatch();
         travelRepository.deleteAllInBatch();
         tagRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
         enrollmentRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
     }
 
     @DisplayName("getDetailsByNumber: 여행콘텐츠 식별자로 디테일 정보를 가져온다")
