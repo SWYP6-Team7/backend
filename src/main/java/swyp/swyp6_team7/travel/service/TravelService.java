@@ -14,6 +14,10 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
+import swyp.swyp6_team7.tag.domain.Tag;
+import swyp.swyp6_team7.tag.domain.TravelTag;
+import swyp.swyp6_team7.tag.repository.TravelTagRepository;
+import swyp.swyp6_team7.tag.service.TagService;
 import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
@@ -35,6 +39,7 @@ public class TravelService {
     private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
 
     private final TravelTagService travelTagService;
+    private final TagService tagService;
     private final CommentService commentService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -47,13 +52,19 @@ public class TravelService {
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
 
         Location location = getLocation(request.getLocationName());
+        List<Tag> tags = getTags(request.getTags());
 
-        Travel savedTravel = travelRepository.save(request.toTravelEntity(loginUserNumber, location));
-        List<String> tags = travelTagService.create(savedTravel, request.getTags()).stream()
-                .map(tag -> tag.getName())
+        Travel travel = Travel.create(loginUserNumber, location,
+                request.getTitle(), request.getDetails(), request.getMaxPerson(),
+                request.getGenderType(), request.getDueDate(), request.getPeriodType(), tags);
+
+        return travelRepository.save(travel);
+    }
+
+    private List<Tag> getTags(List<String> tagNames) {
+        return tagNames.stream()
+                .map(name -> tagService.findByName(name))
                 .toList();
-
-        return savedTravel;
     }
 
     private Location getLocation(String locationName) {
