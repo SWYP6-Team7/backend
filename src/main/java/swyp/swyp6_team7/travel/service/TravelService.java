@@ -36,6 +36,8 @@ import java.util.List;
 @Service
 public class TravelService {
 
+    private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
+
     private final TravelTagService travelTagService;
     private final CommentService commentService;
     private final TravelRepository travelRepository;
@@ -74,7 +76,7 @@ public class TravelService {
 
     public TravelDetailResponse getDetailsByNumber(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Travel not found: " + travelNumber));
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
 
         if (travel.getStatus() == TravelStatus.DRAFT) {
             if (travel.getUserNumber() != requestUserNumber) {
@@ -90,7 +92,7 @@ public class TravelService {
 
         //주최자 프로필 이미지(만약 못찾을 경우 default 이미지 url)
         String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
-                .orElse("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
+                .orElse(DEFAULT_PROFILE_IMAGE_URL);
 
         //enrollment 개수
         int enrollmentCount = enrollmentRepository.countByTravelNumber(travelNumber);
@@ -121,7 +123,7 @@ public class TravelService {
     @Transactional
     public Travel update(int travelNumber, TravelUpdateRequest request, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("travel not found: " + travelNumber));
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
 
         if (travel.getUserNumber() != requestUserNumber) {
             log.warn("여행 수정 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
@@ -140,7 +142,7 @@ public class TravelService {
     @Transactional
     public void delete(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("travel not found: " + travelNumber));
+                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
 
         if (travel.getUserNumber() != requestUserNumber) {
             log.warn("여행 삭제 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
