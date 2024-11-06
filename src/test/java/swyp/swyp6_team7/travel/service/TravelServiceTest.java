@@ -81,7 +81,7 @@ class TravelServiceTest {
                 .genderType(GenderType.MIXED.toString())
                 .dueDate(dueDate)
                 .periodType(PeriodType.ONE_WEEK.toString())
-                .tags(List.of())
+                .tags(List.of("쇼핑"))
                 .completionStatus(true)
                 .build();
 
@@ -101,7 +101,8 @@ class TravelServiceTest {
         assertThat(createdTravel.getPeriodType()).isEqualTo(PeriodType.ONE_WEEK);
         assertThat(createdTravel.getStatus()).isEqualTo(TravelStatus.IN_PROGRESS);
         assertThat(createdTravel.getEnrollmentsLastViewedAt()).isNull();
-        assertThat(createdTravel.getTravelTags()).isEmpty();
+        assertThat(createdTravel.getTravelTags()).hasSize(1);
+        assertThat(createdTravel.getTravelTags().get(0).getTag().getName()).isEqualTo("쇼핑");
         assertThat(createdTravel.getCompanions()).isEmpty();
         assertThat(createdTravel.getDeletedUser()).isNull();
     }
@@ -112,13 +113,14 @@ class TravelServiceTest {
         // given
         String defaultProfileUrl = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
         Users host = userRepository.save(createHostUser());
+        Integer requestUserNumber = host.getUserNumber() + 1;
 
         Location location = locationRepository.save(createLocation("Seoul"));
         LocalDate dueDate = LocalDate.of(2024, 11, 4);
         Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.IN_PROGRESS));
 
         // when
-        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(savedTravel.getNumber(), 2);
+        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
 
         // then
         assertThat(travelDetails.getTravelNumber()).isEqualTo(savedTravel.getNumber());
@@ -149,6 +151,7 @@ class TravelServiceTest {
     void getDetailsByNumberWhenDeletedStatus() {
         // given
         Users host = userRepository.save(createHostUser());
+        Integer requestUserNumber = host.getUserNumber() + 1;
 
         Location location = locationRepository.save(createLocation("Seoul"));
         LocalDate dueDate = LocalDate.of(2024, 11, 4);
@@ -156,7 +159,7 @@ class TravelServiceTest {
 
         // when // then
         assertThatThrownBy(() -> {
-            travelService.getDetailsByNumber(savedTravel.getNumber(), 2);
+            travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Deleted 상태의 여행 콘텐츠입니다.");
     }
@@ -166,6 +169,7 @@ class TravelServiceTest {
     void getDetailsByNumberWhenDraftStatus() {
         // given
         Users host = userRepository.save(createHostUser());
+        Integer requestUserNumber = host.getUserNumber() + 1;
 
         Location location = locationRepository.save(createLocation("Seoul"));
         LocalDate dueDate = LocalDate.of(2024, 11, 4);
@@ -173,7 +177,7 @@ class TravelServiceTest {
 
         // when // then
         assertThatThrownBy(() -> {
-            travelService.getDetailsByNumber(savedTravel.getNumber(), 2);
+            travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
     }
