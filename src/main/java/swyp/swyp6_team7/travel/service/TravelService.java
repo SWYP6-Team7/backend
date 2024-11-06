@@ -50,7 +50,6 @@ public class TravelService {
     @Transactional
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
 
-        // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
         Location location = getLocation(request.getLocationName());
 
         Travel savedTravel = travelRepository.save(request.toTravelEntity(loginUserNumber, location));
@@ -64,6 +63,7 @@ public class TravelService {
     private Location getLocation(String locationName) {
         Location location = locationRepository.findByLocationName(locationName)
                 .orElseGet(() -> {
+                    // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
                     Location newLocation = Location.builder()
                             .locationName(locationName)
                             .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
@@ -130,7 +130,6 @@ public class TravelService {
             throw new IllegalArgumentException("여행 수정 권한이 없습니다.");
         }
 
-        // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
         Location location = getLocation(request.getLocationName());
 
         Travel updatedTravel = travel.update(request, location);
@@ -149,16 +148,16 @@ public class TravelService {
             throw new IllegalArgumentException("여행 삭제 권한이 없습니다.");
         }
 
-        //댓글 삭제
+        deleteRelatedComments(travel); //댓글 삭제
+        travel.delete();
+    }
+
+    private void deleteRelatedComments(Travel travel) {
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber("travel", travel.getNumber());
         for (Comment comment : comments) {
             commentService.delete(comment.getCommentNumber(), travel.getUserNumber());
         }
-
-        travel.delete();
-        travelRepository.save(travel);
     }
-
 
     public Page<TravelSearchDto> search(TravelSearchCondition condition) {
         Integer requestUserNumber = MemberAuthorizeUtil.getLoginUserNumber();

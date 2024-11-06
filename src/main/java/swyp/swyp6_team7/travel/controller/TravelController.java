@@ -46,7 +46,7 @@ public class TravelController {
             @PathVariable("travelNumber") int travelNumber
     ) {
         Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        logger.info("Travel 상세 조회 요청 - userId: {}", loginUserNumber);
+        logger.info("Travel 상세 조회 요청 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
 
         TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber, loginUserNumber);
         travelService.addViewCount(travelNumber); //조회수 update
@@ -61,7 +61,7 @@ public class TravelController {
             @RequestBody TravelUpdateRequest request
     ) {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        logger.info("Travel 수정 요청 - userId: {}", loginUserNumber);
+        logger.info("Travel 수정 요청 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
 
         Travel updatedTravel = travelService.update(travelNumber, request, loginUserNumber);
         logger.info("Travel 수정 완료 - updatedTravel: {}", updatedTravel);
@@ -73,9 +73,11 @@ public class TravelController {
     @DeleteMapping("/api/travel/{travelNumber}")
     public ResponseEntity delete(@PathVariable("travelNumber") int travelNumber) {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        logger.info("Travel 삭제 요청 - userId: {}", loginUserNumber);
+        logger.info("Travel 삭제 요청 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
 
         travelService.delete(travelNumber, loginUserNumber);
+        logger.info("Travel 삭제 완료 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
