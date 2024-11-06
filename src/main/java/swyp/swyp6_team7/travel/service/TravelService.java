@@ -15,8 +15,6 @@ import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.tag.domain.Tag;
-import swyp.swyp6_team7.tag.domain.TravelTag;
-import swyp.swyp6_team7.tag.repository.TravelTagRepository;
 import swyp.swyp6_team7.tag.service.TagService;
 import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
