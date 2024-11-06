@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
@@ -51,6 +52,10 @@ class TravelServiceTest {
     @Autowired
     private TagRepository tagRepository;
 
+    @BeforeTestClass
+    void init() {
+        userRepository.deleteAll();
+    }
 
     @AfterEach
     void tearDown() {
@@ -117,7 +122,7 @@ class TravelServiceTest {
 
         // then
         assertThat(travelDetails.getTravelNumber()).isEqualTo(savedTravel.getNumber());
-        assertThat(travelDetails.getUserNumber()).isEqualTo(1);
+        assertThat(travelDetails.getUserNumber()).isEqualTo(host.getUserNumber());
         assertThat(travelDetails.getUserAgeGroup()).isEqualTo(AgeGroup.TEEN.getValue());
         assertThat(travelDetails.getUserName()).isEqualTo("주최자 이름");
         assertThat(travelDetails.getProfileUrl()).isEqualTo(defaultProfileUrl);
@@ -156,6 +161,23 @@ class TravelServiceTest {
                 .hasMessage("Deleted 상태의 여행 콘텐츠입니다.");
     }
 
+    @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Draft인 경우 작성자가 아니라면 예외가 발생한다.")
+    @Test
+    void getDetailsByNumberWhenDraftStatus() {
+        // given
+        Users host = userRepository.save(createHostUser());
+
+        Location location = locationRepository.save(createLocation("Seoul"));
+        LocalDate dueDate = LocalDate.of(2024, 11, 4);
+        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.DRAFT));
+
+        // when // then
+        assertThatThrownBy(() -> {
+            travelService.getDetailsByNumber(savedTravel.getNumber(), 2);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
+    }
+
     @DisplayName("update: 여행 콘텐츠를 수정할 수 있다.")
     @Transactional
     @Test
@@ -177,7 +199,6 @@ class TravelServiceTest {
                 .tags(List.of())
                 .completionStatus(true)
                 .build();
-
 
         // when
         Travel updatedTravel = travelService.update(savedTravel.getNumber(), request, 1);
