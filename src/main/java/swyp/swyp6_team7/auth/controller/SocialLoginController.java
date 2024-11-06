@@ -46,7 +46,7 @@ public class SocialLoginController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> handleSocialLogin(@RequestBody Map<String, String> loginRequest,
                                                                  HttpServletResponse response) {
-        String socialLoginId = loginRequest.get("socialLoginID");
+        String socialLoginId = loginRequest.get("socialLoginId");
         String email = loginRequest.get("email");
         log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
 
