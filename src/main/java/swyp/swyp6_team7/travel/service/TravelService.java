@@ -2,7 +2,6 @@ package swyp.swyp6_team7.travel.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
@@ -15,16 +14,13 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
-import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
-import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDateTime;
@@ -157,12 +153,6 @@ public class TravelService {
         for (Comment comment : comments) {
             commentService.delete(comment.getCommentNumber(), travel.getUserNumber());
         }
-    }
-
-    public Page<TravelSearchDto> search(TravelSearchCondition condition) {
-        Integer requestUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        Page<TravelSearchDto> result = travelRepository.search(condition, requestUserNumber);
-        return result;
     }
 
 

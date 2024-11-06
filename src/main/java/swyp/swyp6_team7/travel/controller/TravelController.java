@@ -4,22 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
-import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
-import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.service.TravelService;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -79,37 +73,6 @@ public class TravelController {
         logger.info("Travel 삭제 완료 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-
-    @GetMapping("/api/travels/search")
-    public ResponseEntity<Page<TravelSearchDto>> search(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "5") int size,
-            @RequestParam(name = "keyword", required = false) String keyword,
-            @RequestParam(name = "location", required = false) List<String> selectedLocation,
-            @RequestParam(name = "gender", required = false) List<String> selectedGender,
-            @RequestParam(name = "person", required = false) List<String> selectedPerson,
-            @RequestParam(name = "period", required = false) List<String> selectedPeriod,
-            @RequestParam(name = "tags", required = false) List<String> selectedTags,
-            @RequestParam(name = "sorting", required = false) String selectedSortingType
-    ) {
-
-        TravelSearchCondition condition = TravelSearchCondition.builder()
-                .pageRequest(PageRequest.of(page, size))
-                .keyword(keyword)
-                .locationTypes(selectedLocation)
-                .genderTypes(selectedGender)
-                .personTypes(selectedPerson)
-                .periodTypes(selectedPeriod)
-                .tags(selectedTags)
-                .sortingType(selectedSortingType)
-                .build();
-        log.info("Travel 조회 요청 - search condition: {}", condition.toString());
-
-        Page<TravelSearchDto> travels = travelService.search(condition);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(travels);
     }
 
 }
