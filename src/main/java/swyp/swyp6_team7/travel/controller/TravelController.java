@@ -29,7 +29,7 @@ public class TravelController {
         logger.info("Travel 생성 요청 - userId: {}", loginUserNumber);
 
         Travel createdTravel = travelService.create(request, loginUserNumber);
-        logger.info("Travel 생성 완료 - createdTravel: {}", createdTravel);
+        logger.info("Travel 생성 완료 - userId: {}, createdTravel: {}", loginUserNumber, createdTravel);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(travelService.getDetailsByNumber(createdTravel.getNumber(), loginUserNumber));
@@ -58,7 +58,7 @@ public class TravelController {
         logger.info("Travel 수정 요청 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
 
         Travel updatedTravel = travelService.update(travelNumber, request, loginUserNumber);
-        logger.info("Travel 수정 완료 - updatedTravel: {}", updatedTravel);
+        logger.info("Travel 수정 요청 - userId: {}, updatedTravel: {}", loginUserNumber, updatedTravel);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(travelService.getDetailsByNumber(travelNumber, loginUserNumber));

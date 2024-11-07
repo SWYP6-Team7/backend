@@ -10,12 +10,12 @@ import swyp.swyp6_team7.member.entity.DeletedUsers;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
-import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -131,7 +131,7 @@ public class Travel {
 
         return tags.stream()
                 .map(tag -> TravelTag.of(this, tag))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public static Travel create(
@@ -154,16 +154,21 @@ public class Travel {
                 .build();
     }
 
-    public Travel update(TravelUpdateRequest travelUpdate, Location travelLocation) {
-        this.location = travelLocation;
-        this.locationName = travelUpdate.getLocationName();
-        this.title = travelUpdate.getTitle();
-        this.details = travelUpdate.getDetails();
-        this.maxPerson = travelUpdate.getMaxPerson();
-        this.genderType = GenderType.of(travelUpdate.getGenderType());
-        this.dueDate = travelUpdate.getDueDate();
-        this.periodType = PeriodType.of(travelUpdate.getPeriodType());
-        this.status = TravelStatus.convertCompletionToStatus(travelUpdate.getCompletionStatus());
+    public Travel update(
+            Location location, String title, String details, int maxPerson,
+            String genderType, LocalDate dueDate, String periodType, Boolean status,
+            List<TravelTag> tags
+    ) {
+        this.location = location;
+        this.locationName = location.getLocationName();
+        this.title = title;
+        this.details = details;
+        this.maxPerson = maxPerson;
+        this.genderType = GenderType.of(genderType);
+        this.dueDate = dueDate;
+        this.periodType = PeriodType.of(periodType);
+        this.status = TravelStatus.convertCompletionToStatus(status);
+        this.travelTags = tags;
         return this;
     }
 

@@ -15,6 +15,7 @@ import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.tag.domain.Tag;
+import swyp.swyp6_team7.tag.domain.TravelTag;
 import swyp.swyp6_team7.tag.service.TagService;
 import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
@@ -34,6 +35,7 @@ import java.util.List;
 @Service
 public class TravelService {
 
+    public static final int TRAVEL_TAG_MAX_COUNT = 5;
     private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
 
     private final TravelTagService travelTagService;
@@ -61,6 +63,7 @@ public class TravelService {
 
     private List<Tag> getTags(List<String> tagNames) {
         return tagNames.stream()
+                .distinct().limit(TRAVEL_TAG_MAX_COUNT)
                 .map(name -> tagService.findByName(name))
                 .toList();
     }
@@ -137,9 +140,17 @@ public class TravelService {
 
         Location location = getLocation(request.getLocationName());
 
-        Travel updatedTravel = travel.update(request, location);
-        //List<String> updatedTags = travelTagService.update(updatedTravel, request.getTags());
-        travelTagService.update(updatedTravel, request.getTags());
+        List<String> requestTagsName = request.getTags().stream()
+                .distinct().limit(TRAVEL_TAG_MAX_COUNT)
+                .toList();
+        List<TravelTag> travelTags = travelTagService.update(travel, requestTagsName);
+
+        Travel updatedTravel = travel.update(
+                location, request.getTitle(), request.getDetails(), request.getMaxPerson(),
+                request.getGenderType(), request.getDueDate(), request.getPeriodType(), request.getCompletionStatus(),
+                travelTags
+        );
+
         return updatedTravel;
     }
 
