@@ -15,6 +15,7 @@ import swyp.swyp6_team7.member.entity.Gender;
 import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.repository.TagRepository;
 import swyp.swyp6_team7.tag.repository.TravelTagRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
@@ -139,7 +140,7 @@ class TravelServiceTest {
         assertThat(travelDetails.getGenderType()).isEqualTo(GenderType.MIXED.toString());
         assertThat(travelDetails.getDueDate()).isEqualTo(dueDate);
         assertThat(travelDetails.getPeriodType()).isEqualTo(PeriodType.ONE_WEEK.toString());
-        assertThat(travelDetails.getTags()).isEmpty();
+        assertThat(travelDetails.getTags()).hasSize(1);
         assertThat(travelDetails.getPostStatus()).isEqualTo(TravelStatus.IN_PROGRESS.toString());
         assertThat(travelDetails.isHostUserCheck()).isFalse();
         assertThat(travelDetails.getEnrollmentNumber()).isNull();
@@ -200,7 +201,7 @@ class TravelServiceTest {
                 .genderType(GenderType.WOMAN_ONLY.toString())
                 .dueDate(LocalDate.of(2024, 11, 5))
                 .periodType(PeriodType.MORE_THAN_MONTH.toString())
-                .tags(List.of())
+                .tags(List.of("쇼핑"))
                 .completionStatus(true)
                 .build();
 
@@ -218,7 +219,13 @@ class TravelServiceTest {
         assertThat(updatedTravel.getDueDate()).isEqualTo(LocalDate.of(2024, 11, 5));
         assertThat(updatedTravel.getPeriodType()).isEqualTo(PeriodType.MORE_THAN_MONTH);
         assertThat(updatedTravel.getStatus()).isEqualTo(TravelStatus.IN_PROGRESS);
-        assertThat(updatedTravel.getTravelTags()).isEmpty();
+        assertThat(updatedTravel.getTravelTags()).hasSize(1);
+        assertThat(updatedTravel.getTravelTags().get(0).getTag().getName()).isEqualTo("쇼핑");
+
+        assertThat(travelTagRepository.findAll()).hasSize(1);
+        assertThat(tagRepository.findAll()).hasSize(2)
+                .extracting("name")
+                .contains("자연", "쇼핑");
     }
 
     @DisplayName("update: 여행 콘텐츠를 수정할 때, 작성자가 아니라면 예외가 발생한다.")
@@ -304,6 +311,8 @@ class TravelServiceTest {
     }
 
     private Travel createTravel(int hostUserNumber, Location location, LocalDate dueDate, TravelStatus status) {
+        Tag tag1 = tagRepository.save(Tag.of("자연"));
+
         return Travel.builder()
                 .userNumber(hostUserNumber)
                 .location(location)
@@ -316,6 +325,7 @@ class TravelServiceTest {
                 .dueDate(dueDate)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
+                .tags(List.of(tag1))
                 .build();
     }
 
