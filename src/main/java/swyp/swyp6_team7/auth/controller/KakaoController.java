@@ -20,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @Slf4j
+@RequestMapping("/api")
 public class KakaoController {
 
     private final KakaoService kakaoService;
@@ -84,7 +85,7 @@ public class KakaoController {
 
 
     }
-    @PutMapping("/api/social/kakao/complete-signup")
+    @PutMapping("/social/kakao/complete-signup")
     public ResponseEntity<Map<String, String>> completeKakaoSignup(@RequestBody SignupRequestDto signupData) {
         try {
             Map<String, String> result = kakaoService.completeSignup(signupData);

@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @RestController
 @Slf4j
+@RequestMapping("/api")
 public class GoogleController {
 
     private final GoogleService googleService;
@@ -82,7 +83,7 @@ public class GoogleController {
 
 
     }
-    @PutMapping("/api/social/google/complete-signup")
+    @PutMapping("/social/google/complete-signup")
     public ResponseEntity<Map<String, String>> completeGoogleSignup(@RequestBody SignupRequestDto signupData) {
         try {
             Map<String, String> result = googleService.completeSignup(signupData);
