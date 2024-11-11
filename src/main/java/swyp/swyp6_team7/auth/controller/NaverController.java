@@ -38,7 +38,7 @@ public class NaverController {
 
     // 네이버 로그인 리다이렉트 URL
     @GetMapping("/login/oauth/naver")
-    public ResponseEntity<Void> naverLoginRedirect(HttpServletResponse response, HttpSession session) throws IOException {
+    public ResponseEntity<Map<String, String>> naverLoginRedirect(HttpServletResponse response, HttpSession session) throws IOException {
         try {
             String state = UUID.randomUUID().toString();  // CSRF 방지용 state 값 생성
             session.setAttribute("oauth_state", state);   // 세션에 state 값 저장
@@ -48,14 +48,13 @@ public class NaverController {
                     + "&redirect_uri=" + redirectUri
                     + "&state=" + state;
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create(naverAuthUrl));
 
             log.info("Naver 로그인 리디렉션 성공: state={}", state);
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+            return ResponseEntity.ok(Map.of("redirectUrl", naverAuthUrl));
         } catch (Exception e) {
             log.error("Naver 로그인 리디렉션 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create Naver login redirect URL"));
         }
     }
 
