@@ -50,9 +50,9 @@ public class TravelService {
     private final CommentService commentService;
 
     @Transactional
-    public Travel create(TravelCreateRequest request, String email) {
+    public Travel create(TravelCreateRequest request, Integer userNumber) {
 
-        Users user = memberService.findByEmail(email);
+        Users user = memberService.findByUserNumber(userNumber);
         // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
         Location location = locationRepository.findByLocationName(request.getLocationName())
                 .orElseGet(() -> {
@@ -154,8 +154,7 @@ public class TravelService {
     }
 
     private void authorizeTravelOwner(Travel travel) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        int userNumber = memberService.findByUserNumber(userName).getUserNumber();
+        int userNumber = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
         if (travel.getUserNumber() != userNumber) {
             throw new IllegalArgumentException("Forbidden Travel");
         }

@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
@@ -25,12 +27,17 @@ import java.util.List;
 public class TravelController {
 
     private final TravelService travelService;
+    private final MemberService memberService;
+    private final JwtProvider jwtProvider;
 
     @PostMapping("/api/travel")
     public ResponseEntity<TravelDetailResponse> create(
             @RequestBody @Validated TravelCreateRequest request, Principal principal
     ) {
-        Travel createdTravel = travelService.create(request, principal.getName());
+        Integer userNumber = memberService.findByUserNumber(
+                jwtProvider.getUserNumber(principal.getName())
+        ).getUserNumber();
+        Travel createdTravel = travelService.create(request, userNumber);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(travelService.getDetailsByNumber(createdTravel.getNumber()));
     }

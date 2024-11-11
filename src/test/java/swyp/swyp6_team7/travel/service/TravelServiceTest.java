@@ -79,7 +79,7 @@ class TravelServiceTest {
                 .build();
 
         // when
-        Travel createdTravel = travelService.create(request, "test@naver.com");
+        Travel createdTravel = travelService.create(request, , "test@naver.com");
 
         // then
         assertThat(createdTravel.getTitle()).isEqualTo(request.getTitle());

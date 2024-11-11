@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.image.dto.request.ImageCommunityRequestDto;
 import swyp.swyp6_team7.image.dto.request.ImageSaveRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
@@ -23,6 +24,7 @@ import java.security.Principal;
 public class ImageCommunityController {
     private final ImageCommunityService imageCommunityService;
     private final MemberService memberService;
+    private final JwtProvider jwtProvider;
 
     //이미지 임시 저장
     @PostMapping("/images/temp")
@@ -60,7 +62,7 @@ public class ImageCommunityController {
             @PathVariable int postNumber, @RequestBody ImageCommunityRequestDto request, Principal principal) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         ImageDetailResponseDto[] responses = imageCommunityService.updateCommunityImage(postNumber, request.getStatuses(), request.getUrls(), userNumber);
         return ResponseEntity.ok(responses);
@@ -71,7 +73,7 @@ public class ImageCommunityController {
     public ResponseEntity<Void> deleteImages(@PathVariable int postNumber, Principal principal) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         // 게시글 작성자와 같은 사람인지 확인 필요
 

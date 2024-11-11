@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityMyListResponseDto;
 import swyp.swyp6_team7.community.service.CommunityListService;
@@ -25,6 +26,7 @@ public class MyCommunitiesController {
 
     private final MemberService memberService;
     private final CommunityListService communityListService;
+    private final JwtProvider jwtProvider;
 
     @GetMapping("/my-communities")
     public ResponseEntity<Page<CommunityMyListResponseDto>> getMyList(
@@ -35,7 +37,7 @@ public class MyCommunitiesController {
             ) {
         
         //조회 중인 유저
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         Page<CommunityMyListResponseDto> result = communityListService.getMyCommunityList(PageRequest.of(page, size), sortingTypeName, userNumber);
 

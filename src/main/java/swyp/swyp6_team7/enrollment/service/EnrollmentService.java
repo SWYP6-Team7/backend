@@ -36,9 +36,9 @@ public class EnrollmentService {
 
 
     @Transactional
-    public void create(EnrollmentCreateRequest request, String email) {
+    public void create(EnrollmentCreateRequest request, Integer userNumber) {
 
-        Users user = memberService.findByEmail(email);
+        Users user = memberService.findByUserNumber(userNumber);
         Travel targetTravel = travelRepository.findByNumber(request.getTravelNumber())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다."));
 
@@ -113,16 +113,16 @@ public class EnrollmentService {
     }
 
     private void authorizeEnrollmentOwner(Enrollment enrollment) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = memberService.findByEmail(userName);
+        Integer userNumber = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
+        Users user = memberService.findByUserNumber(userNumber);
         if (enrollment.getUserNumber() != user.getUserNumber()) {
             throw new IllegalArgumentException("접근 권한이 없는 신청서입니다.");
         }
     }
 
     private void authorizeTravelHost(Travel targetTravel) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = memberService.findByEmail(userName);
+        Integer userNumber = Integer.parseInt(SecurityContextHolder.getContext().getAuthentication().getName());
+        Users user = memberService.findByUserNumber(userNumber);
         if (!targetTravel.isUserTravelHost(user)) {
             throw new IllegalArgumentException("여행 주최자의 권한이 필요한 작업입니다.");
         }
