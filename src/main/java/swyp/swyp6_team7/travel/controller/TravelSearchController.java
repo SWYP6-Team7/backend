@@ -23,8 +23,7 @@ import java.util.List;
 @RestController
 public class TravelSearchController {
 
-    private static final Logger logger = LoggerFactory.getLogger(TravelController.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(TravelSearchController.class);
     private final TravelSearchService travelSearchService;
 
     @GetMapping("/api/travels/search")
@@ -41,6 +40,7 @@ public class TravelSearchController {
     ) {
 
         Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+
         TravelSearchCondition condition = TravelSearchCondition.builder()
                 .pageRequest(PageRequest.of(page, size))
                 .keyword(keyword)
@@ -54,7 +54,7 @@ public class TravelSearchController {
         logger.info("Travel 조회 요청 - userId: {}, search condition: {}", loginUserNumber, condition.toString());
 
         Page<TravelSearchDto> travels = travelSearchService.search(condition, loginUserNumber);
-        logger.info("Travel 조회 완료 - ");
+        logger.info("Travel 조회 완료 - userId: {}, result: {}", loginUserNumber, travels.getPageable());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(travels);
