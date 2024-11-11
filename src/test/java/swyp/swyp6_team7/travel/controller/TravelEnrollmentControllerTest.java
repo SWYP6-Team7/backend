@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.travel.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,12 @@ class TravelEnrollmentControllerTest {
         );
     }
 
+    @AfterEach
+    void tearDown() {
+        enrollmentRepository.deleteAllInBatch();
+        travelRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+    }
 
     @DisplayName("findElements: 주최자는 특정 여행에 대한 참가 신청서 목록을 조회할 수 있다")
     @Test

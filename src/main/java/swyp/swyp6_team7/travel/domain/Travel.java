@@ -8,13 +8,14 @@ import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.member.entity.DeletedUsers;
 import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
-import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -86,7 +87,7 @@ public class Travel {
     @Column(name = "enrollments_last_viewed")
     private LocalDateTime enrollmentsLastViewedAt;
 
-    @OneToMany(mappedBy = "travel")
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelTag> travelTags = new ArrayList<>();
 
     @OneToMany(mappedBy = "travel", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -103,7 +104,7 @@ public class Travel {
             Location location, String locationName, String title, String details, int viewCount,
             int maxPerson, GenderType genderType, LocalDate dueDate,
             PeriodType periodType, TravelStatus status, LocalDateTime enrollmentsLastViewedAt,
-            DeletedUsers deletedUser
+            List<Tag> tags, DeletedUsers deletedUser
     ) {
         this.number = number;
         this.userNumber = userNumber;
@@ -119,19 +120,55 @@ public class Travel {
         this.periodType = periodType;
         this.status = status;
         this.enrollmentsLastViewedAt = enrollmentsLastViewedAt;
+        this.travelTags = createTravelTags(tags);
         this.deletedUser = deletedUser;
     }
 
-    public Travel update(TravelUpdateRequest travelUpdate, Location travelLocation) {
-        this.location = travelLocation;
-        this.locationName = travelUpdate.getLocationName();
-        this.title = travelUpdate.getTitle();
-        this.details = travelUpdate.getDetails();
-        this.maxPerson = travelUpdate.getMaxPerson();
-        this.genderType = GenderType.of(travelUpdate.getGenderType());
-        this.dueDate = travelUpdate.getDueDate();
-        this.periodType = PeriodType.of(travelUpdate.getPeriodType());
-        this.status = TravelStatus.convertCompletionToStatus(travelUpdate.getCompletionStatus());
+    private List<TravelTag> createTravelTags(List<Tag> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return tags.stream()
+                .map(tag -> TravelTag.of(this, tag))
+                .collect(Collectors.toList());
+    }
+
+    public static Travel create(
+            int userNumber, Location location, String title, String details, int maxPerson,
+            String genderType, LocalDate dueDate, String periodType, List<Tag> tags
+    ) {
+        return Travel.builder()
+                .userNumber(userNumber)
+                .location(location)
+                .locationName(location.getLocationName())
+                .title(title)
+                .details(details)
+                .viewCount(0)
+                .maxPerson(maxPerson)
+                .genderType(GenderType.of(genderType))
+                .dueDate(dueDate)
+                .periodType(PeriodType.of(periodType))
+                .status(TravelStatus.IN_PROGRESS)
+                .tags(tags)
+                .build();
+    }
+
+    public Travel update(
+            Location location, String title, String details, int maxPerson,
+            String genderType, LocalDate dueDate, String periodType, Boolean status,
+            List<TravelTag> tags
+    ) {
+        this.location = location;
+        this.locationName = location.getLocationName();
+        this.title = title;
+        this.details = details;
+        this.maxPerson = maxPerson;
+        this.genderType = GenderType.of(genderType);
+        this.dueDate = dueDate;
+        this.periodType = PeriodType.of(periodType);
+        this.status = TravelStatus.convertCompletionToStatus(status);
+        this.travelTags = tags;
         return this;
     }
 
@@ -182,6 +219,7 @@ public class Travel {
                 ", enrollmentsLastViewedAt=" + enrollmentsLastViewedAt +
                 '}';
     }
+
     public Long getLocationId() {
         return location != null ? location.getId() : null;
     }

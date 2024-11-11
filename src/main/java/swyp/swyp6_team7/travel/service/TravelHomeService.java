@@ -14,7 +14,6 @@ import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 import swyp.swyp6_team7.travel.util.TravelRecommendComparator;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,16 +27,14 @@ public class TravelHomeService {
     private final TravelRepository travelRepository;
     private final UserTagPreferenceRepository userTagPreferenceRepository;
 
-    public Page<TravelRecentDto> getTravelsSortedByCreatedAt(PageRequest pageRequest) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public Page<TravelRecentDto> getTravelsSortedByCreatedAt(PageRequest pageRequest, Integer loginUserNumber) {
         return travelRepository.findAllSortedByCreatedAt(pageRequest, loginUserNumber);
     }
 
-    public Page<TravelRecommendDto> getRecommendTravelsByUser(PageRequest pageRequest, Principal principal) {
+    public Page<TravelRecommendDto> getRecommendTravelsByUser(PageRequest pageRequest, Integer loginUserNumber) {
 
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         List<String> preferredTags = userTagPreferenceRepository.findPreferenceTagsByUserNumber(loginUserNumber);
-        //log.info("preferredTags: " + preferredTags);
+        log.info("TravelHomeService recommend - userId: {}, preferredTags: {}", loginUserNumber, preferredTags);
 
         Page<TravelRecommendDto> result = travelRepository.findAllByPreferredTags(pageRequest, loginUserNumber, preferredTags);
 
