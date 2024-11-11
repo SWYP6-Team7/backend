@@ -161,26 +161,6 @@ class TravelCustomRepositoryImplTest {
                         tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
                 );
     }
-//
-//    @DisplayName("findEnrollmentsByUserNumber: 사용자의 신청한 여행 목록 조회")
-//    @Test
-//    public void findEnrollmentsByUserNumber_ShouldReturnListOfEnrollments() {
-//        // given
-//        int userNumber = 1;
-//
-//        // when
-//        List<Tuple> results = enrollmentCustomRepository.findEnrollmentsByUserNumber(userNumber);
-//
-//        // then
-//        assertThat(results).isNotNull();
-//        assertThat(results.size()).isGreaterThan(0);
-//        Tuple tuple = results.get(0);
-//        assertThat(tuple.get(0, Long.class)).isNotNull(); // Enrollment number
-//        assertThat(tuple.get(1, Integer.class)).isNotNull(); // Travel number
-//
-//        System.out.println("Enrollment Number: " + tuple.get(0, Long.class));
-//        System.out.println("Travel Number: " + tuple.get(1, Integer.class));
-//    }
 
     @DisplayName("search: keyword가 포함된 여행을 가져올 수 있다.")
     @Test
