@@ -64,7 +64,7 @@ public class TokenControllerTest {
         when(jwtProvider.validateToken(validRefreshToken)).thenReturn(true);
         when(jwtProvider.getUserEmail(validRefreshToken)).thenReturn(userEmail);
         when(userRepository.findByUserEmail(userEmail)).thenReturn(Optional.of(user));
-        when(jwtProvider.createAccessToken(user.getUserEmail(), user.getUserNumber(), List.of(user.getRole().name())))
+        when(jwtProvider.createAccessToken(user.getUserNumber(), List.of(user.getRole().name())))
                 .thenReturn(newAccessToken);
         when(jwtBlacklistService.isTokenBlacklisted(validRefreshToken)).thenReturn(false);
 

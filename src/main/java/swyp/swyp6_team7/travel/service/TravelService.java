@@ -155,7 +155,7 @@ public class TravelService {
 
     private void authorizeTravelOwner(Travel travel) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        int userNumber = memberService.findByEmail(userName).getUserNumber();
+        int userNumber = memberService.findByUserNumber(userName).getUserNumber();
         if (travel.getUserNumber() != userNumber) {
             throw new IllegalArgumentException("Forbidden Travel");
         }

@@ -48,28 +48,28 @@ public class LogoutController {
             log.info("현재 인증된 사용자: {}", authentication.getPrincipal());
             if (authentication.getPrincipal() instanceof CustomUserDetails) {
                 CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-                log.info("로그아웃 요청 - 이메일: {}", customUserDetails.getUsername());
+                log.info("로그아웃 요청 - 사용자 번호: {}", customUserDetails.getUserNumber());
 
-                // 이메일로 Users 엔티티를 찾음
-                Users user = memberService.getUserByEmail(customUserDetails.getUsername());
-
-                // 로그아웃 이력 업데이트
-                log.debug("사용자 로그아웃 이력 업데이트 시작 - userId: {}", user.getUserNumber());
-                userLoginHistoryService.updateLogoutHistory(user);
-                memberService.updateLogoutDate(user);
-                log.info("로그아웃 이력 및 마지막 접속 시간 업데이트 완료 - userId: {}", user.getUserNumber());
-
-                // Access Token 추출 (Authorization 헤더에서 추출)
                 String authorizationHeader = request.getHeader("Authorization");
                 if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                     String accessToken = authorizationHeader.substring(7);  // "Bearer " 이후 토큰 부분 추출
 
                     // Access Token이 유효한지 검증
                     if (jwtProvider.validateToken(accessToken)) {
-                        // 토큰의 만료 시간을 추출
-                        long expirationTime = jwtProvider.getExpiration(accessToken);
+                        // 토큰에서 userNumber 추출
+                        Integer userNumber = jwtProvider.getUserNumber(accessToken);
+
+                        // userNumber로 Users 엔티티를 찾음
+                        Users user = memberService.findByUserNumber(userNumber);
+
+                        // 로그아웃 이력 업데이트
+                        log.debug("사용자 로그아웃 이력 업데이트 시작 - userId: {}", user.getUserNumber());
+                        userLoginHistoryService.updateLogoutHistory(user);
+                        memberService.updateLogoutDate(user);
+                        log.info("로그아웃 이력 및 마지막 접속 시간 업데이트 완료 - userId: {}", user.getUserNumber());
 
                         // 블랙리스트에 토큰 추가
+                        long expirationTime = jwtProvider.getExpiration(accessToken);
                         jwtBlacklistService.addToBlacklist(accessToken, expirationTime);
 
                         log.info("Access Token이 블랙리스트에 추가되었습니다.: {}", accessToken);

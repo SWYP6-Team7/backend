@@ -42,8 +42,7 @@ public class JwtBlacklistServiceTest {
     @Test
     public void testBlacklistAccessToken() {
         // JWT 생성
-        String email = "test@example.com";
-        String accessToken = jwtProvider.createAccessToken(email, 1, List.of("ROLE_USER"));
+        String accessToken = jwtProvider.createAccessToken(1, List.of("ROLE_USER"));
 
         // 블랙리스트에 등록된 토큰 설정
         Mockito.when(jwtBlacklistService.isTokenBlacklisted(accessToken)).thenReturn(true);
@@ -56,8 +55,7 @@ public class JwtBlacklistServiceTest {
     @Test
     public void testValidateToken_NotBlacklisted() {
         // 새로운 JWT 생성
-        String email = "test2@example.com";
-        String accessToken = jwtProvider.createAccessToken(email, 2, List.of("ROLE_USER"));
+        String accessToken = jwtProvider.createAccessToken(2, List.of("ROLE_USER"));
 
         // 블랙리스트에 등록되지 않았다고 가정
         Mockito.when(jwtBlacklistService.isTokenBlacklisted(accessToken)).thenReturn(false);
@@ -70,8 +68,7 @@ public class JwtBlacklistServiceTest {
     @Test
     public void testTokenValidation_AfterBlacklist() {
         // JWT 생성
-        String email = "test3@example.com";
-        String accessToken = jwtProvider.createAccessToken(email, 3, List.of("ROLE_USER"));
+        String accessToken = jwtProvider.createAccessToken(3, List.of("ROLE_USER"));
 
         // 블랙리스트에 등록된 토큰 설정
         Mockito.when(jwtBlacklistService.isTokenBlacklisted(accessToken)).thenReturn(true);

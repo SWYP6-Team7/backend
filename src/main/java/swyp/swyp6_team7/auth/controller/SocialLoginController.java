@@ -55,10 +55,9 @@ public class SocialLoginController {
 
             // JWT 토큰 생성
             String accessToken = jwtProvider.createAccessToken(
-                    user.getUserEmail(),
                     user.getUserNumber(),
                     List.of(user.getRole().name()));
-            String refreshToken = jwtProvider.createRefreshToken(user.getUserEmail(), user.getUserNumber());
+            String refreshToken = jwtProvider.createRefreshToken(user.getUserNumber());
             log.info("JWT 토큰 생성 완료: accessToken={}, refreshToken=****", accessToken);
 
             // 리프레시 토큰을 쿠키에 저장

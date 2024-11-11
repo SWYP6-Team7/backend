@@ -99,7 +99,7 @@ public class UserServiceTest {
         });
 
         // JWT 발급 시 반환할 값 설정
-        Mockito.when(jwtProvider.createToken(Mockito.anyString(), Mockito.anyInt(), Mockito.anyList(), Mockito.anyLong()))
+        Mockito.when(jwtProvider.createToken(Mockito.anyInt(), Mockito.anyList(), Mockito.anyLong()))
                 .thenReturn("jwt-token");
 
         // when
