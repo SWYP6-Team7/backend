@@ -37,7 +37,7 @@ public class KakaoController {
 
     // 카카오 로그인 리디렉션
     @GetMapping("/login/oauth/kakao")
-    public ResponseEntity<Void> kakaoLoginRedirect(HttpSession session) {
+    public ResponseEntity<Map<String, String>> kakaoLoginRedirect(HttpSession session) {
         try {
             String state = UUID.randomUUID().toString();  // CSRF 방지용 state 값 생성
             session.setAttribute("oauth_state", state);   // 세션에 state 값 저장
@@ -47,14 +47,12 @@ public class KakaoController {
                     + "&redirect_uri=" + redirectUri
                     + "&state=" + state;
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create(kakaoAuthUrl));
-
             log.info("Kakao 로그인 리디렉션 성공: state={}", state);
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+            return ResponseEntity.ok(Map.of("redirectUrl", kakaoAuthUrl));
         } catch (Exception e) {
             log.error("Kakao 로그인 리디렉션 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create Kakao login redirect URL"));
         }
     }
 
