@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.global.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -23,8 +25,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
     public ResponseEntity<String> bindException(BindException e) {
+        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+
+        log.warn("Request Valid Error - message: {}", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(e.getBindingResult().getAllErrors().get(0).getDefaultMessage());
+                .body(errorMessage);
     }
 
 }
