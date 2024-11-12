@@ -54,6 +54,15 @@ public class Enrollment {
         this.status = status;
     }
 
+    public static Enrollment create(int userNumber, int travelNumber, String message) {
+        return Enrollment.builder()
+                .userNumber(userNumber)
+                .travelNumber(travelNumber)
+                .message(message)
+                .status(EnrollmentStatus.PENDING)
+                .build();
+    }
+
     public void accepted() {
         this.status = EnrollmentStatus.ACCEPTED;
     }

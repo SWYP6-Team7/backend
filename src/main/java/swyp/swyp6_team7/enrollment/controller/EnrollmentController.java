@@ -1,27 +1,38 @@
 package swyp.swyp6_team7.enrollment.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
-import java.security.Principal;
+import java.time.LocalDate;
 
 @RequiredArgsConstructor
 @RestController
 public class EnrollmentController {
 
+    private static final Logger logger = LoggerFactory.getLogger(EnrollmentController.class);
     private final EnrollmentService enrollmentService;
 
 
     @PostMapping("/api/enrollment")
-    public ResponseEntity create(
-            @RequestBody @Validated EnrollmentCreateRequest request, Principal principal
-    ) {
-        enrollmentService.create(request, principal.getName());
+    public ResponseEntity create(@Valid @RequestBody EnrollmentCreateRequest request) {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Enrollment 생성 요청 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
+
+        try {
+            enrollmentService.create(request, loginUserNumber, LocalDate.now());
+        } catch (Exception e) {
+            logger.warn("Enrollment 생성 실패 - userId: {}, travelNumber: {}, message: {}", loginUserNumber, request.getTravelNumber(), e.getMessage());
+        }
+        logger.info("Enrollment 생성 완료 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("여행 참가 신청이 완료되었습니다.");
     }

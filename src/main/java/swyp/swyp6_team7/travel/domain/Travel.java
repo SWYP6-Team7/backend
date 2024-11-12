@@ -176,11 +176,11 @@ public class Travel {
         this.status = TravelStatus.DELETED;
     }
 
-    public boolean availableForEnroll() {
+    public boolean availableForEnroll(LocalDate checkDateTime) {
         if (this.status != TravelStatus.IN_PROGRESS) {
             return false;
         }
-        if (this.dueDate.isBefore(LocalDate.now())) {
+        if (this.dueDate.isBefore(checkDateTime)) {
             return false;
         }
         return true;

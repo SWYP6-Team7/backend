@@ -19,6 +19,7 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.response.TravelEnrollmentsResponse;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -36,20 +37,19 @@ public class EnrollmentService {
 
 
     @Transactional
-    public void create(EnrollmentCreateRequest request, String email) {
+    public void create(EnrollmentCreateRequest request, int requestUserNumber, LocalDate nowDate) {
 
-        Users user = memberService.findByEmail(email);
         Travel targetTravel = travelRepository.findByNumber(request.getTravelNumber())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다."));
 
-        if (!targetTravel.availableForEnroll()) {
-            throw new IllegalArgumentException("참가 신청 할 수 없는 상태의 콘텐츠 입니다.");
+        if (!targetTravel.availableForEnroll(nowDate)) {
+            throw new IllegalArgumentException("참가 신청 할 수 없는 상태의 여행입니다.");
         }
-        Enrollment created = request.toEntity(user.getUserNumber());
+        Enrollment created = Enrollment.create(requestUserNumber, request.getTravelNumber(), request.getMessage());
         enrollmentRepository.save(created);
 
         //알림
-        notificationService.createEnrollNotification(targetTravel, user);
+        notificationService.createEnrollNotification(targetTravel, requestUserNumber);
     }
 
     @Transactional
