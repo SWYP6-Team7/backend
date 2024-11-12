@@ -43,6 +43,7 @@ public class EnrollmentService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다."));
 
         if (!targetTravel.availableForEnroll(nowDate)) {
+            log.warn("Enrollment create - 참가 신청 할 수 없는 상태의 여행입니다. travelNumber: {}", targetTravel.getNumber());
             throw new IllegalArgumentException("참가 신청 할 수 없는 상태의 여행입니다.");
         }
         Enrollment created = Enrollment.create(requestUserNumber, request.getTravelNumber(), request.getMessage());
@@ -53,11 +54,15 @@ public class EnrollmentService {
     }
 
     @Transactional
-    public void delete(long enrollmentNumber) {
+    public void delete(long enrollmentNumber, int requestUserNumber) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청서입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청입니다."));
 
-        authorizeEnrollmentOwner(enrollment);
+        if (enrollment.getUserNumber() != requestUserNumber) {
+            log.warn("Enrollment delete - 여행 참가 신청 취소 권한이 없습니다. enrollNumber: {}, requestUser:{}", enrollmentNumber, requestUserNumber);
+            throw new IllegalArgumentException("여행 참가 신청 취소 권한이 없습니다.");
+        }
+
         enrollmentRepository.delete(enrollment);
     }
 
@@ -112,13 +117,6 @@ public class EnrollmentService {
         notificationService.createRejectNotification(targetTravel, enrollment);
     }
 
-    private void authorizeEnrollmentOwner(Enrollment enrollment) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = memberService.findByEmail(userName);
-        if (enrollment.getUserNumber() != user.getUserNumber()) {
-            throw new IllegalArgumentException("접근 권한이 없는 신청서입니다.");
-        }
-    }
 
     private void authorizeTravelHost(Travel targetTravel) {
         String userName = SecurityContextHolder.getContext().getAuthentication().getName();

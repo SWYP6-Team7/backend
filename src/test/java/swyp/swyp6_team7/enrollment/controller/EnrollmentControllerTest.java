@@ -19,6 +19,7 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -114,64 +115,20 @@ class EnrollmentControllerTest {
                 .andExpect(content().string("여행 참가 신청 메시지는 1000자를 넘을 수 없습니다."));
     }
 
-    /*
     @DisplayName("delete: 신청자는 참가 신청을 삭제할 수 있다")
+    @WithMockCustomUser
     @Test
     public void deleteWhenOwner() throws Exception {
         // given
-        String url = "/api/enrollment/{enrollmentNumber}";
-        createTestTravel(2, LocalDate.now().plusDays(1), TravelStatus.IN_PROGRESS);
-        Enrollment enrollment = enrollmentRepository.save(Enrollment.builder()
-                .userNumber(user.getUserNumber())
-                .travelNumber(travel.getNumber())
-                .message("참가 신청합니다.")
-                .status(EnrollmentStatus.PENDING)
-                .build()
-        );
+        doNothing().when(enrollmentService).delete(any(Long.class), any(Integer.class));
 
         // when
-        ResultActions resultActions = mockMvc.perform(delete(url, enrollment.getNumber()));
+        ResultActions resultActions = mockMvc.perform(delete("/api/enrollment/{enrollmentNumber}", 1));
 
         // then
         resultActions
+                .andDo(print())
                 .andExpect(status().isNoContent());
-
-        List<Enrollment> enrollments = enrollmentRepository.findAll();
-        assertThat(enrollments).isEmpty();
     }
-
-    @DisplayName("delete: 신청자가 아닐 경우 참가 신청을 삭제할 수 없다")
-    @Test
-    public void deleteWhenNotOwner() throws Exception {
-        // given
-        String url = "/api/enrollment/{enrollmentNumber}";
-        createTestTravel(2, LocalDate.now().plusDays(1), TravelStatus.IN_PROGRESS);
-        Users owner = userRepository.save(Users.builder()
-                .userEmail("owner@test.com")
-                .userPw("1234")
-                .userName("host")
-                .userGender(Gender.M)
-                .userAgeGroup(AgeGroup.TEEN)
-                .userRegDate(LocalDateTime.now())
-                .userStatus(UserStatus.ABLE)
-                .build()
-        );
-
-        Enrollment enrollment = enrollmentRepository.save(Enrollment.builder()
-                .userNumber(owner.getUserNumber())
-                .travelNumber(travel.getNumber())
-                .message("참가 신청합니다.")
-                .status(EnrollmentStatus.PENDING)
-                .build()
-        );
-
-        // when
-        ResultActions resultActions = mockMvc.perform(delete(url, enrollment.getNumber()));
-
-        // then
-        resultActions
-                .andExpect(status().is5xxServerError())
-                .andExpect(content().string("서버 에러: " + "접근 권한이 없는 신청서입니다."));
-    }*/
 
 }

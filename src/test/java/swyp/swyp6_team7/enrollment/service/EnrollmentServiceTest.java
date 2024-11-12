@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
@@ -124,6 +125,42 @@ class EnrollmentServiceTest {
                 .hasMessage("참가 신청 할 수 없는 상태의 여행입니다.");
     }
 
+    @DisplayName("delete: 신청자 본인은 여행 참가 신청을 취소할 수 있다.")
+    @Test
+    void deleteWhenEnrolledUser() {
+        // given
+        Enrollment enrollment = createEnrollment(1, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        // when
+        enrollmentService.delete(savedEnrollment.getNumber(), 1);
+
+        // then
+        assertThat(enrollmentRepository.findAll()).hasSize(0);
+    }
+
+    @DisplayName("delete: 신청자가 아닌 경우 여행 참가 취소 요청 시 예외가 발생한다.")
+    @Test
+    void deleteWhenNotEnrolledUser() {
+        // given
+        Enrollment enrollment = createEnrollment(1, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        // when // then
+        assertThatThrownBy(() -> {
+            enrollmentService.delete(savedEnrollment.getNumber(), 2);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("여행 참가 신청 취소 권한이 없습니다.");
+    }
+
+    private Enrollment createEnrollment(int userNumber, int travelNumber, String message, EnrollmentStatus status) {
+        return Enrollment.builder()
+                .userNumber(userNumber)
+                .travelNumber(travelNumber)
+                .message(message)
+                .status(status)
+                .build();
+    }
 
     private Location createLocation() {
         return Location.builder()

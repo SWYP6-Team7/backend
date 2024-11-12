@@ -26,11 +26,7 @@ public class EnrollmentController {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         logger.info("Enrollment 생성 요청 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
 
-        try {
-            enrollmentService.create(request, loginUserNumber, LocalDate.now());
-        } catch (Exception e) {
-            logger.warn("Enrollment 생성 실패 - userId: {}, travelNumber: {}, message: {}", loginUserNumber, request.getTravelNumber(), e.getMessage());
-        }
+        enrollmentService.create(request, loginUserNumber, LocalDate.now());
         logger.info("Enrollment 생성 완료 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -39,7 +35,12 @@ public class EnrollmentController {
 
     @DeleteMapping("/api/enrollment/{enrollmentNumber}")
     public ResponseEntity delete(@PathVariable(name = "enrollmentNumber") long enrollmentNumber) {
-        enrollmentService.delete(enrollmentNumber);
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Enrollment 취소 요청 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
+        enrollmentService.delete(enrollmentNumber, loginUserNumber);
+        logger.info("Enrollment 취소 완료 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body("여행 참가 신청이 취소되었습니다.");
     }
