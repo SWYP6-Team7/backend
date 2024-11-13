@@ -56,7 +56,7 @@ public class JwtFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // Mock JwtProvider behavior
-        when(jwtProvider.getUserEmail("validToken")).thenReturn("user@example.com");
+        when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
 
         // Mock UserDetailsService behavior
@@ -115,7 +115,7 @@ public class JwtFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // Mock JwtProvider behavior
-        when(jwtProvider.getUserEmail("validToken")).thenReturn("user@example.com");
+        when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
 
         // Mock UserDetailsService behavior

@@ -66,20 +66,6 @@ class JwtProviderTest {
         assertTrue(jwtProvider.validateToken(refreshToken));  // Refresh 토큰이 유효해야 함
     }
 
-    @Test
-    void testGetUserEmailFromToken() {
-        // Given
-        String userEmail = "test@example.com";
-        Integer userNumber = 1;
-        List<String> roles = List.of("ROLE_USER");
-        String token = jwtProvider.createAccessToken( userNumber, roles);
-
-        // When
-        String extractedEmail = jwtProvider.getUserEmail(token);
-
-        // Then
-        assertEquals(userEmail, extractedEmail);  // 추출된 이메일이 원래 이메일과 같아야 함
-    }
 
     @Test
     void testGetUserNumberFromToken() {

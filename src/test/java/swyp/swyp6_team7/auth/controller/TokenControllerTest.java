@@ -53,17 +53,16 @@ public class TokenControllerTest {
         // Given
         String validRefreshToken = "valid-refresh-token";
         String newAccessToken = "new-access-token";
-        String userEmail = "test@example.com";
+        Integer userNumber = 1;
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", validRefreshToken);
 
         Users user = new Users();
-        user.setUserEmail(userEmail);
         user.setUserNumber(123);
 
         when(jwtProvider.validateToken(validRefreshToken)).thenReturn(true);
-        when(jwtProvider.getUserEmail(validRefreshToken)).thenReturn(userEmail);
-        when(userRepository.findByUserEmail(userEmail)).thenReturn(Optional.of(user));
+        when(jwtProvider.getUserNumber(validRefreshToken)).thenReturn(userNumber);
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(user));
         when(jwtProvider.createAccessToken(user.getUserNumber(), List.of(user.getRole().name())))
                 .thenReturn(newAccessToken);
         when(jwtBlacklistService.isTokenBlacklisted(validRefreshToken)).thenReturn(false);
