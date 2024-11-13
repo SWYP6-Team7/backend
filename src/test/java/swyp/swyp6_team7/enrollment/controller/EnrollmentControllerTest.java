@@ -19,8 +19,7 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,7 +62,8 @@ class EnrollmentControllerTest {
         // then
         resultActions
                 .andDo(print())
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(content().string("여행 참가 신청이 완료되었습니다."));
     }
 
     @DisplayName("create: 참가 대상 여행 번호가 없을 경우 예외가 발생한다.")
@@ -128,7 +128,27 @@ class EnrollmentControllerTest {
         // then
         resultActions
                 .andDo(print())
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent())
+                .andExpect(content().string("여행 참가 신청이 취소되었습니다."));
+    }
+
+    @DisplayName("accept: 여행 참가 신청을 수락할 수 있다.")
+    @WithMockCustomUser
+    @Test
+    void accept() throws Exception {
+        // given
+        doNothing().when(enrollmentService)
+                .accept(any(Long.class), any(Integer.class));
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/acceptance", 1L)
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        resultActions
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("여행 참가 신청을 수락했습니다."));
     }
 
 }

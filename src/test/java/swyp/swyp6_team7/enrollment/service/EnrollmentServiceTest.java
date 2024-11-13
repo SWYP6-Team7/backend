@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import swyp.swyp6_team7.companion.domain.Companion;
+import swyp.swyp6_team7.companion.repository.CompanionRepository;
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
@@ -20,6 +22,7 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +46,9 @@ class EnrollmentServiceTest {
     @MockBean
     private NotificationRepository notificationRepository;
 
+    @MockBean
+    private CompanionRepository companionRepository;
+
     @AfterEach
     void tearDown() {
         enrollmentRepository.deleteAllInBatch();
@@ -54,7 +60,7 @@ class EnrollmentServiceTest {
     void create() {
         // given
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(dueDate, TravelStatus.IN_PROGRESS);
+        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.IN_PROGRESS);
 
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(targetTravel.getNumber())
@@ -82,7 +88,7 @@ class EnrollmentServiceTest {
     void createWhenNotAvailableForEnroll() {
         // given
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(dueDate, TravelStatus.IN_PROGRESS);
+        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.IN_PROGRESS);
 
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(targetTravel.getNumber())
@@ -106,7 +112,7 @@ class EnrollmentServiceTest {
     void createWhenNotInProgressStatus() {
         // given
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.DELETED);
 
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(targetTravel.getNumber())
@@ -153,6 +159,79 @@ class EnrollmentServiceTest {
                 .hasMessage("여행 참가 신청 취소 권한이 없습니다.");
     }
 
+    @DisplayName("accept: 주최자는 여행 참가 신청을 수락할 수 있다.")
+    @Test
+    void accept() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(companionRepository.save(any(Companion.class)))
+                .willReturn(Companion.create(targetTravel, enrollment.getUserNumber()));
+
+        // when
+        enrollmentService.accept(savedEnrollment.getNumber(), hostUserNumber);
+
+        // then
+        assertThat(enrollmentRepository.findAll()).hasSize(1)
+                .extracting("userNumber", "travelNumber", "status")
+                .contains(
+                        tuple(2, targetTravel.getNumber(), EnrollmentStatus.ACCEPTED)
+                );
+    }
+
+    @DisplayName("accept: 여행 신청 수락 요청은 주최자가 아닌 경우 예외가 발생한다.")
+    @Test
+    void acceptWhenNotHostUser() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(companionRepository.save(any(Companion.class)))
+                .willReturn(Companion.create(targetTravel, enrollment.getUserNumber()));
+
+        // when
+        assertThatThrownBy(() -> {
+            enrollmentService.accept(savedEnrollment.getNumber(), 3);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("여행 참가 신청 수락 권한이 없습니다.");
+    }
+
+    @DisplayName("accept: 여행 신청 수락 요청 시 이미 모집 인원이 충분한 경우 예외가 발생한다.")
+    @Test
+    void acceptWhenFullCompanion() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 0, dueDate, TravelStatus.DELETED);
+
+        Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(companionRepository.save(any(Companion.class)))
+                .willReturn(Companion.create(targetTravel, enrollment.getUserNumber()));
+
+        // when
+        assertThatThrownBy(() -> {
+            enrollmentService.accept(savedEnrollment.getNumber(), hostUserNumber);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("여행 참가 모집 인원이 마감되어 수락할 수 없습니다.");
+    }
+
     private Enrollment createEnrollment(int userNumber, int travelNumber, String message, EnrollmentStatus status) {
         return Enrollment.builder()
                 .userNumber(userNumber)
@@ -169,10 +248,11 @@ class EnrollmentServiceTest {
                 .build();
     }
 
-    private Travel createTravel(LocalDate dueDate, TravelStatus status) {
+    private Travel createTravel(int hostUserNumber, int maxPerson, LocalDate dueDate, TravelStatus status) {
         return Travel.builder()
                 .number(1)
-                .userNumber(1)
+                .userNumber(hostUserNumber)
+                .maxPerson(maxPerson)
                 .location(createLocation())
                 .viewCount(0)
                 .dueDate(dueDate)
