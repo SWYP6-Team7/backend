@@ -54,7 +54,7 @@ public class LoginController {
                 loginRequestDto.getPassword() == null || loginRequestDto.getPassword().isEmpty()) {
             log.warn("이메일과 비밀번호가 입력되지 않았습니다.");
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "이메일과 비밀번호는 필수입니다.");
+            errorResponse.put("error", "이메일과 비밀번호가 입력되지 않았습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // 400 Bad Request 반환
         }
         try {
@@ -106,7 +106,7 @@ public class LoginController {
         } catch (BadCredentialsException e) {
             log.error("로그인 실패 - Unauthorized: {}", loginRequestDto.getEmail(), e);
             Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
+            errorResponse.put("error", "이메일 또는 비밀번호가 올바르지 않습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse); // 401 Unauthorized 반환
         } catch (IllegalArgumentException e) {
             log.error("로그인 실패 - Bad Request", e);

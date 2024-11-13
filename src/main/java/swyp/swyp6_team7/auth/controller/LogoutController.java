@@ -92,7 +92,7 @@ public class LogoutController {
                 SecurityContextHolder.clearContext();
                 log.info("SecurityContext 인증 정보 제거 완료");
 
-                return ResponseEntity.ok("Logout successful");
+                return ResponseEntity.ok("로그아웃 성공");
             } else {
                 log.warn("인증된 사용자가 CustomUserDetails가 아님");
             }
