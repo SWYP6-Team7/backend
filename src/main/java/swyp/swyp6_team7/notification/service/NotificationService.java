@@ -55,10 +55,10 @@ public class NotificationService {
     }
 
     @Async
-    public void createRejectNotification(Travel targetTravel, Enrollment enrollment) {
-        Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollment);
-        newNotification = notificationRepository.save(newNotification);
-        //log.info("[알림]참가거절 = " + newNotification.toString());
+    public void createRejectNotification(Travel targetTravel, int enrollUserNumber) {
+        Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollUserNumber);
+        Notification createdNotification = notificationRepository.save(newNotification);
+        log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
     @Async

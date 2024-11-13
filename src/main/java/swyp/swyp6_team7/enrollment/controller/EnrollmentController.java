@@ -59,9 +59,14 @@ public class EnrollmentController {
 
     @PutMapping("/api/enrollment/{enrollmentNumber}/rejection")
     public ResponseEntity reject(@PathVariable(name = "enrollmentNumber") long enrollmentNumber) {
-        enrollmentService.reject(enrollmentNumber);
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Enrollment 거절 요청 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
+        enrollmentService.reject(enrollmentNumber, loginUserNumber);
+        logger.info("Enrollment 거절 완료 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body("여행 참가 신청을 거부했습니다.");
+                .body("여행 참가 신청을 거절했습니다.");
     }
 
 }

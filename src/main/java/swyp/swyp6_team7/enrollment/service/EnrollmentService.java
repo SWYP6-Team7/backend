@@ -99,7 +99,7 @@ public class EnrollmentService {
                     return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
                 });
 
-        // 여행 신청 수락 권한 확인
+        // 여행 주최자 권한 확인
         if (!targetTravel.isTravelHostUser(requestUserNumber)) {
             log.warn("Enrollment accept - 여행 참가 신청 수락 권한이 없습니다. enrollNumber: {}, requestUser:{}", enrollmentNumber, requestUserNumber);
             throw new IllegalArgumentException("여행 참가 신청 수락 권한이 없습니다.");
@@ -121,17 +121,28 @@ public class EnrollmentService {
     }
 
     @Transactional
-    public void reject(long enrollmentNumber) {
+    public void reject(long enrollmentNumber, int requestUserNumber) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 신청서입니다."));
-        Travel targetTravel = travelRepository.findByNumber(enrollment.getTravelNumber())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다."));
-        authorizeTravelHost(targetTravel);
+                .orElseThrow(() -> {
+                    log.warn("Enrollment reject - 존재하지 않는 신청입니다. enrollNumber: {}", enrollmentNumber);
+                    return new IllegalArgumentException("존재하지 않는 신청입니다.");
+                });
 
+        Travel targetTravel = travelRepository.findByNumber(enrollment.getTravelNumber())
+                .orElseThrow(() -> {
+                    log.warn("Enrollment reject - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", enrollment.getTravelNumber());
+                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+                });
+
+        // 여행 주최자 권한 확인
+        if (!targetTravel.isTravelHostUser(requestUserNumber)) {
+            log.warn("Enrollment reject - 여행 참가 신청 거절 권한이 없습니다. enrollNumber: {}, requestUser:{}", enrollmentNumber, requestUserNumber);
+            throw new IllegalArgumentException("여행 참가 신청 거절 권한이 없습니다.");
+        }
         enrollment.rejected();
 
         //알림
-        notificationService.createRejectNotification(targetTravel, enrollment);
+        notificationService.createRejectNotification(targetTravel, enrollment.getUserNumber());
     }
 
 
