@@ -5,8 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+import swyp.swyp6_team7.member.service.MemberService;
 
 import java.security.Principal;
 
@@ -15,13 +17,18 @@ import java.security.Principal;
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
+    private final MemberService memberService;
+    private final JwtProvider jwtProvider;
 
 
     @PostMapping("/api/enrollment")
     public ResponseEntity create(
             @RequestBody @Validated EnrollmentCreateRequest request, Principal principal
     ) {
-        enrollmentService.create(request, principal.getName());
+        Integer userNumber = memberService.findByUserNumber(
+                jwtProvider.getUserNumber(principal.getName())
+        ).getUserNumber();
+        enrollmentService.create(request, userNumber);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("여행 참가 신청이 완료되었습니다.");
     }
