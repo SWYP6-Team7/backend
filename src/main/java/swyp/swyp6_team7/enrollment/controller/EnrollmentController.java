@@ -47,16 +47,21 @@ public class EnrollmentController {
 
     @PutMapping("/api/enrollment/{enrollmentNumber}/acceptance")
     public ResponseEntity accept(@PathVariable(name = "enrollmentNumber") long enrollmentNumber) {
-        enrollmentService.accept(enrollmentNumber);
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        logger.info("Enrollment 수락 요청 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
+        enrollmentService.accept(enrollmentNumber, loginUserNumber);
+        logger.info("Enrollment 수락 완료 - userId: {}, travelNumber: {}", loginUserNumber, enrollmentNumber);
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body("신청을 수락했습니다.");
+                .body("여행 참가 신청을 수락했습니다.");
     }
 
     @PutMapping("/api/enrollment/{enrollmentNumber}/rejection")
     public ResponseEntity reject(@PathVariable(name = "enrollmentNumber") long enrollmentNumber) {
         enrollmentService.reject(enrollmentNumber);
         return ResponseEntity.status(HttpStatus.OK)
-                .body("신청을 거부했습니다.");
+                .body("여행 참가 신청을 거부했습니다.");
     }
 
 }

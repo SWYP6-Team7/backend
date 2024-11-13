@@ -33,9 +33,9 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelAcceptMessage(Travel targetTravel, Enrollment enrollment) {
+    public static Notification travelAcceptMessage(Travel targetTravel, int receiveUserNumber) {
         return TravelNotification.builder()
-                .receiverNumber(enrollment.getUserNumber())
+                .receiverNumber(receiveUserNumber)
                 .title(NotificationMessageType.TRAVEL_ACCEPT.getTitle())
                 .content(NotificationMessageType.TRAVEL_ACCEPT.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())

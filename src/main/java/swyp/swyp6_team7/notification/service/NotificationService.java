@@ -48,10 +48,10 @@ public class NotificationService {
     }
 
     @Async
-    public void createAcceptNotification(Travel targetTravel, Enrollment enrollment) {
-        Notification newNotification = NotificationMaker.travelAcceptMessage(targetTravel, enrollment);
-        newNotification = notificationRepository.save(newNotification);
-        //log.info("[알림]참가확정 = " + newNotification.toString());
+    public void createAcceptNotification(Travel targetTravel, int enrollUserNumber) {
+        Notification newNotification = NotificationMaker.travelAcceptMessage(targetTravel, enrollUserNumber);
+        Notification createdNotification = notificationRepository.save(newNotification);
+        log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
     @Async

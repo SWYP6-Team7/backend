@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.member.entity.DeletedUsers;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 
@@ -194,8 +193,8 @@ public class Travel {
     }
 
 
-    public boolean isUserTravelHost(Users users) {
-        if (this.userNumber != users.getUserNumber()) {
+    public boolean isTravelHostUser(int userNumber) {
+        if (this.userNumber != userNumber) {
             return false;
         }
         return true;
