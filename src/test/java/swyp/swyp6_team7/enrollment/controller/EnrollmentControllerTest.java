@@ -151,4 +151,23 @@ class EnrollmentControllerTest {
                 .andExpect(content().string("여행 참가 신청을 수락했습니다."));
     }
 
+    @DisplayName("reject: 여행 참가 신청을 거절할 수 있다.")
+    @WithMockCustomUser
+    @Test
+    void reject() throws Exception {
+        // given
+        doNothing().when(enrollmentService)
+                .accept(any(Long.class), any(Integer.class));
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/rejection", 1L)
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        resultActions
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("여행 참가 신청을 거절했습니다."));
+    }
+
 }

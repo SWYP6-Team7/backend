@@ -232,6 +232,56 @@ class EnrollmentServiceTest {
                 .hasMessage("여행 참가 모집 인원이 마감되어 수락할 수 없습니다.");
     }
 
+    @DisplayName("accept: 주최자는 여행 참가 신청을 거절할 수 있다.")
+    @Test
+    void reject() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(companionRepository.save(any(Companion.class)))
+                .willReturn(Companion.create(targetTravel, enrollment.getUserNumber()));
+
+        // when
+        enrollmentService.reject(savedEnrollment.getNumber(), hostUserNumber);
+
+        // then
+        assertThat(enrollmentRepository.findAll()).hasSize(1)
+                .extracting("userNumber", "travelNumber", "status")
+                .contains(
+                        tuple(2, targetTravel.getNumber(), EnrollmentStatus.REJECTED)
+                );
+    }
+
+    @DisplayName("accept: 여행 신청 거절 요청은 주최자가 아닌 경우 예외가 발생한다.")
+    @Test
+    void rejectWhenNotHostUser() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(companionRepository.save(any(Companion.class)))
+                .willReturn(Companion.create(targetTravel, enrollment.getUserNumber()));
+
+        // when
+        assertThatThrownBy(() -> {
+            enrollmentService.reject(savedEnrollment.getNumber(), 3);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("여행 참가 신청 거절 권한이 없습니다.");
+    }
+
     private Enrollment createEnrollment(int userNumber, int travelNumber, String message, EnrollmentStatus status) {
         return Enrollment.builder()
                 .userNumber(userNumber)
