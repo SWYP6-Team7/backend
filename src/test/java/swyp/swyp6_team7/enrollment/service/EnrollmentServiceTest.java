@@ -11,24 +11,29 @@ import swyp.swyp6_team7.companion.repository.CompanionRepository;
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
+import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
+import swyp.swyp6_team7.enrollment.repository.EnrollmentCustomRepositoryImpl;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
+import swyp.swyp6_team7.travel.dto.response.TravelEnrollmentsResponse;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
@@ -39,6 +44,9 @@ class EnrollmentServiceTest {
 
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+
+    @MockBean
+    private EnrollmentCustomRepositoryImpl enrollmentCustomRepository;
 
     @MockBean
     private TravelRepository travelRepository;
@@ -280,6 +288,57 @@ class EnrollmentServiceTest {
             enrollmentService.reject(savedEnrollment.getNumber(), 3);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("여행 참가 신청 거절 권한이 없습니다.");
+    }
+
+    @DisplayName("findEnrollments: 여행 번호가 주어질 때, 관련된 여행 참가 신청 정보를 가져온다.")
+    @Test
+    void findEnrollments() {
+        // given
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        EnrollmentResponse enrollment1 = EnrollmentResponse.builder()
+                .enrollmentNumber(1)
+                .userName("유저명1")
+                .ageGroup(AgeGroup.TEEN)
+                .status(EnrollmentStatus.PENDING)
+                .build();
+        EnrollmentResponse enrollment2 = EnrollmentResponse.builder()
+                .enrollmentNumber(2)
+                .userName("유저명2")
+                .ageGroup(AgeGroup.TEEN)
+                .status(EnrollmentStatus.PENDING)
+                .build();
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+        given(enrollmentCustomRepository.findEnrollmentsByTravelNumber(anyInt()))
+                .willReturn(Arrays.asList(enrollment1, enrollment2));
+
+        // when
+        TravelEnrollmentsResponse result = enrollmentService.findEnrollmentsByTravelNumber(targetTravel.getNumber(), hostUserNumber);
+
+        // then
+        assertThat(result.getTotalCount()).isEqualTo(2);
+        assertThat(result.getEnrollments()).hasSize(2);
+    }
+
+    @DisplayName("findEnrollments: 여행 참가 신청 목록을 조회할 때, 주최자가 아니면 예외가 발생한다.")
+    @Test
+    void findEnrollmentsWhenNotHostUser() {
+        Integer hostUserNumber = 1;
+        LocalDate dueDate = LocalDate.of(2024, 11, 11);
+        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+
+        given(travelRepository.findByNumber(any(Integer.class)))
+                .willReturn(Optional.of(targetTravel));
+
+        // when
+        assertThatThrownBy(() -> {
+            enrollmentService.findEnrollmentsByTravelNumber(targetTravel.getNumber(), 2);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("여행 참가 신청 조회 권한이 없습니다.");
     }
 
     private Enrollment createEnrollment(int userNumber, int travelNumber, String message, EnrollmentStatus status) {

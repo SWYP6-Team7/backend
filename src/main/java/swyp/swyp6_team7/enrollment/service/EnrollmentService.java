@@ -72,10 +72,17 @@ public class EnrollmentService {
         enrollmentRepository.delete(enrollment);
     }
 
-    public TravelEnrollmentsResponse findEnrollmentsByTravelNumber(int travelNumber) {
+    public TravelEnrollmentsResponse findEnrollmentsByTravelNumber(int travelNumber, int requestUserNumber) {
         Travel targetTravel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다."));
-        authorizeTravelHost(targetTravel);
+                .orElseThrow(() -> {
+                    log.warn("Enrollments 조회 - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", travelNumber);
+                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+                });
+
+        if (!targetTravel.isTravelHostUser(requestUserNumber)) {
+            log.warn("Enrollments 조회 - 여행 참가 신청 조회 권한이 없습니다. travelNumber: {}, requestUser:{}", travelNumber, requestUserNumber);
+            throw new IllegalArgumentException("여행 참가 신청 조회 권한이 없습니다.");
+        }
 
         List<EnrollmentResponse> enrollments = enrollmentRepository.findEnrollmentsByTravelNumber(travelNumber);
         return TravelEnrollmentsResponse.from(enrollments);
@@ -143,15 +150,6 @@ public class EnrollmentService {
 
         //알림
         notificationService.createRejectNotification(targetTravel, enrollment.getUserNumber());
-    }
-
-
-    private void authorizeTravelHost(Travel targetTravel) {
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = memberService.findByEmail(userName);
-        if (!targetTravel.isTravelHostUser(user.getUserNumber())) {
-            throw new IllegalArgumentException("여행 주최자의 권한이 필요한 작업입니다.");
-        }
     }
 
 }
