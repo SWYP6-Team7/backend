@@ -206,6 +206,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
 
     @Override
     public Page<TravelSearchDto> search(TravelSearchCondition condition, Integer loginUserNumber) {
+
+        // 조회 조건에 해당하는 Travel의 Number를 가져온다
         List<Integer> travels = queryFactory
                 .select(travel.number)
                 .from(travel)
@@ -229,8 +231,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .offset(condition.getPageRequest().getOffset())
                 .limit(condition.getPageRequest().getPageSize())
                 .fetch();
-        log.info("search result: " + travels.toString());
 
+        // leftJoin으로 필요한 추가 정보를 가져온다
         List<TravelSearchDto> content = queryFactory
                 .select(travel)
                 .from(travel)
@@ -252,6 +254,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                                 bookmark.userNumber.eq(loginUserNumber))
                 ));
 
+        // 페이징을 위한 countQuery
         JPAQuery<Long> countQuery = queryFactory
                 .select(travel.number.countDistinct())
                 .from(travel)

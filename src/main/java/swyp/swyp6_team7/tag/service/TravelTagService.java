@@ -8,65 +8,49 @@ import swyp.swyp6_team7.tag.domain.TravelTag;
 import swyp.swyp6_team7.tag.repository.TravelTagRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
 public class TravelTagService {
-    public static final int TRAVEL_TAG_MAX_COUNT = 5;
 
     private final TravelTagRepository travelTagRepository;
     private final TagService tagService;
 
 
     @Transactional
-    public List<Tag> create(Travel travel, List<String> tags) {
+    public List<TravelTag> update(Travel travel, List<String> newTags) {
 
-        List<Tag> checkedTags = tags.stream()
-                .distinct()
-                .limit(TRAVEL_TAG_MAX_COUNT)
-                .map(tagName -> tagService.findByName(tagName))
-                .toList();
-
-        return checkedTags.stream()
-                .map(tag -> travelTagRepository.save(TravelTag.of(travel, tag)).getTag())
-                .toList();
-    }
-
-
-    public List<String> getTagsByTravelNumber(int travelNumber) {
-        return travelTagRepository.findTagsByTravelNumber(travelNumber)
-                .stream()
+        List<TravelTag> travelTags = travel.getTravelTags();
+        Set<String> oldTagNames = travelTags.stream()
                 .map(tag -> tag.getTag().getName())
-                .toList();
-    }
+                .collect(Collectors.toSet());
 
+        Set<String> newTagNames = new HashSet<>(newTags);
 
-    @Transactional
-    public List<String> update(Travel travel, List<String> newTags) {
-        
-        List<TravelTag> oldTravelTags = travelTagRepository.findTagsByTravelNumber(travel.getNumber());
-        List<String> oldTags = oldTravelTags.stream()
-                .map(tag -> tag.getTag().getName())
-                .toList();
-
-        for (String tagName : newTags) {
-            if (!oldTags.contains(tagName)) {
-                travelTagRepository.save(TravelTag.of(travel, tagService.findByName(tagName)));
+        // 기존에는 없던 새로운 TravelTag를 추가한다
+        for (String tagName : newTagNames) {
+            if (!oldTagNames.contains(tagName)) {
+                Tag tag = tagService.findByName(tagName);
+                TravelTag travelTag = TravelTag.of(travel, tag);
+                travel.getTravelTags().add(travelTag);
             }
         }
 
-        for (TravelTag travelTag : oldTravelTags) {
-            if (!newTags.contains(travelTag.getTag().getName())) {
+        // 더이상 필요없는 TravelTag를 삭제한다
+        travelTags.removeIf(travelTag -> {
+            if (!newTagNames.contains(travelTag.getTag().getName())) {
                 travelTagRepository.delete(travelTag);
+                return true;
             }
-        }
+            return false;
+        });
 
-        return travelTagRepository.findTagsByTravelNumber(travel.getNumber())
-                .stream()
-                .map(tag -> tag.getTag().getName())
-                .toList();
+        return travelTags;
     }
 
 }

@@ -35,7 +35,7 @@ public class GoogleController {
 
     // 구글 로그인 리디렉션
     @GetMapping("/login/oauth/google")
-    public ResponseEntity<Void> googleLoginRedirect(HttpSession session) {
+    public ResponseEntity<Map<String, String>> googleLoginRedirect(HttpSession session) {
         try {
             String state = UUID.randomUUID().toString();  // CSRF 방지용 state 값 생성
             session.setAttribute("oauth_state", state);   // 세션에 state 값 저장
@@ -45,14 +45,12 @@ public class GoogleController {
                     + "&redirect_uri=" + redirectUri
                     + "&state=" + state;
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create(googleAuthUrl));
-
             log.info("Google 로그인 리디렉션 성공: state={}", state);
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+            return ResponseEntity.ok(Map.of("redirectUrl", googleAuthUrl));
         } catch (Exception e) {
             log.error("Google 로그인 리디렉션 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create Google login redirect URL"));
         }
     }
 
