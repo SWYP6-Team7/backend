@@ -2,7 +2,6 @@ package swyp.swyp6_team7.enrollment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.companion.domain.Companion;
@@ -12,7 +11,6 @@ import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.notification.service.NotificationService;
 import swyp.swyp6_team7.travel.domain.Travel;
@@ -32,7 +30,6 @@ public class EnrollmentService {
     private final TravelRepository travelRepository;
     private final CompanionRepository companionRepository;
 
-    private final MemberService memberService;
     private final NotificationService notificationService;
 
 
