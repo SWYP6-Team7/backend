@@ -57,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7); // 'Bearer ' 제거
             try {
-                userNumber = jwtProvider.getUserNumber(token); // 토큰에서 이메일 추출
+                userNumber = jwtProvider.getUserNumber(token);
             } catch (ExpiredJwtException e) {
                 // 토큰 만료 예외 처리
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
