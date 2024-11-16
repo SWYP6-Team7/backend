@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class ProfileUpdateRequest {
     private String name;
-    private String proIntroduce;
     private String[] preferredTags;
     private String ageGroup;
 
