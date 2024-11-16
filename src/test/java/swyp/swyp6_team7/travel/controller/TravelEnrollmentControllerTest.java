@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -84,6 +85,7 @@ class TravelEnrollmentControllerTest {
     void setSecurityContext() {
         userRepository.deleteAll();
         host = userRepository.save(Users.builder()
+                .userNumber(1)
                 .userEmail("host@test.com")
                 .userPw("1234")
                 .userName("host")
@@ -129,6 +131,7 @@ class TravelEnrollmentControllerTest {
         // given
         String url = "/api/travel/{travelNumber}/enrollments";
         Users user = userRepository.save(Users.builder()
+                .userNumber(2)
                 .userEmail("abc@test.com")
                 .userPw("1234")
                 .userName("username")
@@ -139,9 +142,9 @@ class TravelEnrollmentControllerTest {
                 .build());
         createEnrollment(user);
 
-        var userDetails = userDetailsService.loadUserByUsername(host.getUserEmail());
+        var userDetails = userDetailsService.loadUserByUsername(String.valueOf(host.getUserNumber()));
         SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(String.valueOf(host.getUserNumber()), null, userDetails.getAuthorities()));
 
         // when
         ResultActions resultActions = mockMvc.perform(get(url, travel.getNumber()));
@@ -159,6 +162,7 @@ class TravelEnrollmentControllerTest {
         // given
         String url = "/api/travel/{travelNumber}/enrollments";
         Users user = userRepository.save(Users.builder()
+                .userNumber(2)
                 .userEmail("abc@test.com")
                 .userPw("1234")
                 .userName("username")
@@ -169,9 +173,9 @@ class TravelEnrollmentControllerTest {
                 .build());
         createEnrollment(user);
 
-        var userDetails = userDetailsService.loadUserByUsername(user.getUserEmail());
+        var userDetails = userDetailsService.loadUserByUsername(String.valueOf(user.getUserNumber()));
         SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(String.valueOf(user.getUserNumber()), null, userDetails.getAuthorities()));
 
         // when
         ResultActions resultActions = mockMvc.perform(get(url, travel.getNumber()));
