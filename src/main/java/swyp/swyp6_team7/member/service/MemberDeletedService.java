@@ -32,12 +32,15 @@ public class MemberDeletedService {
     }
 
     @Transactional
-    public void deleteUserData(Users user) {
+    public void deleteUserData(Users user, SocialUsers socialUser) {
         log.info("회원 데이터 삭제 요청: userNumber={}", user.getUserNumber());
 
         try {
             DeletedUsers deletedUser = saveDeletedUser(user); // 탈퇴 회원 정보 저장 (비식별화 처리)
-            anonymizeUser(user); // 사용자 정보 비식별화 처리
+            anonymizeUser(user);
+            if (socialUser != null) {
+                anonymizeSocialUser(socialUser);
+            }
             updateUserContentReferences(user.getUserNumber(), deletedUser); // 콘텐츠 연결 업데이트
             userRepository.save(user);
 
@@ -59,6 +62,23 @@ public class MemberDeletedService {
         log.info("사용자 비식별화 처리 완료: userNumber={}", user.getUserNumber());
 
     }
+    private void anonymizeSocialUser(SocialUsers socialUser) {
+        log.info("소셜 사용자 비식별화 처리 시작");
+
+        Users user = socialUser.getUser();
+        if (user == null) {
+            log.warn("소셜 사용자와 연결된 일반 사용자 정보가 없습니다.");
+            throw new IllegalStateException("소셜 사용자와 연결된 일반 사용자 정보가 없습니다.");
+        }
+        Integer userNumber = user.getUserNumber();
+        log.info("소셜 사용자 비식별화 처리 대상: userNumber={}", userNumber);
+
+        socialUser.setSocialEmail("deleted@" + userNumber + ".com");
+        socialUser.setSocialLoginId("null");
+
+        log.info("사용자 비식별화 처리 완료: userNumber={}",userNumber);
+    }
+
 
     private LocalDate calculateFinalDeletionDate(LocalDate deletedUserDeleteDate) {
         return deletedUserDeleteDate.plusMonths(3);  // 3개월 뒤로 설정
