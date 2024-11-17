@@ -59,6 +59,14 @@ public class DeletedMemberServiceTest {
         return userRepository.save(user);
     }
 
+    private SocialUsers createSocialUser(Users user) {
+        SocialUsers socialUser = new SocialUsers();
+        socialUser.setUser(user);
+        socialUser.setSocialEmail("social@example.com");
+        socialUser.setSocialLoginId("social123");
+        return socialUser; // 소셜 사용자 저장
+    }
+
     private Location createLocation(String name) {
         return locationRepository.findByLocationName(name)
                 .orElseGet(() -> locationRepository.save(new Location(name, LocationType.DOMESTIC)));
@@ -122,15 +130,17 @@ public class DeletedMemberServiceTest {
     @DisplayName("탈퇴 회원 비식별화 테스트")
     void anonymizeDeletedUserTest() {
         Users testUser = createTestUser();
-        // 사용자 탈퇴 처리
-        memberDeletedService.deleteUserData(testUser);
+        SocialUsers socialUser = createSocialUser(testUser);
 
-        Users deletedUser = userRepository.findById(testUser.getUserNumber()).get();
+        memberDeletedService.deleteUserData(testUser, socialUser);
 
-        // 비식별화된 정보 검증
+        Users deletedUser = userRepository.findById(testUser.getUserNumber()).orElseThrow();
         assertThat(deletedUser.getUserEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
         assertThat(deletedUser.getUserName()).isEqualTo("deletedUser");
         assertThat(deletedUser.getUserStatus()).isEqualTo(UserStatus.DELETED);
+
+        assertThat(socialUser.getSocialEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
+        assertThat(socialUser.getSocialLoginId()).isEqualTo("null");
     }
 
 
