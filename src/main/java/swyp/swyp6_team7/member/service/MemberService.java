@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,37 +30,19 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MemberService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final MemberDeletedService memberDeletedService;
-    private final ProfileService profileService;
     private final TagService tagService;
     private final UserTagPreferenceRepository userTagPreferenceRepository;
 
     @Value("${custom.admin-secret-key}")
     private String adminSecretKey;
 
-    @Autowired
-    public MemberService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            ProfileService profileService,
-            @Lazy JwtProvider jwtProvider,
-            TagService tagService,
-            UserTagPreferenceRepository userTagPreferenceRepository,
-            MemberDeletedService memberDeletedService) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtProvider = jwtProvider;
-        this.profileService = profileService;
-        this.tagService = tagService;
-        this.userTagPreferenceRepository = userTagPreferenceRepository;
-        this.memberDeletedService = memberDeletedService;
-    }
 
     @Transactional(readOnly = true)
     public Users findByEmail(String email) {
@@ -114,10 +97,6 @@ public class MemberService {
             userRepository.save(newUser);
             log.info("회원가입 성공: userNumber={}", newUser.getUserNumber());
 
-            // 프로필 생성 요청
-            ProfileCreateRequest profileCreateRequest = new ProfileCreateRequest();
-            profileCreateRequest.setUserNumber(newUser.getUserNumber());
-            profileService.createProfile(profileCreateRequest);
 
             // 선호 태그 연결 로직
             if (userRequestDto.getPreferredTags() != null && !userRequestDto.getPreferredTags().isEmpty()) {
