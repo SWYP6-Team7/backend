@@ -85,11 +85,10 @@ public class NotificationService {
     }
 
 
-    public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest, int requestUserNumber) {
 
         Page<Notification> notifications = notificationRepository
-                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(loginUserNumber, pageRequest);
+                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(pageRequest, requestUserNumber);
 
         return notifications.map(notification -> makeDto(notification));
     }

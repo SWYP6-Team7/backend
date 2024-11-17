@@ -80,7 +80,7 @@ public class NotificationRepositoryTest {
 
         // when
         Page<Notification> notifications = notificationRepository
-                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(1, pageRequest);
+                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(pageRequest, 1);
 
         // then
         for (Notification notification : notifications.getContent()) {
