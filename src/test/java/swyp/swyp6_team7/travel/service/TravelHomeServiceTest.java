@@ -89,11 +89,13 @@ class TravelHomeServiceTest {
                 dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
         travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
 
+        LocalDate requestDate = LocalDate.of(2024, 11, 6);
+
         given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
                 .willReturn(Arrays.asList("쇼핑", "자연", "먹방"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1);
+        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(4)
@@ -123,11 +125,13 @@ class TravelHomeServiceTest {
                 dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         travelRepository.saveAll(List.of(travel1, travel2));
 
+        LocalDate requestDate = LocalDate.of(2024, 11, 6);
+
         given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
                 .willReturn(Arrays.asList("쇼핑", "자연"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1);
+        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -155,11 +159,13 @@ class TravelHomeServiceTest {
                 dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         travelRepository.saveAll(List.of(travel1, travel2));
 
+        LocalDate requestDate = LocalDate.of(2024, 11, 6);
+
         given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
                 .willReturn(Arrays.asList("쇼핑", "자연"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1);
+        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(2)

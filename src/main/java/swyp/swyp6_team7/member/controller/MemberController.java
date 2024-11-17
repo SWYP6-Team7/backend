@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,19 +9,24 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
+import swyp.swyp6_team7.member.entity.SocialUsers;
 import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.member.repository.SocialUserRepository;
+import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberDeletedService;
 import swyp.swyp6_team7.member.service.MemberService;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class MemberController {
 
@@ -28,16 +34,8 @@ public class MemberController {
     private final MemberDeletedService memberDeletedService;
     private final UserLoginHistoryService userLoginHistoryService;
     private final JwtProvider jwtProvider;
-
-    public MemberController(MemberService memberService,
-                            UserLoginHistoryService userLoginHistoryService,
-                            JwtProvider jwtProvider,
-                            MemberDeletedService memberDeletedService) {
-        this.memberService = memberService;
-        this.userLoginHistoryService = userLoginHistoryService;
-        this.jwtProvider =jwtProvider;
-        this.memberDeletedService = memberDeletedService;
-    }
+    private final SocialUserRepository socialUserRepository;
+    private final UserRepository userRepository;
 
     @PostMapping("/users/new")
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody UserRequestDto userRequestDto) {
@@ -88,8 +86,13 @@ public class MemberController {
             Integer userNumber = jwtProvider.getUserNumber(jwtToken);
             log.info("회원 번호 추출 완료: {}", userNumber);
 
-            // 회원 탈퇴 서비스 호출
-            memberService.deleteUser(userNumber);
+            Users user = userRepository.findById(userNumber)
+                    .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
+
+            Optional<SocialUsers> socialUserOpt = socialUserRepository.findByUser(user);
+
+            // 회원 탈퇴 서비스 호출 (일반 회원과 소셜 회원 모두 처리)
+            memberDeletedService.deleteUserData(user, socialUserOpt.orElse(null));
             log.info("회원 탈퇴 성공: 회원 번호 {}",userNumber);
             return ResponseEntity.noContent().build(); // 204 No Content
         } catch (IllegalArgumentException e) {

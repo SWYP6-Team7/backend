@@ -216,18 +216,6 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email));
     }
 
-    @Transactional
-    public void deleteUser(Integer userNumber) {
-        Optional<Users> optionalUser = userRepository.findById(userNumber);
-
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        Users user = optionalUser.get();
-        memberDeletedService.deleteUserData(user);  // 삭제 로직 실행
-    }
-
     private Users findUserById(Integer userNumber) {
         return userRepository.findById(userNumber)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다."));

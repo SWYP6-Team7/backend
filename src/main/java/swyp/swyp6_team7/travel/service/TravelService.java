@@ -177,11 +177,21 @@ public class TravelService {
 
 
     public LocalDateTime getEnrollmentsLastViewedAt(int travelNumber) {
+        if (!travelRepository.existsTravelByNumber(travelNumber)) {
+            log.warn("Enrollment LastViewed - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", travelNumber);
+            throw new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+        }
+
         return travelRepository.getEnrollmentsLastViewedAtByNumber(travelNumber);
     }
 
     @Transactional
     public void updateEnrollmentLastViewedAt(int travelNumber, LocalDateTime lastViewedAt) {
+        if (!travelRepository.existsTravelByNumber(travelNumber)) {
+            log.warn("Enrollment LastViewed - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", travelNumber);
+            throw new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+        }
+        
         travelRepository.updateEnrollmentsLastViewedAtByNumber(travelNumber, lastViewedAt);
     }
 
