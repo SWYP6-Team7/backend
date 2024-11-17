@@ -2,71 +2,72 @@ package swyp.swyp6_team7.profile.controller;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
-import swyp.swyp6_team7.profile.entity.UserProfile;
 import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.profile.dto.ProfileCreateRequest;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
 import swyp.swyp6_team7.profile.service.ProfileService;
-import swyp.swyp6_team7.tag.domain.Tag;
 
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/profile")
 public class ProfileController {
     private final ProfileService profileService;
     private final JwtProvider jwtProvider;
 
-    public ProfileController(ProfileService profileService, JwtProvider jwtProvider) {
-        this.profileService = profileService;
-        this.jwtProvider = jwtProvider;
-    }
-
     // 프로필 수정 (이름, 자기소개, 선호 태그)
     @PutMapping("/update")
     public ResponseEntity<?> updateProfile(@RequestBody ProfileUpdateRequest request, HttpServletRequest httpServletRequest) {
-        // JWT 토큰에서 userNumber 추출
-        String token = httpServletRequest.getHeader("Authorization").replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(token);
+        try {
+            log.info("프로필 수정 요청 확인");
+            String token = httpServletRequest.getHeader("Authorization").replace("Bearer ", "");
+            Integer userNumber = jwtProvider.getUserNumber(token);
 
-        // 프로필 수정 로직 호출
-        profileService.updateProfile(userNumber, request);  // userNumber는 토큰에서 추출된 값
+            profileService.updateProfile(userNumber, request);
 
-        return ResponseEntity.ok("Profile updated successfully");
+            log.info("프로필 수정 완료 - userNumber: {}",userNumber);
+            return ResponseEntity.ok("프로필 업데이트 완료");
+        } catch (IllegalArgumentException e) {
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
+            log.warn("Invalid request: {}", errorMessage);
+            return ResponseEntity.status(400).body(errorMessage);
+        } catch (Exception e) {
+            log.error("프로필 수정 중 에러발생", e);
+            return ResponseEntity.status(500).body("프로필 수정 중 에러 발생");
+        }
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> createProfile(@RequestBody ProfileCreateRequest request) {
-        profileService.createProfile(request);
-        return ResponseEntity.ok("프로필이 생성되었습니다.");
-    }
     //프로필 조회 (이름, 이메일, 연령대, 성별, 선호 태그, 자기소개)
     @GetMapping("/me")
     public ResponseEntity<?> viewProfile(HttpServletRequest request) {
-        // Authorization 헤더에서 JWT 토큰을 가져옴
-        String token = request.getHeader("Authorization").replace("Bearer ", "");
+        try {
+            log.info("프로필 조회 요청");
+            String token = request.getHeader("Authorization").replace("Bearer ", "");
 
-        // 토큰에서 userNumber 추출
-        Integer userNumber = jwtProvider.getUserNumber(token);
+            Integer userNumber = jwtProvider.getUserNumber(token);
 
-        Optional<Users> userOpt = profileService.getUserByUserNumber(userNumber);
-        Optional<UserProfile> userProfileOpt = profileService.getProfileByUserNumber(userNumber);
+            Optional<Users> userOpt = profileService.getUserByUserNumber(userNumber);
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("User not found");
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body("사용자를 찾을 수 없음");
+            }
+
+            return ResponseEntity.ok(new ProfileViewResponse(userOpt.get()));
+        } catch (IllegalArgumentException e) {
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
+            log.warn("Invalid request: {}", errorMessage);
+            return ResponseEntity.status(400).body(errorMessage);
+        } catch (Exception e) {
+            log.error("Error fetching profile ", e);
+            return ResponseEntity.status(500).body("존재하지 않는 프로필 정보입니다.");
         }
-
-        if (userProfileOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("User profile not found");
-        }
-
-        // 필요한 사용자 정보와 프로필 정보 반환
-        return ResponseEntity.ok(new ProfileViewResponse(userOpt.get(), userProfileOpt.get()));
     }
 
 }

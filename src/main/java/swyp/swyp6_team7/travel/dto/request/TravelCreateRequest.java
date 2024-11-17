@@ -8,11 +8,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import swyp.swyp6_team7.location.domain.Location;
-import swyp.swyp6_team7.travel.domain.GenderType;
-import swyp.swyp6_team7.travel.domain.PeriodType;
-import swyp.swyp6_team7.travel.domain.Travel;
-import swyp.swyp6_team7.travel.domain.TravelStatus;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -55,22 +50,6 @@ public class TravelCreateRequest {
         this.periodType = periodType;
         this.tags = tags;
         this.completionStatus = completionStatus;
-    }
-
-    public Travel toTravelEntity(int userNumber, Location location) {
-        return Travel.builder()
-                .userNumber(userNumber)
-                .location(location)
-                .locationName(location.getLocationName())
-                .title(title)
-                .details(details)
-                .viewCount(0)
-                .maxPerson(maxPerson)
-                .genderType(GenderType.of(genderType))
-                .dueDate(dueDate)
-                .periodType(PeriodType.of(periodType))
-                .status(TravelStatus.convertCompletionToStatus(completionStatus))
-                .build();
     }
 
 }

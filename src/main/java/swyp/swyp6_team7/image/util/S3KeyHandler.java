@@ -2,14 +2,8 @@ package swyp.swyp6_team7.image.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import swyp.swyp6_team7.community.domain.Community;
-import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.image.s3.FileFolder;
 import swyp.swyp6_team7.image.s3.S3Component;
-import swyp.swyp6_team7.profile.entity.UserProfile;
-import swyp.swyp6_team7.profile.repository.UserProfileRepository;
-
-import java.util.Optional;
 
 
 @Component

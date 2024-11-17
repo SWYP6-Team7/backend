@@ -34,7 +34,7 @@ public class TravelRecommendDto {
     public TravelRecommendDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber
+            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber, boolean bookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
