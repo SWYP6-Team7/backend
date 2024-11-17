@@ -126,6 +126,9 @@ public class EnrollmentService {
 
         //알림
         notificationService.createAcceptNotification(targetTravel, enrollment.getUserNumber());
+        if(targetTravel.isFullCompanion()){
+            //TODO: 인원 마감 notification -> receiver: 참가자(companion) and 주최자
+        }
     }
 
     @Transactional

@@ -192,6 +192,13 @@ public class Travel {
         return true;
     }
 
+    public boolean isFullCompanion() {
+        if (companions.size() == maxPerson) {
+            return true;
+        }
+        return false;
+    }
+
 
     public boolean isTravelHostUser(int userNumber) {
         if (this.userNumber != userNumber) {
