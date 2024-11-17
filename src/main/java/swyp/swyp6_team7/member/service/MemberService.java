@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,6 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.profile.dto.ProfileCreateRequest;
 import swyp.swyp6_team7.profile.service.ProfileService;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
@@ -30,37 +30,19 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MemberService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final MemberDeletedService memberDeletedService;
-    private final ProfileService profileService;
     private final TagService tagService;
     private final UserTagPreferenceRepository userTagPreferenceRepository;
 
     @Value("${custom.admin-secret-key}")
     private String adminSecretKey;
 
-    @Autowired
-    public MemberService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            ProfileService profileService,
-            @Lazy JwtProvider jwtProvider,
-            TagService tagService,
-            UserTagPreferenceRepository userTagPreferenceRepository,
-            MemberDeletedService memberDeletedService) {
-
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtProvider = jwtProvider;
-        this.profileService = profileService;
-        this.tagService = tagService;
-        this.userTagPreferenceRepository = userTagPreferenceRepository;
-        this.memberDeletedService = memberDeletedService;
-    }
 
     @Transactional(readOnly = true)
     public Users findByUserNumber(Integer userNumber) {
@@ -115,10 +97,6 @@ public class MemberService {
             userRepository.save(newUser);
             log.info("회원가입 성공: userNumber={}", newUser.getUserNumber());
 
-            // 프로필 생성 요청
-            ProfileCreateRequest profileCreateRequest = new ProfileCreateRequest();
-            profileCreateRequest.setUserNumber(newUser.getUserNumber());
-            profileService.createProfile(profileCreateRequest);
 
             // 선호 태그 연결 로직
             if (userRequestDto.getPreferredTags() != null && !userRequestDto.getPreferredTags().isEmpty()) {
@@ -236,18 +214,6 @@ public class MemberService {
     public Users getUserByEmail(String email) {
         return userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email));
-    }
-
-    @Transactional
-    public void deleteUser(Integer userNumber) {
-        Optional<Users> optionalUser = userRepository.findById(userNumber);
-
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        Users user = optionalUser.get();
-        memberDeletedService.deleteUserData(user);  // 삭제 로직 실행
     }
 
     private Users findUserById(Integer userNumber) {

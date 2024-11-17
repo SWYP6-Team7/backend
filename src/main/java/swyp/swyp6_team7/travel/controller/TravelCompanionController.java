@@ -22,10 +22,7 @@ public class TravelCompanionController {
     public ResponseEntity<TravelCompanionResponse> getTravelCompanions(@PathVariable("travelNumber") int travelNumber) {
 
         List<CompanionInfoDto> companions = companionService.findCompanionsByTravelNumber(travelNumber);
-        TravelCompanionResponse response = TravelCompanionResponse.builder()
-                .totalCount(companions.size())
-                .companions(companions)
-                .build();
+        TravelCompanionResponse response = TravelCompanionResponse.from(companions);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);

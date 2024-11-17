@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.SocialLoginService;
 import swyp.swyp6_team7.member.entity.SocialUsers;
+import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
@@ -51,6 +52,21 @@ public class SocialLoginController {
         log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
 
         try {
+            // 소셜 사용자 정보 확인
+            Optional<SocialUsers> socialUserOpt = socialLoginService.findSocialUserByLoginId(socialLoginId);
+
+            if (socialUserOpt.isPresent()) {
+                SocialUsers socialUser = socialUserOpt.get();
+
+                // 삭제된 유저인지 확인
+                Users user = socialUser.getUser();
+                if (user.getUserStatus() == UserStatus.DELETED) {
+                    log.warn("소셜 로그인 실패 - 삭제된 계정: userNumber={}, email={}", user.getUserNumber(), email);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "해당 계정은 탈퇴된 상태입니다. 자세한 사항은 관리자에 문의하세요."));
+                }
+            }
+
             Users user = socialLoginService.handleSocialLogin(socialLoginId, email);
 
             // JWT 토큰 생성

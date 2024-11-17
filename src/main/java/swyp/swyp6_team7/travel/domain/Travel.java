@@ -7,7 +7,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.member.entity.DeletedUsers;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 
@@ -176,11 +175,11 @@ public class Travel {
         this.status = TravelStatus.DELETED;
     }
 
-    public boolean availableForEnroll() {
+    public boolean availableForEnroll(LocalDate checkDateTime) {
         if (this.status != TravelStatus.IN_PROGRESS) {
             return false;
         }
-        if (this.dueDate.isBefore(LocalDate.now())) {
+        if (this.dueDate.isBefore(checkDateTime)) {
             return false;
         }
         return true;
@@ -193,9 +192,16 @@ public class Travel {
         return true;
     }
 
+    public boolean isFullCompanion() {
+        if (companions.size() == maxPerson) {
+            return true;
+        }
+        return false;
+    }
 
-    public boolean isUserTravelHost(Users users) {
-        if (this.userNumber != users.getUserNumber()) {
+
+    public boolean isTravelHostUser(int userNumber) {
+        if (this.userNumber != userNumber) {
             return false;
         }
         return true;

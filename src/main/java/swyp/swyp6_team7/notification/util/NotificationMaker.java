@@ -1,7 +1,6 @@
 package swyp.swyp6_team7.notification.util;
 
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.NotificationMessageType;
 import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
@@ -22,9 +21,9 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelEnrollmentMessage(Travel targetTravel, Users users) {
+    public static Notification travelEnrollmentMessage(Travel targetTravel, int receiveUserNumber) {
         return TravelNotification.builder()
-                .receiverNumber(users.getUserNumber())
+                .receiverNumber(receiveUserNumber)
                 .title(NotificationMessageType.TRAVEL_ENROLL.getTitle())
                 .content(NotificationMessageType.TRAVEL_ENROLL.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
@@ -34,9 +33,9 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelAcceptMessage(Travel targetTravel, Enrollment enrollment) {
+    public static Notification travelAcceptMessage(Travel targetTravel, int receiveUserNumber) {
         return TravelNotification.builder()
-                .receiverNumber(enrollment.getUserNumber())
+                .receiverNumber(receiveUserNumber)
                 .title(NotificationMessageType.TRAVEL_ACCEPT.getTitle())
                 .content(NotificationMessageType.TRAVEL_ACCEPT.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
@@ -46,9 +45,9 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelRejectMessage(Travel targetTravel, Enrollment enrollment) {
+    public static Notification travelRejectMessage(Travel targetTravel, int receiveUserNumber) {
         return TravelNotification.builder()
-                .receiverNumber(enrollment.getUserNumber())
+                .receiverNumber(receiveUserNumber)
                 .title(NotificationMessageType.TRAVEL_REJECT.getTitle())
                 .content(NotificationMessageType.TRAVEL_REJECT.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())

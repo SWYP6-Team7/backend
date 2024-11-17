@@ -18,4 +18,11 @@ public class TravelCompanionResponse {
         this.companions = companions;
     }
 
+    public static TravelCompanionResponse from(List<CompanionInfoDto> companions) {
+        return TravelCompanionResponse.builder()
+                .totalCount(companions.size())
+                .companions(companions)
+                .build();
+    }
+
 }

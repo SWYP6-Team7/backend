@@ -7,9 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
@@ -36,29 +34,30 @@ public class NotificationService {
 
 
     @Async
-    public void createEnrollNotification(Travel targetTravel, Users user) {
-        //notification to host
+    public void createEnrollNotification(Travel targetTravel, int enrollUserNumber) {
+        // notification to host
         Notification newNotificationToHost = NotificationMaker.travelEnrollmentMessageToHost(targetTravel);
-        newNotificationToHost = notificationRepository.save(newNotificationToHost);
-        //log.info("[알림]여행신청 =" + newNotificationToHost.toString());
+        Notification createdNotificationToHost = notificationRepository.save(newNotificationToHost);
+        log.info("여행 참가 신청 HOST 알림 - receiverNumber: {}, notificationNumber: {}", targetTravel.getUserNumber(), createdNotificationToHost.getNumber());
 
-        Notification newNotification = NotificationMaker.travelEnrollmentMessage(targetTravel, user);
-        newNotification = notificationRepository.save(newNotification);
-        //log.info("[알림]참가신청 =" + newNotification.toString());
+        // notification to 신청자
+        Notification newNotification = NotificationMaker.travelEnrollmentMessage(targetTravel, enrollUserNumber);
+        Notification createdNotification = notificationRepository.save(newNotification);
+        log.info("여행 참가 신청 요청자 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
     @Async
-    public void createAcceptNotification(Travel targetTravel, Enrollment enrollment) {
-        Notification newNotification = NotificationMaker.travelAcceptMessage(targetTravel, enrollment);
-        newNotification = notificationRepository.save(newNotification);
-        //log.info("[알림]참가확정 = " + newNotification.toString());
+    public void createAcceptNotification(Travel targetTravel, int enrollUserNumber) {
+        Notification newNotification = NotificationMaker.travelAcceptMessage(targetTravel, enrollUserNumber);
+        Notification createdNotification = notificationRepository.save(newNotification);
+        log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
     @Async
-    public void createRejectNotification(Travel targetTravel, Enrollment enrollment) {
-        Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollment);
-        newNotification = notificationRepository.save(newNotification);
-        //log.info("[알림]참가거절 = " + newNotification.toString());
+    public void createRejectNotification(Travel targetTravel, int enrollUserNumber) {
+        Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollUserNumber);
+        Notification createdNotification = notificationRepository.save(newNotification);
+        log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
     @Async

@@ -1,13 +1,15 @@
-package swyp.swyp6_team7.companion.service;
+package swyp.swyp6_team7.companion.repository;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
-import swyp.swyp6_team7.companion.repository.CompanionRepository;
+import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.image.domain.Image;
+import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -28,11 +30,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
-@SpringBootTest
-class CompanionServiceTest {
-
-    @Autowired
-    private CompanionService companionService;
+@Import(DataConfig.class)
+@DataJpaTest
+class CompanionCustomRepositoryImplTest {
 
     @Autowired
     private CompanionRepository companionRepository;
@@ -41,26 +41,25 @@ class CompanionServiceTest {
     private UserRepository userRepository;
 
     @Autowired
+    private ImageRepository imageRepository;
+
+    @Autowired
     private LocationRepository locationRepository;
 
     @Autowired
     private TravelRepository travelRepository;
 
 
-    @AfterEach
-    void tearDown() {
-        companionRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
-        travelRepository.deleteAllInBatch();
-        locationRepository.deleteAllInBatch();
-    }
-
-    @DisplayName("findCompanionInfo: 특정 여행의 companion 정보를 가져올 수 있다.")
+    @DisplayName("findCompanionInfo: 특정 여행에 참여 확정된 사용자의 정보를 가져온다.")
     @Test
-    public void findCompanionInfoByTravelNumber() {
+    void findCompanionInfoByTravelNumber() {
         // given
         Users user1 = userRepository.save(createUser("user1", AgeGroup.TEEN));
         Users user2 = userRepository.save(createUser("user2", AgeGroup.TWENTY));
+
+        Image image1 = createImage(user1.getUserNumber(), "user1-profile-image");
+        Image image2 = createImage(user2.getUserNumber(), "user2-profile-image");
+        imageRepository.saveAll(List.of(image1, image2));
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(createTravel(location));
@@ -70,16 +69,17 @@ class CompanionServiceTest {
         companionRepository.saveAll(List.of(companion1, companion2));
 
         // when
-        List<CompanionInfoDto> companionInfo = companionService.findCompanionsByTravelNumber(travel.getNumber());
+        List<CompanionInfoDto> companionInfo = companionRepository.findCompanionInfoByTravelNumber(travel.getNumber());
 
         // then
         assertThat(companionInfo).hasSize(2)
                 .extracting("userName", "ageGroup", "profileUrl")
                 .containsExactlyInAnyOrder(
-                        tuple("user1", "10대", null),
-                        tuple("user2", "20대", null)
+                        tuple("user1", "10대", "user1-profile-image"),
+                        tuple("user2", "20대", "user2-profile-image")
                 );
     }
+
 
     private Companion createCompanion(Travel travel, int userNumber) {
         return Companion.builder()
@@ -116,6 +116,15 @@ class CompanionServiceTest {
                 .userGender(Gender.M)
                 .userAgeGroup(ageGroup)
                 .userStatus(UserStatus.ABLE)
+                .build();
+    }
+
+    private Image createImage(int userNumber, String url) {
+        return Image.builder()
+                .relatedType("profile")
+                .order(0)
+                .relatedNumber(userNumber)
+                .url(url)
                 .build();
     }
 

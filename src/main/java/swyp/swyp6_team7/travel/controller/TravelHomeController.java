@@ -13,6 +13,8 @@ import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.dto.response.TravelRecommendResponse;
 import swyp.swyp6_team7.travel.service.TravelHomeService;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @RestController
 public class TravelHomeController {
@@ -40,9 +42,10 @@ public class TravelHomeController {
             @RequestParam(name = "size", defaultValue = "5") int size
     ) {
         Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        LocalDate requestDate = LocalDate.now();
 
         Page<TravelRecommendResponse> result = travelHomeService
-                .getRecommendTravelsByUser(PageRequest.of(page, size), loginUserNumber)
+                .getRecommendTravelsByUser(PageRequest.of(page, size), loginUserNumber, requestDate)
                 .map(TravelRecommendResponse::new);
 
         return ResponseEntity.status(HttpStatus.OK)

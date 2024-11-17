@@ -167,5 +167,8 @@ public class SocialLoginService {
             throw new IllegalArgumentException("유효하지 않은 연령대 값입니다: " + ageRange);
         }
     }
+    public Optional<SocialUsers> findSocialUserByLoginId(String socialLoginId) {
+        return socialUserRepository.findBySocialLoginId(socialLoginId);
+    }
 }
 
