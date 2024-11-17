@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.profile.dto;
+package swyp.swyp6_team7.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;
