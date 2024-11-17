@@ -35,6 +35,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.util.TravelSearchConstant;
 import swyp.swyp6_team7.travel.util.TravelSearchSortingType;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +131,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
     }
 
     @Override
-    public Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags) {
+    public Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate) {
 
         NumberExpression<Long> matchingTagCount = new CaseBuilder()
                 .when(travel.travelTags.isEmpty()).then(Expressions.nullExpression())
@@ -146,7 +147,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(travel.travelTags, travelTag)
                 .leftJoin(travelTag.tag, tag)
                 .where(
-                        statusInProgress()
+                        statusInProgress(),
+                        travel.dueDate.after(requestDate)
                 )
                 .groupBy(travel.number)
                 .orderBy(

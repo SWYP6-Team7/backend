@@ -28,6 +28,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -290,6 +291,59 @@ class TravelServiceTest {
                 .hasMessage("여행 삭제 권한이 없습니다.");
     }
 
+    @DisplayName("addViewCount: 특정 여행의 viewCount를 1 증가시킬 수 있다.")
+    @Test
+    void addViewCount() {
+        // given
+        int hostUserNumber = 1;
+        Location location = locationRepository.save(createLocation("Seoul"));
+        LocalDate dueDate = LocalDate.of(2024, 11, 4);
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+
+        // when
+        travelService.addViewCount(savedTravel.getNumber());
+
+        // then
+        assertThat(travelRepository.findAll()).hasSize(1)
+                .extracting("viewCount")
+                .contains(1);
+    }
+
+    @DisplayName("getEnrollmentsLastViewedAt: 특정 여행의 enrollmentsLastViewedAt 값을 가져올 수 있다.")
+    @Test
+    void getEnrollmentsLastViewedAt() {
+        // given
+        int hostUserNumber = 1;
+        Location location = locationRepository.save(createLocation("Seoul"));
+        LocalDate dueDate = LocalDate.of(2024, 11, 4);
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+
+        // when
+        LocalDateTime lastViewedAt = travelService.getEnrollmentsLastViewedAt(savedTravel.getNumber());
+
+        // then
+        assertThat(lastViewedAt).isEqualTo(LocalDateTime.of(2024, 11, 17, 12, 0));
+    }
+
+    @DisplayName("getEnrollmentsLastViewedAt: 특정 여행의 enrollmentsLastViewedAt 값을 수정할 수 있다.")
+    @Test
+    void updateEnrollmentLastViewedAt() {
+        // given
+        int hostUserNumber = 1;
+        Location location = locationRepository.save(createLocation("Seoul"));
+        LocalDate dueDate = LocalDate.of(2024, 11, 4);
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+
+        LocalDateTime updateDateTime = LocalDateTime.of(2024, 11, 20, 10, 0);
+
+        // when
+        travelService.updateEnrollmentLastViewedAt(savedTravel.getNumber(), updateDateTime);
+
+        // then
+        assertThat(travelRepository.findAll()).hasSize(1)
+                .extracting("enrollmentsLastViewedAt")
+                .contains(LocalDateTime.of(2024, 11, 20, 10, 0));
+    }
 
     private Location createLocation(String locationName) {
         return Location.builder()
@@ -326,6 +380,7 @@ class TravelServiceTest {
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
                 .tags(List.of(tag1))
+                .enrollmentsLastViewedAt(LocalDateTime.of(2024, 11, 17, 12, 0))
                 .build();
     }
 

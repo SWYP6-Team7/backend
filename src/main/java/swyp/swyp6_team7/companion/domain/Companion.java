@@ -42,6 +42,13 @@ public class Companion {
         this.userNumber = userNumber;
     }
 
+    public static Companion create(Travel travel, int userNumber) {
+        return Companion.builder()
+                .travel(travel)
+                .userNumber(userNumber)
+                .build();
+    }
+
     private void setTravel(Travel travel) {
         this.travel = travel;
         travel.getCompanions().add(this);

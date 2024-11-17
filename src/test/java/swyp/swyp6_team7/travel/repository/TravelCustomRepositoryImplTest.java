@@ -4,7 +4,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.entity.Bookmark;
@@ -57,11 +59,9 @@ class TravelCustomRepositoryImplTest {
     private LocationRepository locationRepository;
     @Autowired
     private BookmarkRepository bookmarkRepository;
-//    @Autowired
-//    @Qualifier("enrollmentCustomRepositoryImpl")
-//    private EnrollmentCustomRepository enrollmentCustomRepository;
-//    @Autowired
-//    private EnrollmentRepository enrollmentRepository;
+
+    @MockBean
+    private DateTimeProvider dateTimeProvider;
 
 
     @DisplayName("getDetailsByNumber: 여행 번호가 주어지면 여행의 디테일 정보를 가져올 수 있다.")
@@ -98,13 +98,16 @@ class TravelCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
         LocalDate dueDate = LocalDate.of(2024, 11, 7);
+
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 2, GenderType.MIXED,
                 dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        travelRepository.save(travel1);
+
         Travel travel2 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 0, GenderType.MIXED,
                 dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
-        travelRepository.saveAll(List.of(travel1, travel2));
+        travelRepository.save(travel2);
 
         // when
         Page<TravelRecentDto> results = travelRepository
@@ -146,10 +149,11 @@ class TravelCustomRepositoryImplTest {
         travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
 
         List<String> preferredTags = Arrays.asList("쇼핑", "자연", "먹방");
+        LocalDate requestDate = LocalDate.of(2024, 11, 6);
 
         // when
         Page<TravelRecommendDto> result = travelRepository
-                .findAllByPreferredTags(PageRequest.of(0, 5), 1, preferredTags);
+                .findAllByPreferredTags(PageRequest.of(0, 5), 1, preferredTags, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(4)
@@ -157,6 +161,50 @@ class TravelCustomRepositoryImplTest {
                 .containsExactlyInAnyOrder(
                         tuple(travel1.getNumber(), Arrays.asList("쇼핑"), 1),
                         tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2),
+                        tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1),
+                        tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
+                );
+    }
+
+    @DisplayName("findAllByPreferredTags: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
+    @Test
+    public void findAllByPreferredTagsWithDate() {
+        // given
+        Tag tag1 = Tag.of("쇼핑");
+        Tag tag2 = Tag.of("자연");
+        Tag tag3 = Tag.of("먹방");
+        Tag tag4 = Tag.of("즉흥");
+        tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
+
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate1 = LocalDate.of(2024, 11, 7);
+        Travel travel1 = createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate1, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
+        Travel travel2 = createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate1, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+
+        LocalDate dueDate2 = LocalDate.of(2024, 11, 9);
+        Travel travel3 = createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
+        Travel travel4 = createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
+        travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
+
+        List<String> preferredTags = Arrays.asList("쇼핑", "자연", "먹방");
+        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+
+        // when
+        Page<TravelRecommendDto> result = travelRepository
+                .findAllByPreferredTags(PageRequest.of(0, 5), 1, preferredTags, requestDate);
+
+        // then
+        assertThat(result.getContent()).hasSize(2)
+                .extracting("travelNumber", "tags", "preferredNumber")
+                .containsExactlyInAnyOrder(
                         tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1),
                         tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
                 );
