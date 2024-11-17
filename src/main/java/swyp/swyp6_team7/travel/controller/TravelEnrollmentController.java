@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
@@ -42,20 +41,20 @@ public class TravelEnrollmentController {
                 .body(response);
     }
 
+    @PutMapping("/api/travel/{travelNumber}/enrollments/last-viewed")
+    public ResponseEntity updateEnrollmentsLastViewedTime(
+            @PathVariable("travelNumber") int travelNumber,
+            @RequestBody TravelEnrollmentLastViewedRequest request
+    ) {
+        travelService.updateEnrollmentLastViewedAt(travelNumber, request.getLastViewedAt());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("신청 목록 LastViewedAt 수정 완료");
+    }
+
     @GetMapping("/api/travel/{travelNumber}/enrollmentCount")
     public ResponseEntity getEnrollmentsCount(@PathVariable("travelNumber") int travelNumber) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(enrollmentService.getPendingEnrollmentsCountByTravelNumber(travelNumber));
-    }
-
-    @PutMapping("/api/travel/{travelNumber}/enrollments/last-viewed")
-    public ResponseEntity updateEnrollmentsLastViewedTime(
-            @PathVariable("travelNumber") int travelNumber,
-            @RequestBody @Validated TravelEnrollmentLastViewedRequest request
-    ) {
-        travelService.updateEnrollmentLastViewedAt(travelNumber, request.getLastViewedAt());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Updated LastViewedAt");
     }
 
 }
