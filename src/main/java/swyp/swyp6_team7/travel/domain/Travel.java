@@ -171,6 +171,10 @@ public class Travel {
         return this;
     }
 
+    public void close() {
+        this.status = TravelStatus.CLOSED;
+    }
+
     public void delete() {
         this.status = TravelStatus.DELETED;
     }

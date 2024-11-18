@@ -36,6 +36,18 @@ public enum NotificationMessageType {
         }
     },
 
+    TRAVEL_COMPANION_CLOSED_HOST("모집 마감 알림") {
+        public String getContent(String travelTitle) {
+            return String.format("[%s]의 인원이 가득 차 모집이 마감되었어요.", travelTitle);
+        }
+    },
+
+    TRAVEL_CLOSED("모집 마감 알림") {
+        public String getContent(String travelTitle) {
+            return String.format("참가하신 [%s]의 모집이 마감되었어요.", travelTitle);
+        }
+    },
+
     TRAVEL_NEW_COMMENT_ENROLLMENT("멤버 댓글 알림") {
         public String getContent(String travelTitle) {
             return String.format("참가 신청하신 [%s]에 멤버 댓글이 달렸어요. 확인해보세요.", travelTitle);
@@ -43,5 +55,6 @@ public enum NotificationMessageType {
     };
 
     private final String title;
+
     public abstract String getContent(String travelTitle);
 }
