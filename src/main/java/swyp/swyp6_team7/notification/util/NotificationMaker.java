@@ -57,6 +57,30 @@ public class NotificationMaker {
                 .build();
     }
 
+    public static Notification travelCompanionClosedMessageToHost(Travel targetTravel) {
+        return TravelNotification.builder()
+                .receiverNumber(targetTravel.getUserNumber())
+                .title(NotificationMessageType.TRAVEL_COMPANION_CLOSED_HOST.getTitle())
+                .content(NotificationMessageType.TRAVEL_COMPANION_CLOSED_HOST.getContent(targetTravel.getTitle()))
+                .travelNumber(targetTravel.getNumber())
+                .travelTitle(targetTravel.getTitle())
+                .travelDueDate(null)
+                .isRead(false)
+                .build();
+    }
+
+    public static Notification travelClosedMessageToCompanions(Travel targetTravel, int receiveUserNumber) {
+        return TravelNotification.builder()
+                .receiverNumber(receiveUserNumber)
+                .title(NotificationMessageType.TRAVEL_CLOSED.getTitle())
+                .content(NotificationMessageType.TRAVEL_CLOSED.getContent(targetTravel.getTitle()))
+                .travelNumber(targetTravel.getNumber())
+                .travelTitle(targetTravel.getTitle())
+                .travelDueDate(null)
+                .isRead(false)
+                .build();
+    }
+
     public static TravelCommentNotification travelNewCommentMessageToHost(Travel targetTravel) {
         return TravelCommentNotification.builder()
                 .receiverNumber(targetTravel.getUserNumber())

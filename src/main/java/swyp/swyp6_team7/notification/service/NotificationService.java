@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelNotificationDto;
@@ -21,6 +20,7 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Transactional
@@ -58,6 +58,17 @@ public class NotificationService {
         Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollUserNumber);
         Notification createdNotification = notificationRepository.save(newNotification);
         log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
+    }
+
+    @Async
+    public void createCompanionClosedNotification(Travel targetTravel) {
+        Notification hostNotification = NotificationMaker.travelCompanionClosedMessageToHost(targetTravel);
+        notificationRepository.save(hostNotification);
+
+        List<Notification> notificationsToCompanions = targetTravel.getCompanions().stream()
+                .map(companion -> NotificationMaker.travelClosedMessageToCompanions(targetTravel, companion.getUserNumber()))
+                .collect(Collectors.toList());
+        notificationRepository.saveAll(notificationsToCompanions);
     }
 
     @Async
