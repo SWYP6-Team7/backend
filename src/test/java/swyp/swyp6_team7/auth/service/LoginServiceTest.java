@@ -69,7 +69,7 @@ class LoginServiceTest {
 
         when(userRepository.findByUserEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(password, mockUser.getUserPw())).thenReturn(true); // 비밀번호 일치
-        when(jwtProvider.createAccessToken(email, mockUser.getUserNumber(), roles))
+        when(jwtProvider.createAccessToken(mockUser.getUserNumber(), roles))
                 .thenReturn(mockedAccessToken);
 
 

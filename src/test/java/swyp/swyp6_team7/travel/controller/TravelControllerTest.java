@@ -89,7 +89,7 @@ class TravelControllerTest {
                 .userStatus(UserStatus.ABLE)
                 .build());
 
-        var userDetails = userDetailsService.loadUserByUsername(user.getUserEmail());
+        var userDetails = userDetailsService.loadUserByUsername(String.valueOf(user.getUserNumber()));
         SecurityContext context = SecurityContextHolder.getContext();
         context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
     }

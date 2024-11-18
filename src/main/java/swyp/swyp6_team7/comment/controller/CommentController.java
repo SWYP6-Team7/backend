@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.dto.request.CommentCreateRequestDto;
 import swyp.swyp6_team7.comment.dto.request.CommentUpdateRequestDto;
@@ -25,6 +26,7 @@ public class CommentController {
 
     private final CommentService commentService;
     private final MemberService memberService;
+    private final JwtProvider jwtProvider;
 
     //Create
     @PostMapping("/api/{relatedType}/{relatedNumber}/comments")
@@ -35,7 +37,7 @@ public class CommentController {
             @PathVariable(name = "relatedNumber") int relatedNumber
     ) {
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         Comment createdComment = commentService.create(request, userNumber, relatedType, relatedNumber);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -52,7 +54,7 @@ public class CommentController {
             @PathVariable int relatedNumber) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
 
         Page<CommentListReponseDto> comments = commentService.getListPage(PageRequest.of(page, size), relatedType, relatedNumber, userNumber);
@@ -66,7 +68,7 @@ public class CommentController {
             @PathVariable int commentNumber
     ) {
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         CommentDetailResponseDto updateResponse = commentService.update(request, userNumber, commentNumber);
 
@@ -81,7 +83,7 @@ public class CommentController {
             Principal principal
     ) {
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         commentService.delete(commentNumber, userNumber);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

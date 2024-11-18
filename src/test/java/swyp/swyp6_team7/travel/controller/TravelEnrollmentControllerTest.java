@@ -22,10 +22,12 @@ import swyp.swyp6_team7.travel.service.TravelService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,6 +49,7 @@ class TravelEnrollmentControllerTest {
     private TravelService travelService;
 
 
+
     @DisplayName("findEnrollments: 특정 여행에 대한 참가 신청서 목록을 조회할 수 있다")
     @WithMockCustomUser
     @Test
@@ -65,6 +68,7 @@ class TravelEnrollmentControllerTest {
 
         given(enrollmentService.findEnrollmentsByTravelNumber(anyInt(), anyInt()))
                 .willReturn(response);
+
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/travel/{travelNumber}/enrollments", 1));
@@ -86,9 +90,11 @@ class TravelEnrollmentControllerTest {
     @Test
     void getEnrollmentsLastViewedTime() throws Exception {
         // given
+
         LocalDateTime enrollmentLastViewedAt = LocalDateTime.of(2024, 11, 17, 12, 0);
         given(travelService.getEnrollmentsLastViewedAt(anyInt()))
                 .willReturn(enrollmentLastViewedAt);
+
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/travel/{travelNumber}/enrollments/last-viewed", 1));

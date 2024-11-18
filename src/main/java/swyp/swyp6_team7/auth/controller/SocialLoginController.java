@@ -52,6 +52,7 @@ public class SocialLoginController {
         log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
 
         try {
+            memberService.validateEmail(email);
             // 소셜 사용자 정보 확인
             Optional<SocialUsers> socialUserOpt = socialLoginService.findSocialUserByLoginId(socialLoginId);
 
@@ -71,10 +72,9 @@ public class SocialLoginController {
 
             // JWT 토큰 생성
             String accessToken = jwtProvider.createAccessToken(
-                    user.getUserEmail(),
                     user.getUserNumber(),
                     List.of(user.getRole().name()));
-            String refreshToken = jwtProvider.createRefreshToken(user.getUserEmail(), user.getUserNumber());
+            String refreshToken = jwtProvider.createRefreshToken(user.getUserNumber());
             log.info("JWT 토큰 생성 완료: accessToken={}, refreshToken=****", accessToken);
 
             // 리프레시 토큰을 쿠키에 저장

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.category.repository.CategoryRepository;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
 import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
@@ -32,6 +33,7 @@ public class CommunityController {
     private final MemberService memberService;
     private final CategoryRepository categoryRepository;
     private final CommunityListService communityListService;
+    private final JwtProvider jwtProvider;
 
 
     //C
@@ -40,7 +42,7 @@ public class CommunityController {
             @RequestBody CommunityCreateRequestDto request, Principal principal) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         // 게시물 등록 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
@@ -58,7 +60,7 @@ public class CommunityController {
             @RequestParam(defaultValue = "최신순") String sortingTypeName,
             Principal principal) {
 
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         Integer categoryNumber = null;
         // categoryName이 null이 아닐 경우에만 카테고리 번호를 조회
@@ -94,7 +96,7 @@ public class CommunityController {
     ) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
@@ -108,7 +110,7 @@ public class CommunityController {
             @RequestBody CommunityUpdateRequestDto request, Principal principal, @PathVariable int postNumber) {
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
 
         // 게시물 수정 동작 후 상세 정보 가져오기
@@ -121,7 +123,7 @@ public class CommunityController {
     public ResponseEntity<Void> delete(@PathVariable int postNumber, Principal principal){
 
         //user number 가져오기
-        int userNumber = memberService.findByEmail(principal.getName()).getUserNumber();
+        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         try {
             communityService.delete(postNumber, userNumber);

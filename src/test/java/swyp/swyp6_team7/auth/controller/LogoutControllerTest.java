@@ -64,7 +64,7 @@ public class LogoutControllerTest {
         mockMvc.perform(post("/api/logout")
                         .header("Authorization", "Bearer mocked-jwt-token"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Logout successful"));
+                .andExpect(content().string("로그아웃 성공"));
     }
 
     @Test

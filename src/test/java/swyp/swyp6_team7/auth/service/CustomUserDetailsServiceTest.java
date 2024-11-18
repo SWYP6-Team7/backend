@@ -32,29 +32,30 @@ class CustomUserDetailsServiceTest {
     void testLoadUserByUsername_UserFound() {
         // Given
         Users mockUser = new Users();
+        mockUser.setUserNumber(1);
         mockUser.setUserEmail("user@example.com");
         mockUser.setUserPw("password");
 
-        when(userRepository.findByUserEmail("user@example.com")).thenReturn(Optional.of(mockUser));
+        when(userRepository.findByUserNumber(1)).thenReturn(Optional.of(mockUser));
 
         // When
-        CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername("user@example.com");
+        CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername("1");
 
         // Then
         assertNotNull(userDetails);
-        assertEquals("user@example.com", userDetails.getUsername());
+        assertEquals("1", userDetails.getUsername());
         assertEquals("password", userDetails.getPassword());
-        verify(userRepository, times(1)).findByUserEmail("user@example.com");
+        verify(userRepository, times(1)).findByUserNumber(1);
     }
 
     @Test
     void testLoadUserByUsername_UserNotFound() {
         // Given
-        when(userRepository.findByUserEmail("unknown@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByUserNumber(999)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(UsernameNotFoundException.class, () -> customUserDetailsService.loadUserByUsername("unknown@example.com"));
+        assertThrows(UsernameNotFoundException.class, () -> customUserDetailsService.loadUserByUsername("999"));
 
-        verify(userRepository, times(1)).findByUserEmail("unknown@example.com");
+        verify(userRepository, times(1)).findByUserNumber(999);
     }
 }

@@ -27,18 +27,18 @@ public class JwtProvider {
     }
 
     // Access Token 생성
-    public String createAccessToken(String userEmail, Integer userNumber, List<String> roles) {
-        return createToken(userEmail, userNumber, roles, accessTokenValidity);
+    public String createAccessToken(Integer userNumber, List<String> roles) {
+        return createToken(userNumber, roles, accessTokenValidity);
     }
 
     // Refresh Token 생성
-    public String createRefreshToken(String userEmail, Integer userNumber) {
-        return createToken(userEmail,userNumber, null, refreshTokenValidity);
+    public String createRefreshToken(Integer userNumber) {
+        return createToken(userNumber, null, refreshTokenValidity);
     }
 
     // 공통적으로 토큰 생성하는 로직
-    public String createToken(String userEmail, Integer userNumber, List<String> roles, long validityInMilliseconds) {
-        Claims claims = Jwts.claims().setSubject(userEmail);
+    public String createToken(Integer userNumber, List<String> roles, long validityInMilliseconds) {
+        Claims claims = Jwts.claims();
         claims.put("userNumber", userNumber);
         if (roles != null &&!roles.isEmpty()) {
             claims.put("roles", roles);
@@ -54,10 +54,10 @@ public class JwtProvider {
                     .setExpiration(validity)
                     .signWith(SignatureAlgorithm.HS256, secretKey)
                     .compact();
-            log.info("JWT 토큰 생성 성공: userEmail={}, userNumber={}", userEmail, userNumber);
+            log.info("JWT 토큰 생성 성공: userNumber={}", userNumber);
             return token;
         } catch (Exception e) {
-            log.error("JWT 토큰 생성 중 오류 발생: userEmail={}, userNumber={}", userEmail, userNumber, e);
+            log.error("JWT 토큰 생성 중 오류 발생: userNumber={}", userNumber, e);
             throw new JwtException("JWT 토큰 생성에 실패했습니다.", e);
         }
     }
@@ -78,17 +78,6 @@ public class JwtProvider {
             return false;
         }
     }
-    // JWT에서 사용자 이메일을 추출
-    public String getUserEmail(String token) {
-        try {
-            String email = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
-            log.info("JWT 토큰에서 사용자 이메일 추출 성공: {}", email);
-            return email;
-        } catch (JwtException e) {
-            log.error("JWT 토큰에서 사용자 이메일 추출 실패: {}", token, e);
-            throw new JwtException("JWT 토큰에서 사용자 이메일을 추출하는데 실패했습니다.", e);
-        }
-    }
     // JWT에서 사용자 ID 추출
     public Integer getUserNumber(String token) {
         try {
@@ -106,10 +95,9 @@ public class JwtProvider {
     public String refreshAccessToken(String refreshToken) {
         if (validateToken(refreshToken)) {
             try {
-                String userEmail = getUserEmail(refreshToken);
                 Integer userNumber = getUserNumber(refreshToken);
-                String newAccessToken = createAccessToken(userEmail, userNumber, null);
-                log.info("새로운 Access Token 발급 성공: userEmail={}, userNumber={}", userEmail, userNumber);
+                String newAccessToken = createAccessToken( userNumber, null);
+                log.info("새로운 Access Token 발급 성공: userNumber={}", userNumber);
                 return newAccessToken;
             } catch (Exception e) {
                 log.error("Access Token 발급 중 오류 발생: refreshToken={}", refreshToken, e);

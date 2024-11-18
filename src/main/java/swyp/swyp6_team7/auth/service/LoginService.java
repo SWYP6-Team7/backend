@@ -51,9 +51,9 @@ public class LoginService {
             }
 
             // Access Token 생성
-            String accessToken = jwtProvider.createAccessToken(user.getUserEmail(), user.getUserNumber(), List.of(user.getRole().name()));
+            String accessToken = jwtProvider.createAccessToken(user.getUserNumber(), List.of(user.getRole().name()));
             // Refresh Token 생성
-            String refreshToken = jwtProvider.createRefreshToken(user.getUserEmail(), user.getUserNumber());
+            String refreshToken = jwtProvider.createRefreshToken(user.getUserNumber());
 
             log.info("로그인 성공: userNumber={}, email={}", user.getUserNumber(), user.getUserEmail());
 

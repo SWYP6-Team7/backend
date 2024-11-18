@@ -36,9 +36,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
-        return  path.startsWith("/login/oauth/google")||
-                path.startsWith("/login/oauth/naver") ||
-                path.startsWith("/login/oauth/kakao") ||
+        return  path.startsWith("/api/login/oauth/google")||
+                path.startsWith("/api/login/oauth/naver") ||
+                path.startsWith("/api/login/oauth/kakao") ||
                 path.equals("/api/login") ||
                 path.equals("/api/users/new") ||
                 path.equals("/api/refresh-token"); // 로그인 및 회원가입 경로 필터링 제외
@@ -51,13 +51,13 @@ public class JwtFilter extends OncePerRequestFilter {
         // Authorization 헤더에서 JWT 토큰 추출
         String authorizationHeader = request.getHeader("Authorization");
         String token = null;
-        String userEmail = null;
+        Integer userNumber = null;
 
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7); // 'Bearer ' 제거
             try {
-                userEmail = jwtProvider.getUserEmail(token); // 토큰에서 이메일 추출
+                userNumber = jwtProvider.getUserNumber(token);
             } catch (ExpiredJwtException e) {
                 // 토큰 만료 예외 처리
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -67,13 +67,13 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // SecurityContext에 인증 객체가 설정되지 않은 경우
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             // JWT가 유효한 경우에만
             if (jwtProvider.validateToken(token)) {
                 // 유저를 불러와서 Authentication 객체 생성
                 try {
-                    var userDetails = userDetailsService.loadUserByUsername(userEmail);
+                    var userDetails = userDetailsService.loadUserByUsername(String.valueOf(userNumber));
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 

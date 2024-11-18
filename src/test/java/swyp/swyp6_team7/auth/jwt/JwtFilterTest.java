@@ -56,12 +56,12 @@ public class JwtFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // Mock JwtProvider behavior
-        when(jwtProvider.getUserEmail("validToken")).thenReturn("user@example.com");
+        when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
 
         // Mock UserDetailsService behavior
         UserDetails userDetails = mock(UserDetails.class);
-        when(userDetailsService.loadUserByUsername("user@example.com")).thenReturn(userDetails);
+        when(userDetailsService.loadUserByUsername("1")).thenReturn(userDetails);
 
         // When: Executing the filter
         jwtFilter.doFilterInternal(request, response, filterChain);
@@ -115,11 +115,11 @@ public class JwtFilterTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         // Mock JwtProvider behavior
-        when(jwtProvider.getUserEmail("validToken")).thenReturn("user@example.com");
+        when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
 
         // Mock UserDetailsService behavior
-        when(userDetailsService.loadUserByUsername("user@example.com")).thenThrow(new UsernameNotFoundException("User not found"));
+        when(userDetailsService.loadUserByUsername("1")).thenThrow(new UsernameNotFoundException("User not found"));
 
         // When: Executing the filter
         jwtFilter.doFilterInternal(request, response, filterChain);

@@ -45,11 +45,11 @@ public class MemberService {
 
 
     @Transactional(readOnly = true)
-    public Users findByEmail(String email) {
-        log.info("이메일로 사용자 찾기 요청: email={}", email);
-        return userRepository.findByUserEmail(email)
+    public Users findByUserNumber(Integer userNumber) {
+        log.info("사용자 번호로 사용자 찾기 요청: userNumber={}", userNumber);
+        return userRepository.findById(userNumber)
                 .orElseThrow(() -> {
-                    log.error("사용자를 찾을 수 없음: email={}", email);
+                    log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
                     return new IllegalArgumentException("존재하지 않는 사용자입니다.");
                 });
     }
@@ -113,7 +113,7 @@ public class MemberService {
             }
 
             // JWT 발급
-            String token = jwtProvider.createToken(newUser.getEmail(), newUser.getUserNumber(), List.of(newUser.getRole().name()), 3600000);
+            String token = jwtProvider.createToken(newUser.getUserNumber(), List.of(newUser.getRole().name()), 3600000);
 
             // 응답 데이터에 userId와 accessToken 포함
             Map<String, Object> response = new HashMap<>();
@@ -179,7 +179,7 @@ public class MemberService {
 
         // JWT 발급
         long tokenExpirationTime = 3600000; // 토큰 만료 시간 1시간
-        String token = jwtProvider.createToken(newAdmin.getUserEmail(), newAdmin.getUserNumber(), roles, tokenExpirationTime);
+        String token = jwtProvider.createToken(newAdmin.getUserNumber(), roles, tokenExpirationTime);
 
         // 응답 데이터
         Map<String, Object> response = new HashMap<>();
@@ -191,12 +191,11 @@ public class MemberService {
 
     }
 
-    // 이메일 중복 확인 로직
-    public boolean checkEmailDuplicate(String email) {
+    public void validateEmail(String email){
+        memberDeletedService.validateReRegistration(email);
         if (userRepository.findByUserEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
-        return false; // 중복된 이메일이 없을 경우 false반환
     }
 
     @Transactional

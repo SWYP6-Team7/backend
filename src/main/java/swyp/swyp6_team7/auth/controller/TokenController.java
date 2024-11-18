@@ -58,14 +58,13 @@ public class TokenController {
 
         try {
             if (jwtProvider.validateToken(refreshToken)) {
-                // Refresh Token에서 이메일 정보 추출
-                String userEmail = jwtProvider.getUserEmail(refreshToken);
-                Users user = userRepository.findByUserEmail(userEmail)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다. 이메일: " + userEmail));
-                log.info("사용자 확인 완료: email={}", userEmail);
+                Integer userNumber = jwtProvider.getUserNumber(refreshToken);
+                Users user = userRepository.findByUserNumber(userNumber)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber));
+                log.info("사용자 확인 완료: userNumber={}", userNumber);
 
                 // 새로운 Access Token 발급
-                String newAccessToken = jwtProvider.createAccessToken(user.getUserEmail(), user.getUserNumber(), List.of(user.getRole().name()));
+                String newAccessToken = jwtProvider.createAccessToken( user.getUserNumber(), List.of(user.getRole().name()));
                 log.info("새로운 Access Token 발급 성공: userId={}, accessToken={}", user.getUserNumber(), newAccessToken);
 
                 // 새로운 Access Token을 JSON 응답으로 반환

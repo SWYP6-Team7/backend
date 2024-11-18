@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.time.LocalDate;
@@ -19,15 +21,18 @@ public class EnrollmentController {
 
     private static final Logger logger = LoggerFactory.getLogger(EnrollmentController.class);
     private final EnrollmentService enrollmentService;
+    private final JwtProvider jwtProvider;
 
 
     @PostMapping("/api/enrollment")
+
     public ResponseEntity create(@Valid @RequestBody EnrollmentCreateRequest request) {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         logger.info("Enrollment 생성 요청 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
 
         enrollmentService.create(request, loginUserNumber, LocalDate.now());
         logger.info("Enrollment 생성 완료 - userId: {}, travelNumber: {}", loginUserNumber, request.getTravelNumber());
+
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("여행 참가 신청이 완료되었습니다.");

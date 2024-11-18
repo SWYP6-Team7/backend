@@ -56,7 +56,7 @@ public class MemberController {
         log.info("이메일 중복 확인 요청: {}",email);
         try {
             memberDeletedService.validateReRegistration(email);
-            memberService.checkEmailDuplicate(email);
+            memberService.validateEmail(email);
             log.info("이메일 사용 가능: {}",email);
             return ResponseEntity.ok("사용 가능한 이메일입니다.");
         } catch (IllegalArgumentException e) {

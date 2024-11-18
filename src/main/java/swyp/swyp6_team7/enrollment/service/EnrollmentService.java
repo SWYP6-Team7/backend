@@ -33,6 +33,7 @@ public class EnrollmentService {
 
 
     @Transactional
+
     public void create(EnrollmentCreateRequest request, int requestUserNumber, LocalDate nowDate) {
 
         Travel targetTravel = travelRepository.findByNumber(request.getTravelNumber())
@@ -154,6 +155,7 @@ public class EnrollmentService {
 
         //알림
         notificationService.createRejectNotification(targetTravel, enrollment.getUserNumber());
+
     }
 
 }

@@ -46,7 +46,7 @@ class JwtProviderTest {
         List<String> roles = List.of("ROLE_USER");
 
         // When
-        String token = jwtProvider.createAccessToken(userEmail, userNumber, roles);
+        String token = jwtProvider.createAccessToken(userNumber, roles);
 
         // Then
         assertNotNull(token);  // 토큰이 null이 아니어야 함
@@ -56,31 +56,16 @@ class JwtProviderTest {
     @Test
     void testCreateRefreshToken() {
         // Given
-        String userEmail = "test@example.com";
         Integer userNumber = 1;
 
         // When
-        String refreshToken = jwtProvider.createRefreshToken(userEmail, userNumber);
+        String refreshToken = jwtProvider.createRefreshToken(userNumber);
 
         // Then
         assertNotNull(refreshToken);  // Refresh 토큰이 null이 아니어야 함
         assertTrue(jwtProvider.validateToken(refreshToken));  // Refresh 토큰이 유효해야 함
     }
 
-    @Test
-    void testGetUserEmailFromToken() {
-        // Given
-        String userEmail = "test@example.com";
-        Integer userNumber = 1;
-        List<String> roles = List.of("ROLE_USER");
-        String token = jwtProvider.createAccessToken(userEmail, userNumber, roles);
-
-        // When
-        String extractedEmail = jwtProvider.getUserEmail(token);
-
-        // Then
-        assertEquals(userEmail, extractedEmail);  // 추출된 이메일이 원래 이메일과 같아야 함
-    }
 
     @Test
     void testGetUserNumberFromToken() {
@@ -88,7 +73,7 @@ class JwtProviderTest {
         String userEmail = "test@example.com";
         Integer userNumber = 1;
         List<String> roles = List.of("ROLE_USER");
-        String token = jwtProvider.createAccessToken(userEmail, userNumber, roles);
+        String token = jwtProvider.createAccessToken( userNumber, roles);
 
         // When
         Integer extractedUserNumber = jwtProvider.getUserNumber(token);
@@ -114,7 +99,7 @@ class JwtProviderTest {
         // Given
         String userEmail = "test@example.com";
         Integer userNumber = 1;
-        String refreshToken = jwtProvider.createRefreshToken(userEmail, userNumber);
+        String refreshToken = jwtProvider.createRefreshToken( userNumber);
 
         // When
         String newAccessToken = jwtProvider.refreshAccessToken(refreshToken);
@@ -155,7 +140,7 @@ class JwtProviderTest {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        String refreshToken = jwtProvider.createRefreshToken(userEmail, userNumber);
+        String refreshToken = jwtProvider.createRefreshToken(userNumber);
 
         // 만료된 Access Token을 리프레시 토큰으로 재발급
         assertFalse(jwtProvider.validateToken(expiredAccessToken));  // 만료된 토큰은 유효하지 않아야 함
