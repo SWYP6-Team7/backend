@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,7 @@ public class MemberControllerTest {
     private UserDetailsService userDetailsService;
 
     @Test
+    @DisplayName("일반이메일 가입 성공테스트")
     public void testSignUpSuccess() throws Exception {
         // given
         UserRequestDto userRequestDto = new UserRequestDto(
@@ -83,6 +85,7 @@ public class MemberControllerTest {
     }
 
     @Test
+    @DisplayName("이미 존재하는 이메일로 가입")
     public void testSignUpEmailAlreadyExists() throws Exception {
         // given
         UserRequestDto userRequestDto = new UserRequestDto(
@@ -107,9 +110,10 @@ public class MemberControllerTest {
     }
 
     @Test
+    @DisplayName("사용가능한 이메일로 가입")
     public void testCheckEmailDuplicate() throws Exception {
         // 이메일 중복 확인이 통과하는 경우
-        Mockito.when(memberService.checkEmailDuplicate("test@example.com")).thenReturn(true);
+        Mockito.doNothing().when(memberService).validateEmail("test@example.com");
 
         // when & then
         mockMvc.perform(get("/api/users-email")
@@ -119,10 +123,10 @@ public class MemberControllerTest {
     }
 
     @Test
+    @DisplayName("이메일 중복일 떄 예외 발생")
     public void testCheckEmailDuplicateExists() throws Exception {
-        // 이메일 중복일 때 예외 발생
         Mockito.doThrow(new IllegalArgumentException("이미 사용 중인 이메일입니다."))
-                .when(memberService).checkEmailDuplicate("test@example.com");
+                .when(memberService).validateEmail("test@example.com");
 
         // when & then
         mockMvc.perform(get("/api/users-email")
@@ -132,6 +136,7 @@ public class MemberControllerTest {
     }
 
     @Test
+    @DisplayName("관리자계정 생성테스트")
     public void testCreateAdmin() throws Exception {
         UserRequestDto adminRequest = new UserRequestDto(
                 "admin@example.com",

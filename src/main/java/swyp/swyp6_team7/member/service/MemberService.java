@@ -191,12 +191,11 @@ public class MemberService {
 
     }
 
-    // 이메일 중복 확인 로직
-    public boolean checkEmailDuplicate(String email) {
+    public void validateEmail(String email){
+        memberDeletedService.validateReRegistration(email);
         if (userRepository.findByUserEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
-        return false; // 중복된 이메일이 없을 경우 false반환
     }
 
     @Transactional
