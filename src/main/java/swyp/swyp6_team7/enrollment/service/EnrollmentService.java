@@ -124,10 +124,10 @@ public class EnrollmentService {
         Companion newCompanion = Companion.create(targetTravel, enrollment.getUserNumber());
         companionRepository.save(newCompanion);
 
-        //알림
-        notificationService.createAcceptNotification(targetTravel, enrollment.getUserNumber());
+        notificationService.createAcceptNotification(targetTravel, enrollment.getUserNumber()); //참가 수락 알림
         if (targetTravel.isFullCompanion()) {
-            notificationService.createCompanionClosedNotification(targetTravel);
+            targetTravel.close();
+            notificationService.createCompanionClosedNotification(targetTravel); //참가 인원에 의한 여행 마감 알림
         }
     }
 
