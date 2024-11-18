@@ -2,6 +2,7 @@ package swyp.swyp6_team7.auth.service;
 
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import swyp.swyp6_team7.auth.provider.NaverProvider;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.member.service.MemberDeletedService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,18 +18,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class NaverService {
 
     private final NaverProvider naverProvider;
     private final UserRepository userRepository;
     private final SocialUserRepository socialUserRepository;
-    @Autowired
-    public NaverService(NaverProvider naverProvider, UserRepository userRepository, SocialUserRepository socialUserRepository) {
-        this.naverProvider = naverProvider;
-        this.userRepository = userRepository;
-        this.socialUserRepository = socialUserRepository;
-    }
+    private final MemberDeletedService memberDeletedService;
     // 네이버 로그인 URL 생성
     public String naverLogin() {
         String state = UUID.randomUUID().toString(); // 무작위 state 값 생성
@@ -86,6 +84,10 @@ public class NaverService {
         log.info("소셜 사용자 저장 시작: email={}, socialLoginId={}", email, socialLoginId);
 
         try {
+            // 재가입 제한 검증
+            memberDeletedService.validateReRegistration(email);
+            log.info("재가입 제한 검증 통과: email={}", email);
+
             Optional<Users> existingUser = userRepository.findByUserEmail(email);
 
             Users user;

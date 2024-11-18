@@ -44,7 +44,6 @@ public class SocialLoginController {
         log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
 
         try {
-            memberDeletedService.validateReRegistration(email);
             // 소셜 사용자 정보 확인
             Optional<SocialUsers> socialUserOpt = socialLoginService.findSocialUserByLoginId(socialLoginId);
 
