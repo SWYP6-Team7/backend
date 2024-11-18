@@ -78,14 +78,17 @@ public class NotificationService {
         }
 
         Travel targetTravel = travelRepository.findByNumber(relatedNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Travel Not Found"));
+                .orElseThrow(() -> {
+                    log.warn("new comment notification - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", relatedNumber);
+                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+                });
 
-        // notification to host (작성자가 host인 경우 host 알림 생성 제외)
+        // notification to host (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
         if (requestUserNumber != targetTravel.getUserNumber()) {
             notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
         }
 
-        // notification to each enrollment (작성자 자신에게는 알림 생성 제외)
+        // notification to each enrollment (작성자는 알림 생성 제외)
         List<Integer> enrolledUserNumbers = enrollmentRepository.findEnrolledUserNumbersByTravelNumber(targetTravel.getNumber());
         List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
                 .distinct()

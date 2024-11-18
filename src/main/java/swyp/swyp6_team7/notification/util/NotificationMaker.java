@@ -1,6 +1,5 @@
 package swyp.swyp6_team7.notification.util;
 
-import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.NotificationMessageType;
 import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
