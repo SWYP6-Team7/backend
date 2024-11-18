@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelNotificationDto;
@@ -21,6 +20,7 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Transactional
@@ -61,20 +61,34 @@ public class NotificationService {
     }
 
     @Async
+    public void createCompanionClosedNotification(Travel targetTravel) {
+        Notification hostNotification = NotificationMaker.travelCompanionClosedMessageToHost(targetTravel);
+        notificationRepository.save(hostNotification);
+
+        List<Notification> notificationsToCompanions = targetTravel.getCompanions().stream()
+                .map(companion -> NotificationMaker.travelClosedMessageToCompanions(targetTravel, companion.getUserNumber()))
+                .collect(Collectors.toList());
+        notificationRepository.saveAll(notificationsToCompanions);
+    }
+
+    @Async
     public void createCommentNotifications(Integer requestUserNumber, String relatedType, Integer relatedNumber) {
         if (!relatedType.equals("travel")) {
             return;
         }
 
         Travel targetTravel = travelRepository.findByNumber(relatedNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Travel Not Found"));
+                .orElseThrow(() -> {
+                    log.warn("new comment notification - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", relatedNumber);
+                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+                });
 
-        // notification to host (작성자가 host인 경우 host 알림 생성 제외)
+        // notification to host (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
         if (requestUserNumber != targetTravel.getUserNumber()) {
             notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
         }
 
-        // notification to each enrollment (작성자 자신에게는 알림 생성 제외)
+        // notification to each enrollment (작성자는 알림 생성 제외)
         List<Integer> enrolledUserNumbers = enrollmentRepository.findEnrolledUserNumbersByTravelNumber(targetTravel.getNumber());
         List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
                 .distinct()
@@ -85,11 +99,10 @@ public class NotificationService {
     }
 
 
-    public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest, int requestUserNumber) {
 
         Page<Notification> notifications = notificationRepository
-                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(loginUserNumber, pageRequest);
+                .getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(pageRequest, requestUserNumber);
 
         return notifications.map(notification -> makeDto(notification));
     }

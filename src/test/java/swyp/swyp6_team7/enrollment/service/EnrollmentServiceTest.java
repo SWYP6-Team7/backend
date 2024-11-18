@@ -240,7 +240,7 @@ class EnrollmentServiceTest {
                 .hasMessage("여행 참가 모집 인원이 마감되어 수락할 수 없습니다.");
     }
 
-    @DisplayName("accept: 주최자는 여행 참가 신청을 거절할 수 있다.")
+    @DisplayName("reject: 주최자는 여행 참가 신청을 거절할 수 있다.")
     @Test
     void reject() {
         // given
@@ -267,7 +267,7 @@ class EnrollmentServiceTest {
                 );
     }
 
-    @DisplayName("accept: 여행 신청 거절 요청은 주최자가 아닌 경우 예외가 발생한다.")
+    @DisplayName("reject: 여행 신청 거절 요청은 주최자가 아닌 경우 예외가 발생한다.")
     @Test
     void rejectWhenNotHostUser() {
         // given
