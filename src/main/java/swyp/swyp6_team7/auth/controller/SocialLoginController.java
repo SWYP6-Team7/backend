@@ -2,6 +2,7 @@ package swyp.swyp6_team7.auth.controller;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.member.service.MemberDeletedService;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/social")
 @Slf4j
 public class SocialLoginController {
@@ -31,18 +34,7 @@ public class SocialLoginController {
     private final SocialLoginService socialLoginService;
     private final UserLoginHistoryService userLoginHistoryService;
     private final MemberService memberService;
-
-    public SocialLoginController(JwtProvider jwtProvider,
-                                 UserRepository userRepository,
-                                 SocialLoginService socialLoginService,
-                                 UserLoginHistoryService userLoginHistoryService,
-                                 MemberService memberService) {
-        this.jwtProvider = jwtProvider;
-        this.userRepository = userRepository;
-        this.socialLoginService = socialLoginService;
-        this.userLoginHistoryService = userLoginHistoryService;
-        this.memberService = memberService;
-    }
+    private final MemberDeletedService memberDeletedService;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> handleSocialLogin(@RequestBody Map<String, String> loginRequest,
@@ -52,7 +44,7 @@ public class SocialLoginController {
         log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
 
         try {
-            memberService.validateEmail(email);
+            memberDeletedService.validateReRegistration(email);
             // 소셜 사용자 정보 확인
             Optional<SocialUsers> socialUserOpt = socialLoginService.findSocialUserByLoginId(socialLoginId);
 
