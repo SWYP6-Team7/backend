@@ -16,6 +16,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
+                .travelHost(true)
                 .isRead(false)
                 .build();
     }
@@ -28,6 +29,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
+                .travelHost(false)
                 .isRead(false)
                 .build();
     }
@@ -40,6 +42,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
+                .travelHost(false)
                 .isRead(false)
                 .build();
     }
@@ -52,6 +55,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
+                .travelHost(false)
                 .isRead(false)
                 .build();
     }
@@ -64,6 +68,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(null)
+                .travelHost(true)
                 .isRead(false)
                 .build();
     }
@@ -76,6 +81,7 @@ public class NotificationMaker {
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(null)
+                .travelHost(false)
                 .isRead(false)
                 .build();
     }

@@ -16,12 +16,15 @@ public class TravelNotificationDto extends NotificationDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate travelDueDate;
 
+    private Boolean travelHostUser;
+
 
     public TravelNotificationDto(TravelNotification notification) {
         super(notification);
         this.travelNumber = notification.getTravelNumber();
         this.travelTitle = notification.getTravelTitle();
         this.travelDueDate = notification.getTravelDueDate();
+        this.travelHostUser = notification.getTravelHost();
     }
 
 }
