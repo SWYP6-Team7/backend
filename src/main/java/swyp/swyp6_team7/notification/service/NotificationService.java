@@ -40,12 +40,12 @@ public class NotificationService {
 
     @Async
     public void createEnrollNotification(Travel targetTravel, int enrollUserNumber) {
-        // notification to host
+        // to 주최자
         Notification newNotificationToHost = NotificationMaker.travelEnrollmentMessageToHost(targetTravel);
         Notification createdNotificationToHost = notificationRepository.save(newNotificationToHost);
         log.info("여행 참가 신청 HOST 알림 - receiverNumber: {}, notificationNumber: {}", targetTravel.getUserNumber(), createdNotificationToHost.getNumber());
 
-        // notification to 신청자
+        // to 신청자
         Notification newNotification = NotificationMaker.travelEnrollmentMessage(targetTravel, enrollUserNumber);
         Notification createdNotification = notificationRepository.save(newNotification);
         log.info("여행 참가 신청 요청자 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
@@ -116,13 +116,13 @@ public class NotificationService {
                     return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
                 });
 
-        // notification to host (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
+        // to 주최자 (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
         if (requestUserNumber != targetTravel.getUserNumber()) {
             notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
         }
 
-        // notification to each enrollment (작성자는 알림 생성 제외)
-        List<Integer> enrolledUserNumbers = enrollmentRepository.findEnrolledUserNumbersByTravelNumber(targetTravel.getNumber());
+        // to 신청자 (작성자는 알림 생성 제외)
+        List<Integer> enrolledUserNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.ACCEPTED);
         List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
                 .distinct()
                 .filter(userNumber -> userNumber != requestUserNumber)
