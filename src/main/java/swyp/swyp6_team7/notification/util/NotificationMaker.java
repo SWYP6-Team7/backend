@@ -9,62 +9,42 @@ import swyp.swyp6_team7.travel.domain.Travel;
 public class NotificationMaker {
 
     public static Notification travelEnrollmentMessageToHost(Travel targetTravel) {
-        return TravelNotification.builder()
-                .receiverNumber(targetTravel.getUserNumber())
-                .title(NotificationMessageType.TRAVEL_ENROLL_HOST.getTitle())
-                .content(NotificationMessageType.TRAVEL_ENROLL_HOST.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(true)
-                .isRead(false)
-                .build();
+        return createHostTravelNotification(NotificationMessageType.TRAVEL_ENROLL_HOST, targetTravel);
     }
 
     public static Notification travelEnrollmentMessage(Travel targetTravel, int receiveUserNumber) {
-        return TravelNotification.builder()
-                .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_ENROLL.getTitle())
-                .content(NotificationMessageType.TRAVEL_ENROLL.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(false)
-                .isRead(false)
-                .build();
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_ENROLL, targetTravel, receiveUserNumber);
     }
 
     public static Notification travelAcceptMessage(Travel targetTravel, int receiveUserNumber) {
-        return TravelNotification.builder()
-                .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_ACCEPT.getTitle())
-                .content(NotificationMessageType.TRAVEL_ACCEPT.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(false)
-                .isRead(false)
-                .build();
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_ACCEPT, targetTravel, receiveUserNumber);
     }
 
     public static Notification travelRejectMessage(Travel targetTravel, int receiveUserNumber) {
-        return TravelNotification.builder()
-                .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_REJECT.getTitle())
-                .content(NotificationMessageType.TRAVEL_REJECT.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(false)
-                .isRead(false)
-                .build();
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_REJECT, targetTravel, receiveUserNumber);
     }
 
     public static Notification travelCompanionClosedMessageToHost(Travel targetTravel) {
+        return createHostTravelNotification(NotificationMessageType.TRAVEL_COMPANION_CLOSED_HOST, targetTravel);
+    }
+
+    public static Notification travelClosedMessageToCompanions(Travel targetTravel, int receiveUserNumber) {
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_CLOSED_COMPANION, targetTravel, receiveUserNumber);
+    }
+
+    public static Notification travelClosedMessageToPendingUser(Travel targetTravel, int receiveUserNumber) {
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_CLOSED_PENDING, targetTravel, receiveUserNumber);
+    }
+
+    public static Notification travelClosedMessageToBookmarkedUser(Travel targetTravel, int receiveUserNumber) {
+        return createCommonTravelNotification(NotificationMessageType.TRAVEL_CLOSED_BOOKMARKED, targetTravel, receiveUserNumber);
+    }
+
+    private static TravelNotification createHostTravelNotification(NotificationMessageType messageType, Travel targetTravel) {
         return TravelNotification.builder()
                 .receiverNumber(targetTravel.getUserNumber())
-                .title(NotificationMessageType.TRAVEL_COMPANION_CLOSED_HOST.getTitle())
-                .content(NotificationMessageType.TRAVEL_COMPANION_CLOSED_HOST.getContent(targetTravel.getTitle()))
+                .title(messageType.getTitle())
+                .content(messageType.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
@@ -73,37 +53,11 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static Notification travelClosedMessageToCompanions(Travel targetTravel, int receiveUserNumber) {
+    private static TravelNotification createCommonTravelNotification(NotificationMessageType messageType, Travel targetTravel, int receiveUserNumber) {
         return TravelNotification.builder()
                 .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_CLOSED_COMPANION.getTitle())
-                .content(NotificationMessageType.TRAVEL_CLOSED_COMPANION.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(false)
-                .isRead(false)
-                .build();
-    }
-
-    public static Notification travelClosedMessageToPendingUser(Travel targetTravel, int receiveUserNumber) {
-        return TravelNotification.builder()
-                .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_CLOSED_PENDING.getTitle())
-                .content(NotificationMessageType.TRAVEL_CLOSED_PENDING.getContent(targetTravel.getTitle()))
-                .travelNumber(targetTravel.getNumber())
-                .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
-                .travelHost(false)
-                .isRead(false)
-                .build();
-    }
-
-    public static Notification travelClosedMessageToBookmarkedUser(Travel targetTravel, int receiveUserNumber) {
-        return TravelNotification.builder()
-                .receiverNumber(receiveUserNumber)
-                .title(NotificationMessageType.TRAVEL_CLOSED_BOOKMARKED.getTitle())
-                .content(NotificationMessageType.TRAVEL_CLOSED_BOOKMARKED.getContent(targetTravel.getTitle()))
+                .title(messageType.getTitle())
+                .content(messageType.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
                 .travelDueDate(targetTravel.getDueDate())
