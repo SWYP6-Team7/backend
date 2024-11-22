@@ -53,14 +53,14 @@ public class EnrollmentCustomRepositoryImpl implements EnrollmentCustomRepositor
     }
 
     @Override
-    public List<Integer> findEnrolledUserNumbersByTravelNumber(int travelNumber) {
+    public List<Integer> findUserNumbersByTravelNumberAndStatus(int travelNumber, EnrollmentStatus status) {
         return queryFactory
                 .select(enrollment.userNumber)
                 .from(enrollment)
                 .where(
                         enrollment.travelNumber.eq(travelNumber),
-                        enrollment.status.eq(EnrollmentStatus.ACCEPTED)
-                ).fetch();
+                        enrollment.status.eq(status)
+                ).distinct().fetch();
     }
 
     @Override

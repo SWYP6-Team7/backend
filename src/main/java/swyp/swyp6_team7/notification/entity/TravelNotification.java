@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import swyp.swyp6_team7.travel.domain.Travel;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,16 +28,20 @@ public class TravelNotification extends Notification {
     @Column(name = "travel_due_date")
     private LocalDate travelDueDate;
 
+    @Column(name = "travel_host")
+    private Boolean travelHost;
+
 
     public TravelNotification(
             Long number, LocalDateTime createdAt, Integer receiverNumber,
             String title, String content, Boolean isRead,
-            Integer travelNumber, String travelTitle, LocalDate travelDueDate
+            Integer travelNumber, String travelTitle, LocalDate travelDueDate, Boolean travelHost
     ) {
         super(number, createdAt, receiverNumber, title, content, isRead);
         this.travelNumber = travelNumber;
         this.travelTitle = travelTitle;
         this.travelDueDate = travelDueDate;
+        this.travelHost = travelHost;
     }
 
 
@@ -52,6 +57,7 @@ public class TravelNotification extends Notification {
                 "travelNumber=" + travelNumber +
                 ", travelTitle='" + travelTitle + '\'' +
                 ", travelDueDate=" + travelDueDate +
+                ", travelHost=" + travelHost +
                 '}';
     }
 

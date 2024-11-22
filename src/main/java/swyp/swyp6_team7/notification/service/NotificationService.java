@@ -7,6 +7,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
+import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
@@ -19,6 +21,8 @@ import swyp.swyp6_team7.notification.util.NotificationMaker;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,16 +35,17 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final BookmarkRepository bookmarkRepository;
 
 
     @Async
     public void createEnrollNotification(Travel targetTravel, int enrollUserNumber) {
-        // notification to host
+        // to 주최자
         Notification newNotificationToHost = NotificationMaker.travelEnrollmentMessageToHost(targetTravel);
         Notification createdNotificationToHost = notificationRepository.save(newNotificationToHost);
         log.info("여행 참가 신청 HOST 알림 - receiverNumber: {}, notificationNumber: {}", targetTravel.getUserNumber(), createdNotificationToHost.getNumber());
 
-        // notification to 신청자
+        // to 신청자
         Notification newNotification = NotificationMaker.travelEnrollmentMessage(targetTravel, enrollUserNumber);
         Notification createdNotification = notificationRepository.save(newNotification);
         log.info("여행 참가 신청 요청자 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
@@ -62,13 +67,41 @@ public class NotificationService {
 
     @Async
     public void createCompanionClosedNotification(Travel targetTravel) {
-        Notification hostNotification = NotificationMaker.travelCompanionClosedMessageToHost(targetTravel);
-        notificationRepository.save(hostNotification);
+        List<Notification> createdNotifications = new ArrayList<>();
 
-        List<Notification> notificationsToCompanions = targetTravel.getCompanions().stream()
-                .map(companion -> NotificationMaker.travelClosedMessageToCompanions(targetTravel, companion.getUserNumber()))
+        // to 주최자
+        Notification hostNotification = NotificationMaker.travelCompanionClosedMessageToHost(targetTravel);
+        createdNotifications.add(hostNotification);
+
+        // to 참가 확정자
+        List<Integer> companionsNumber = targetTravel.getCompanions().stream()
+                .map(companion -> companion.getUserNumber())
+                .toList();
+        List<Notification> notificationsToCompanions = companionsNumber.stream()
+                .map(userNumber -> NotificationMaker.travelClosedMessageToCompanions(targetTravel, userNumber))
                 .collect(Collectors.toList());
-        notificationRepository.saveAll(notificationsToCompanions);
+        createdNotifications.addAll(notificationsToCompanions);
+
+        // to PENDING 신청자
+        List<Integer> pendingUsersNumber = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.PENDING);
+        List<Notification> notificationsToPendingUser = pendingUsersNumber.stream()
+                .map(userNumber -> NotificationMaker.travelClosedMessageToPendingUser(targetTravel, userNumber))
+                .collect(Collectors.toList());
+        createdNotifications.addAll(notificationsToPendingUser);
+
+        // to 즐겨찾기(북마크) 사용자
+        List<Integer> bookmarkedUsersNumber = bookmarkRepository.findUserNumberByTravelNumber(targetTravel.getNumber())
+                        .stream().collect(Collectors.toList());
+        bookmarkedUsersNumber.removeAll(new HashSet<>(companionsNumber));
+        bookmarkedUsersNumber.removeAll(new HashSet<>(pendingUsersNumber));
+
+        List<Notification> notificationsToBookmarkedUsers = bookmarkedUsersNumber.stream()
+                .filter(userNumber -> userNumber != targetTravel.getUserNumber())
+                .map(userNumber -> NotificationMaker.travelClosedMessageToBookmarkedUser(targetTravel, userNumber))
+                .collect(Collectors.toList());
+        createdNotifications.addAll(notificationsToBookmarkedUsers);
+
+        notificationRepository.saveAll(createdNotifications);
     }
 
     @Async
@@ -83,13 +116,13 @@ public class NotificationService {
                     return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
                 });
 
-        // notification to host (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
+        // to 주최자 (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
         if (requestUserNumber != targetTravel.getUserNumber()) {
             notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
         }
 
-        // notification to each enrollment (작성자는 알림 생성 제외)
-        List<Integer> enrolledUserNumbers = enrollmentRepository.findEnrolledUserNumbersByTravelNumber(targetTravel.getNumber());
+        // to 신청자 (작성자는 알림 생성 제외)
+        List<Integer> enrolledUserNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.ACCEPTED);
         List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
                 .distinct()
                 .filter(userNumber -> userNumber != requestUserNumber)
