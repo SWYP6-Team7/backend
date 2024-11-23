@@ -11,6 +11,7 @@ import swyp.swyp6_team7.image.s3.S3Component;
 @Component
 public class S3KeyHandler {
 
+    // todo: AmazonS3로부터 regionName 가져오기(설정값 사용하도록)
     private final static String S3_REGION = "ap-northeast-2";
 
     private final S3Component s3Component;

@@ -18,7 +18,6 @@ import swyp.swyp6_team7.member.service.MemberService;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,22 +35,22 @@ public class ImageProfileController {
     @PostMapping("")
     public ResponseEntity<ImageDetailResponseDto> createdProfileImage(Principal principal) {
 
-        //user number 가져오기
+        //user number 가져오기 //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
         int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
         ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(userNumber);
         return ResponseEntity.ok(response);
     }
 
-    //임시 저장
+    // 임시 저장: 내 정보 수정 페이지에서 이미지 선택 시 호출
     @PostMapping("/temp")
-    public ResponseEntity<ImageTempResponseDto> createTempImage (@RequestParam(value = "file") MultipartFile file, Principal principal) throws IOException{
+    public ResponseEntity<ImageTempResponseDto> createTempImage(@RequestParam(value = "file") MultipartFile file, Principal principal) throws IOException {
 
         ImageTempResponseDto response = imageService.temporaryImage(file);
         return ResponseEntity.ok(response);
     }
 
-    //임시 저장 삭제
+    // 임시 저장 삭제
     @DeleteMapping("/temp")
     public ResponseEntity<String> deleteTempImage(@RequestBody TempDeleteRequestDto request, Principal principal) {
 
@@ -69,9 +68,9 @@ public class ImageProfileController {
         }
     }
 
-    //새로운 이미지 파일로 프로필 수정 (정식 저장)
+    // 이미지 정식 저장: 새로운 이미지 파일로 프로필 수정
     @PutMapping("")
-    public ResponseEntity<ImageDetailResponseDto> updatedProfileImage(@RequestBody TempUploadRequestDto request, Principal principal){
+    public ResponseEntity<ImageDetailResponseDto> updatedProfileImage(@RequestBody TempUploadRequestDto request, Principal principal) {
         //user number 가져오기
         int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 

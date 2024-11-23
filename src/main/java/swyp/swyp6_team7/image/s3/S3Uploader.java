@@ -1,8 +1,12 @@
 package swyp.swyp6_team7.image.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.CopyObjectResult;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.image.repository.ImageRepository;
@@ -11,30 +15,22 @@ import swyp.swyp6_team7.image.util.StorageNameHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
-
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class S3Uploader {
 
     private final AmazonS3 amazonS3;
     private final S3Component s3Component;
-    private final S3KeyHandler s3KeyHandler; // s3KeyHandler 추가
-    private final StorageNameHandler storageNameHandler; // storageNameHandler 추가
+    private final S3KeyHandler s3KeyHandler; // s3KeyHandler 추가 - FileFolderHandler
+    private final StorageNameHandler storageNameHandler; // storageNameHandler 추가 - FileNameHandler
     private final ImageRepository imageRepository;
 
-    @Autowired
-    public S3Uploader(AmazonS3 amazonS3, S3Component s3Component, S3KeyHandler s3KeyHandler, StorageNameHandler storageNameHandler, ImageRepository imageRepository) {
-        this.amazonS3 = amazonS3;
-        this.s3Component = s3Component;
-        this.s3KeyHandler = s3KeyHandler; // FileFolderHandler 주입
-        this.storageNameHandler = storageNameHandler; // FileNameHandler 주입
-        this.imageRepository = imageRepository;
-    }
 
     //S3에 파일 업로드 하는 메소드
     public String upload(MultipartFile file, String relatedType, int relatedNumber, int order) throws IOException {
+
         // 파일 메타데이터
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
@@ -48,6 +44,7 @@ public class S3Uploader {
             //S3에 파일 업로드
             amazonS3.putObject(new PutObjectRequest(s3Component.getBucket(), S3Key, inputStream, metadata));
         } catch (IOException e) {
+            log.warn("Failed to upload file to S3 - relatedType:{}, relatedNumber:{}", relatedType, relatedNumber);
             throw new RuntimeException("Failed to upload file to S3", e); //업로드 실패 시 예외 처리
         }
         // S3Path 리턴
@@ -156,4 +153,6 @@ public class S3Uploader {
         String key = s3KeyHandler.generateS3Key(relatedType, relatedNumber, storageName, order);
         return key;
     }
+
 }
+

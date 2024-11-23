@@ -2,8 +2,6 @@ package swyp.swyp6_team7.image.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import swyp.swyp6_team7.image.domain.Image;
 
 import java.time.LocalDateTime;
@@ -23,8 +21,10 @@ public class ImageCreateRequestDto {
     private LocalDateTime uploadDate;
 
     @Builder
-    public ImageCreateRequestDto(String originalName, String storageName, long size, String format,
-                                 String relatedType, int relatedNumber, int order, String key, String url, LocalDateTime uploadDate) {
+    public ImageCreateRequestDto(
+            String originalName, String storageName, long size, String format,
+            String relatedType, int relatedNumber, int order, String key, String url, LocalDateTime uploadDate
+    ) {
         this.originalName = originalName;
         this.storageName = storageName;
         this.size = size;
@@ -37,7 +37,7 @@ public class ImageCreateRequestDto {
         this.uploadDate = uploadDate;
     }
 
-        // 최소 필드만 받는 생성자 (프로필 이미지 기본 이미지용)
+    // 최소 필드만 받는 생성자 (프로필 이미지 기본 이미지용)
     @Builder
     public ImageCreateRequestDto(String relatedType, int relatedNumber, int order, String key, String url) {
         this.relatedType = relatedType;
@@ -50,8 +50,10 @@ public class ImageCreateRequestDto {
 
     //임시저장시 사용하는 생성자 (커뮤니티)
     @Builder
-    public ImageCreateRequestDto(String originalName, String storageName, long size, String format,
-                                 String relatedType,String key, String url) {
+    public ImageCreateRequestDto(
+            String originalName, String storageName, long size, String format,
+            String relatedType, String key, String url
+    ) {
         this.originalName = originalName;
         this.storageName = storageName;
         this.size = size;
