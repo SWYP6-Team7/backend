@@ -12,6 +12,7 @@ import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import java.util.Base64;
 import java.util.List;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -111,13 +112,33 @@ public class JwtProvider {
     // JWT 토큰의 만료 시간을 추출하는 메서드 추가
     public long getExpiration(String token) {
         try {
-            Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+            // JWT 토큰 파싱 및 클레임 추출
+            Claims claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token)
+                    .getBody();
+
             Date expiration = claims.getExpiration();
+            if (expiration == null) {
+                log.error("JWT 토큰에서 만료 시간을 찾을 수 없음: token={}", token);
+                throw new JwtException("JWT 토큰에서 만료 시간을 찾을 수 없습니다.");
+            }
+
             log.info("JWT 토큰의 만료 시간 추출 성공: expiration={}", expiration);
-            return expiration.getTime();
+            return TimeUnit.MILLISECONDS.toSeconds(expiration.getTime()); // 초 단위로 반환
         } catch (JwtException e) {
             log.error("JWT 토큰의 만료 시간 추출 실패: {}", token, e);
             throw new JwtException("JWT 토큰에서 만료 시간을 추출하는데 실패했습니다.", e);
         }
     }
+    public long getRemainingValidity(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        Date expiration = claims.getExpiration();
+        long currentTime = System.currentTimeMillis();
+        return (expiration.getTime() - currentTime) / 1000;
+    }
+
 }
