@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.auth.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,13 +11,11 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtBlacklistService {
 
+    @Qualifier("stringRedisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
-
-    public JwtBlacklistService(@Qualifier("stringRedisTemplate") RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     // Access Token을 블랙리스트에 추가
     public void addToBlacklist(String token, long expirationTime) {

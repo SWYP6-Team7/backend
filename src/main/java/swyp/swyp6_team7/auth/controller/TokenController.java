@@ -1,9 +1,11 @@
 package swyp.swyp6_team7.auth.controller;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
+import swyp.swyp6_team7.auth.service.TokenService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
@@ -26,18 +29,12 @@ import org.springframework.security.core.GrantedAuthority;
 @RestController
 @RequestMapping("/api/token")
 @Slf4j
+@RequiredArgsConstructor
 public class TokenController {
 
     private final JwtProvider jwtProvider;
-    private final UserRepository userRepository;
     private final JwtBlacklistService jwtBlacklistService;
-
-    public TokenController(JwtProvider jwtProvider, UserRepository userRepository,
-                           JwtBlacklistService jwtBlacklistService) {
-        this.jwtProvider = jwtProvider;
-        this.userRepository = userRepository;
-        this.jwtBlacklistService = jwtBlacklistService;
-    }
+    private final TokenService tokenService;
 
     // Refresh Token으로 새로운 Access Token 발급
     @PostMapping("/refresh")
@@ -57,25 +54,18 @@ public class TokenController {
         }
 
         try {
-            if (jwtProvider.validateToken(refreshToken)) {
-                Integer userNumber = jwtProvider.getUserNumber(refreshToken);
-                Users user = userRepository.findByUserNumber(userNumber)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber));
-                log.info("사용자 확인 완료: userNumber={}", userNumber);
+            String newAccessToken = tokenService.refreshWithLock(refreshToken);
+            log.info("새로운 Access Token 발급 성공: accessToken={}", newAccessToken);
 
-                // 새로운 Access Token 발급
-                String newAccessToken = jwtProvider.createAccessToken( user.getUserNumber(), List.of(user.getRole().name()));
-                log.info("새로운 Access Token 발급 성공: userId={}, accessToken={}", user.getUserNumber(), newAccessToken);
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("userId", String.valueOf(jwtProvider.getUserNumber(newAccessToken)));
+            responseMap.put("accessToken", newAccessToken);
+            return ResponseEntity.ok(responseMap);
 
-                // 새로운 Access Token을 JSON 응답으로 반환
-                Map<String, String> responseMap = new HashMap<>();
-                responseMap.put("userId", String.valueOf(user.getUserNumber()));
-                responseMap.put("accessToken", newAccessToken);
-                return ResponseEntity.ok(responseMap);
-            } else {
-                log.warn("만료된 Refresh Token 사용 시도: {}", refreshToken);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Refresh Token이 만료되었습니다. 다시 로그인 해주세요."));
-            }
+
+        } catch (ExpiredJwtException e) {
+            log.warn("만료된 Refresh Token 사용 시도: {}", refreshToken);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Refresh Token이 만료되었습니다. 다시 로그인 해주세요."));
         } catch (JwtException e) {
             log.error("유효하지 않은 Refresh Token 사용 시도: {}", refreshToken, e);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Refresh Token이 유효하지 않습니다."));

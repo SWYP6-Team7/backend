@@ -42,9 +42,21 @@ public enum NotificationMessageType {
         }
     },
 
-    TRAVEL_CLOSED("모집 마감 알림") {
+    TRAVEL_CLOSED_COMPANION("모집 마감 알림") {
         public String getContent(String travelTitle) {
             return String.format("참가하신 [%s]의 모집이 마감되었어요.", travelTitle);
+        }
+    },
+
+    TRAVEL_CLOSED_PENDING("모집 마감 알림") {
+        public String getContent(String travelTitle) {
+            return String.format("참가 신청하신 [%s]의 모집이 마감되었어요.", travelTitle);
+        }
+    },
+
+    TRAVEL_CLOSED_BOOKMARKED("모집 마감 알림") {
+        public String getContent(String travelTitle) {
+            return String.format("즐겨찾기하신 [%s]의 모집이 마감되었어요.", travelTitle);
         }
     },
 

@@ -114,6 +114,32 @@ class EnrollmentCustomRepositoryImplTest {
                 );
     }
 
+    @DisplayName("findUserNumbers: 여행 번호와 신청 상태가 주어질 때, 해당하는 신청의 사용자 번호 목록을 가져온다.")
+    @Test
+    void findUserNumbersByTravelNumberAndStatus() {
+        // given
+        Users user1 = userRepository.save(createUser("user1"));
+        Users user2 = userRepository.save(createUser("user2"));
+        Users user3 = userRepository.save(createUser("user3"));
+
+        Location location = locationRepository.save(createLocation());
+        Travel travel = travelRepository.save(
+                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+        );
+
+        Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
+        Enrollment enrollment2 = createEnrollment(travel.getNumber(), user2.getUserNumber(), EnrollmentStatus.ACCEPTED);
+        Enrollment enrollment3 = createEnrollment(travel.getNumber(), user3.getUserNumber(), EnrollmentStatus.REJECTED);
+        enrollmentRepository.saveAll(List.of(enrollment1, enrollment2, enrollment3));
+
+        // when
+        List<Integer> userNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(travel.getNumber(), EnrollmentStatus.PENDING);
+
+        // then
+        assertThat(userNumbers).hasSize(1)
+                .contains(user1.getUserNumber());
+    }
+
     private Enrollment createEnrollment(int travelNumber, int userNumber, EnrollmentStatus status) {
         return Enrollment.builder()
                 .travelNumber(travelNumber)

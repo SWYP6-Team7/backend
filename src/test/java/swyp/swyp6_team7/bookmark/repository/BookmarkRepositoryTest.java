@@ -38,6 +38,24 @@ public class BookmarkRepositoryTest {
         assertThat(bookmarks).hasSize(2);
     }
 
+    @DisplayName("특정 여행에 북마크한 사용자의 번호 리스트 조회 테스트")
+    @Test
+    void findUserNumberByTravelNumber() {
+        // given
+        int travelNumber = 100;
+        Bookmark bookmark1 = new Bookmark(1, travelNumber, LocalDateTime.of(2024, 11, 22, 12, 0));
+        Bookmark bookmark2 = new Bookmark(2, travelNumber, LocalDateTime.of(2024, 11, 22, 0, 0));
+        Bookmark bookmark3 = new Bookmark(3, 101, LocalDateTime.of(2024, 11, 22, 0, 0));
+        bookmarkRepository.saveAll(List.of(bookmark1, bookmark2, bookmark3));
+
+        // when
+        List<Integer> bookmarkedUsersNumber = bookmarkRepository.findUserNumberByTravelNumber(travelNumber);
+
+        // then
+        assertThat(bookmarkedUsersNumber).hasSize(2)
+                .containsExactlyInAnyOrder(1, 2);
+    }
+
     @Test
     @DisplayName("사용자 번호로 북마크 개수 조회 테스트")
     void testCountByUserNumber() {
@@ -52,6 +70,7 @@ public class BookmarkRepositoryTest {
         // then
         assertThat(count).isEqualTo(2);
     }
+
     @Test
     @DisplayName("특정 여행 게시물의 북마크 개수를 조회한다")
     void testCountByTravelNumber() {
@@ -86,6 +105,7 @@ public class BookmarkRepositoryTest {
         assertThat(oldestBookmarks).hasSize(2);
         assertThat(oldestBookmarks.get(0)).isEqualTo(bookmark1);
     }
+
     @Test
     @DisplayName("특정 사용자가 특정 여행을 북마크했는지 확인한다")
     void testExistsByUserNumberAndTravelNumber() {

@@ -42,13 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "kakao.client-id=fake-client-id",
-        "kakao.client-secret=fake-client-secret",
-        "kakao.redirect-uri=http://localhost:8080/login/oauth2/code/kakao",
-        "kakao.token-url=https://kauth.kakao.com/oauth/token",
-        "kakao.user-info-url=https://kapi.kakao.com/v2/user/me"
-})
 class TravelControllerTest {
 
     @Autowired

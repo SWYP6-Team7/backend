@@ -12,16 +12,21 @@ import java.util.List;
 
 @Configuration
 public class RedisConfig {
+
     @Bean
-    public RedisTemplate<String, List<String>> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisConnectionFactory redisConnectionFactory() {
+        return new LettuceConnectionFactory("localhost", 6379);
+    }
+    @Bean(name = "listRedisTemplate")
+    public RedisTemplate<String, List<String>> ListRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, List<String>> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new Jackson2JsonRedisSerializer<>(List.class));
         return template;
     }
-    @Bean(name = "customstringRedisTemplate")
-    public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory connectionFactory) {
+    @Bean(name = "redisTemplate")
+    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
