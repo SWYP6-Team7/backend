@@ -1,8 +1,10 @@
 package swyp.swyp6_team7.auth.service;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +17,7 @@ import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class JwtBlacklistServiceTest {
@@ -66,15 +67,16 @@ public class JwtBlacklistServiceTest {
     }
 
     @Test
+    @DisplayName("블랙리스트에 등록된 토큰으로 검증")
     public void testTokenValidation_AfterBlacklist() {
-        // JWT 생성
         String accessToken = jwtProvider.createAccessToken(3, List.of("ROLE_USER"));
 
-        // 블랙리스트에 등록된 토큰 설정
         Mockito.when(jwtBlacklistService.isTokenBlacklisted(accessToken)).thenReturn(true);
 
-        // 블랙리스트에 등록된 토큰은 유효하지 않아야 함
-        boolean isValid = jwtProvider.validateToken(accessToken);
-        assertFalse(isValid);  // 블랙리스트에 등록된 토큰은 유효하지 않아야 함
+        JwtException exception = assertThrows(JwtException.class, () -> {
+            jwtProvider.validateToken(accessToken);
+        });
+
+        assertEquals("블랙리스트에 등록된 토큰입니다.", exception.getMessage());
     }
 }
