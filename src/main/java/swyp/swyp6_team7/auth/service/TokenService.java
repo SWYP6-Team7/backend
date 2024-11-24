@@ -20,16 +20,25 @@ import java.util.List;
 @Slf4j
 public class TokenService {
     private static final String REFRESH_TOKEN_LOCK_PREFIX = "refreshTokenLock:";
+    private static final String REFRESH_TOKEN_CACHE_PREFIX = "refreshTokenCache:";
 
     private final JwtProvider jwtProvider;
-    @Qualifier("stringRedisTemplate")
+    @Qualifier("redisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
     private final UserRepository userRepository;
+
 
     public String refreshWithLock(String refreshToken) {
         log.info("refreshWithLock 메서드 호출: refreshToken={}",refreshToken);
 
         String lockKey = REFRESH_TOKEN_LOCK_PREFIX + refreshToken;
+        String cacheKey = REFRESH_TOKEN_CACHE_PREFIX + refreshToken;
+
+        String cachedAccessToken = redisTemplate.opsForValue().get(cacheKey);
+        if (cachedAccessToken != null) {
+            log.info("Redis 캐시에서 AccessToken 반환: {}", cachedAccessToken);
+            return cachedAccessToken;
+        }
 
         boolean lockAcquired = acquireLock(lockKey);
         if(!lockAcquired){
@@ -46,14 +55,20 @@ public class TokenService {
 
             Integer userNumber = jwtProvider.getUserNumber(refreshToken);
             log.info("토큰에서 추출한 userNumber={}",userNumber);
+
             Users user = userRepository.findByUserNumber(userNumber)
                     .orElseThrow(() -> {
                         log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
                         return new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber);
                     });
+
             log.info("사용자 확인 완료: userNumber={}", userNumber);
             String newAccessToken = jwtProvider.createAccessToken(userNumber, List.of("ROLE_USER"));
             log.info("새로운 AccessToken 생성 완료: userNumber={}", userNumber);
+
+            long remainingValidity = jwtProvider.getRemainingValidity(newAccessToken);
+            redisTemplate.opsForValue().set(cacheKey, newAccessToken, Duration.ofSeconds(remainingValidity));
+            log.info("AccessToken Redis에 캐싱 완료: cacheKey={}, TTL={}초", cacheKey, remainingValidity);
 
             return newAccessToken;
         } catch (JwtException e){
