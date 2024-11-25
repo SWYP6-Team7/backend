@@ -14,22 +14,19 @@ import java.time.LocalDateTime;
 @Getter
 public class ImageDetailResponseDto {
 
-    private Long imageNumber;
+    // todo: ImageDetailResponseDto -> ImageDetailResponse 이름 수정
 
+    private Long imageNumber;
     private String relatedType;
     private int relatedNumber;
-
     private String key;
     private String url;
-
-    @JsonFormat( shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일 HH시 MM분")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일 HH시 mm분")
     private LocalDateTime uploadDate;
 
 
     @Builder
-    public ImageDetailResponseDto(
-            Long imageNumber, String relatedType, int relatedNumber, String key, String url, LocalDateTime uploadDate)
-    {
+    public ImageDetailResponseDto(Long imageNumber, String relatedType, int relatedNumber, String key, String url, LocalDateTime uploadDate) {
         this.imageNumber = imageNumber;
         this.relatedType = relatedType;
         this.relatedNumber = relatedNumber;
