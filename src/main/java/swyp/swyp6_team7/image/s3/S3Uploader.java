@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.image.s3;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.CopyObjectResult;
@@ -66,7 +67,13 @@ public class S3Uploader {
             //S3에 파일 업로드
             amazonS3.putObject(new PutObjectRequest(s3Component.getBucket(), S3Key, inputStream, metadata));
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload file to S3", e); //업로드 실패 시 예외 처리
+            // InputStream 예외 처리
+            log.warn("S3 파일 업로드 IOException: {}", e.getMessage());
+            throw new RuntimeException("S3 파일 업로드 실패", e);
+        } catch (SdkClientException e) {
+            // AWS SDK S3 파일 업로드 예외 처리
+            log.warn("S3 파일 업로드 SdkClientException 실패 for Key: {}", S3Key);
+            throw new RuntimeException("S3 파일 업로드 실패", e);
         }
         // S3Path 리턴
         return S3Key;
