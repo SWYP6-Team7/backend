@@ -53,7 +53,7 @@ public class S3Uploader {
     }
 
     //임시저장 경로에 파일 업로드 하는 메소드
-    public String uploadInTemporary(MultipartFile file, String relatedType) throws IOException {
+    public String uploadInTemporary(MultipartFile file, String relatedType) {
         // 파일 메타데이터
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());

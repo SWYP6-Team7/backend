@@ -59,7 +59,6 @@ public class ImageService {
     }
 
 
-
     //이미지 업데이트 단일 DB 처리
     @Transactional
     public ImageDetailResponseDto updateDB(String relatedType, int relatedNumber, int order, ImageUpdateRequestDto updateRequest) {
@@ -86,7 +85,7 @@ public class ImageService {
             Image updatedImage = imageRepository.save(image);
             return new ImageDetailResponseDto(updatedImage);
 
-        } else{
+        } else {
             throw new IllegalArgumentException("존재하지 않는 이미지입니다.");
         }
     }
@@ -145,13 +144,12 @@ public class ImageService {
     }
 
     //임시저장
-    public ImageTempResponseDto temporaryImage (MultipartFile file) throws IOException {
+    public ImageTempResponseDto temporaryImage(MultipartFile file) {
         String relatedType = "profile";
 
-        //임시 저장 경로에 업로드
+        // 임시 저장 경로로 S3에 업로드
         String tempKey = s3Uploader.uploadInTemporary(file, relatedType);
         String temUrl = s3Uploader.getImageUrl(tempKey);
-
 
         return new ImageTempResponseDto(temUrl);
     }
@@ -160,11 +158,6 @@ public class ImageService {
     public void deleteTempImage(String temUrl) {
         String tempKey = s3KeyHandler.getKeyByUrl(temUrl);
         s3Uploader.deleteFile(tempKey);
-
-
-
     }
-
-    //
 
 }
