@@ -15,6 +15,7 @@ import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.service.ImageProfileService;
 import swyp.swyp6_team7.image.service.ImageService;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -35,11 +36,13 @@ public class ImageProfileController {
     @PostMapping("")
     public ResponseEntity<ImageDetailResponseDto> createdProfileImage(Principal principal) {
 
-        //user number 가져오기 //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
+        //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
+        //int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        int loginUserNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
 
-        ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(userNumber);
-        return ResponseEntity.ok(response);
+        ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(loginUserNumber);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     // 임시 저장: 내 정보 수정 페이지에서 이미지 선택 시 호출

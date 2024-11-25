@@ -64,6 +64,7 @@ public class ImageCreateRequestDto {
         this.uploadDate = LocalDateTime.now();
     }
 
+    //TODO: Image에 create static method로 수정
     //DB저장
     public Image toImageEntity() {
         return Image.builder()
