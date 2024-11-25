@@ -95,17 +95,17 @@ public class S3KeyHandler {
 
     //url로 key를 추출하는 메소드
     public String getKeyByUrl(String url) {
-        log.info("S3KeyHandler - Url로 S3 key 추출 url:{}", url);
+        log.info("getKeyByUrl, URL에서 S3 key를 추출. url: {}", url);
 
         //String bucketName = s3Component.getBucket();
         //String region = "ap-northeast-2";
 
         String S3_URL_PREFIX = "https://" + bucketName + ".s3." + S3_REGION + ".amazonaws.com/";
-        log.info("S3 URL Prefix:{}", S3_URL_PREFIX);
+        log.info("S3 URL Prefix: {}", S3_URL_PREFIX);
 
         // URL이 올바른 형식인지 확인
         if (!url.startsWith(S3_URL_PREFIX)) {
-            log.warn("S3KeyHandler - 옳지 않은 형식의 URL입니다. url:{}", url);
+            log.warn("getKeyByUrl, 옳지 않은 형식의 URL입니다. url: {}", url);
             throw new IllegalArgumentException("URL 형식이 올바르지 않습니다. S3 URL인지 확인해주세요.");
         }
 
