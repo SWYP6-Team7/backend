@@ -82,6 +82,40 @@ class S3UploaderTest {
                 .hasMessageContaining("S3 파일 업로드 실패");
     }
 
+    @DisplayName("deleteFile: S3 key가 주어질 때, AWS bucket에서 해당 파일을 삭제한다.")
+    @Test
+    void deleteFile() {
+        // given
+        String s3Key = "baseFolder/profile/temporary/storageName";
+
+        given(amazonS3.doesObjectExist(anyString(), anyString()))
+                .willReturn(true);
+        doNothing().when(amazonS3).deleteObject(anyString(), anyString());
+
+        // when
+        s3Uploader.deleteFile(s3Key);
+
+        // then
+        then(amazonS3).should(times(1)).deleteObject(anyString(), eq(s3Key));
+    }
+
+    @DisplayName("deleteFile: S3 key가 주어질 때, 파일이 존재하지 않으면 그냥 넘어간다.")
+    @Test
+    void deleteFileWhenObjectNotExist() {
+        // given
+        String s3Key = "baseFolder/profile/temporary/storageName";
+
+        given(amazonS3.doesObjectExist(anyString(), anyString()))
+                .willReturn(false);
+        doNothing().when(amazonS3).deleteObject(anyString(), anyString());
+
+        // when
+        s3Uploader.deleteFile(s3Key);
+
+        // then
+        then(amazonS3).should(times(0)).deleteObject(anyString(), eq(s3Key));
+    }
+
 
     @DisplayName("getImageUrl: S3 Key로 URL을 가져온다.")
     @Test
@@ -99,6 +133,7 @@ class S3UploaderTest {
 
         // then
         assertThat(imageUrl).isEqualTo("http://bucketName.s3.region/baseFolder/profile/temporary/storageName");
+        then(amazonS3).should(times(1)).getUrl(anyString(), eq(s3Key));
     }
 
     @DisplayName("getImageUrl: S3 경로에 이미지가 존재하지 않을 경우 빈 문자열을 반환한다.")
@@ -115,6 +150,7 @@ class S3UploaderTest {
 
         // then
         assertThat(imageUrl).isEqualTo("");
+        then(amazonS3).should(times(0)).getUrl(anyString(), eq(s3Key));
     }
 
 }

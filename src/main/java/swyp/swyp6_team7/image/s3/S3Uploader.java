@@ -96,17 +96,16 @@ public class S3Uploader {
 
 
     // S3 파일 삭제 메소드
-    public void deleteFile(String S3Key) {
+    public void deleteFile(String s3Key) {
         try {
             // 파일이 존재하면 삭제 시도
-            if (amazonS3.doesObjectExist(s3Component.getBucket(), S3Key)) {
-                amazonS3.deleteObject(s3Component.getBucket(), S3Key);
-                System.out.println("파일 삭제 완료: " + S3Key);
+            if (amazonS3.doesObjectExist(s3Component.getBucket(), s3Key)) {
+                amazonS3.deleteObject(s3Component.getBucket(), s3Key);
+                log.info("S3 파일 삭제 완료: {}", s3Key);
             }
-            // 존재하지 않으면 넘어감 (아무 로그도 출력하지 않음)
         } catch (Exception e) {
-            // 삭제 중 오류 발생 시 로그
-            System.err.println("S3 파일 삭제 실패: " + e.getMessage());
+            log.warn("S3 파일 삭제 실패: {}", s3Key);
+            throw new RuntimeException("S3 파일 삭제 실패", e);
         }
     }
 

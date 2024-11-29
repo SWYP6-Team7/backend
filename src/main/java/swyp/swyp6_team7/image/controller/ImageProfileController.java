@@ -17,7 +17,6 @@ import swyp.swyp6_team7.image.service.ImageService;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
-import java.io.IOException;
 import java.security.Principal;
 
 @Slf4j
@@ -31,14 +30,12 @@ public class ImageProfileController {
     private final ImageProfileService imageProfileService;
     private final JwtProvider jwtProvider;
 
+    //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
 
     //초기 프로필 등록
     @PostMapping("")
-    public ResponseEntity<ImageDetailResponseDto> createdProfileImage(Principal principal) {
-
-        //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
-        //int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        int loginUserNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
+    public ResponseEntity<ImageDetailResponseDto> createdProfileImage() {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(loginUserNumber);
         return ResponseEntity.status(HttpStatus.OK)
@@ -47,28 +44,17 @@ public class ImageProfileController {
 
     // 임시 저장: 내 정보 수정 페이지에서 이미지 선택 시 호출
     @PostMapping("/temp")
-    public ResponseEntity<ImageTempResponseDto> createTempImage(@RequestParam(value = "file") MultipartFile file, Principal principal) throws IOException {
-
+    public ResponseEntity<ImageTempResponseDto> createTempImage(@RequestParam(value = "file") MultipartFile file) {
         ImageTempResponseDto response = imageService.temporaryImage(file);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     // 임시 저장 삭제
     @DeleteMapping("/temp")
-    public ResponseEntity<String> deleteTempImage(@RequestBody TempDeleteRequestDto request, Principal principal) {
-
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-
-        try {
-            imageService.deleteTempImage(request.getDeletedTempUrl());
-            // 성공 시 204
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            // 기타 오류 발생 시 500 Internal Server Error 반환
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<String> deleteTempImage(@RequestBody TempDeleteRequestDto request) {
+        imageService.deleteTempImage(request.getDeletedTempUrl());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     // 이미지 정식 저장: 새로운 이미지 파일로 프로필 수정

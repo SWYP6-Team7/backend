@@ -11,11 +11,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.s3.S3Uploader;
+import swyp.swyp6_team7.image.util.S3KeyHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 @SpringBootTest
 class ImageServiceTest {
@@ -28,6 +30,9 @@ class ImageServiceTest {
 
     @MockBean
     private S3Uploader s3Uploader;
+
+    @MockBean
+    private S3KeyHandler s3KeyHandler;
 
     @AfterEach
     void tearDown() {
@@ -49,13 +54,30 @@ class ImageServiceTest {
         given(s3Uploader.uploadInTemporary(any(), anyString()))
                 .willReturn("baseFolder/profile/temporary/storageName");
         given(s3Uploader.getImageUrl(anyString()))
-                .willReturn("http://bucketName.s3.region/baseFolder/profile/temporary/storageName");
+                .willReturn("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName");
 
         // when
         ImageTempResponseDto tempResponseDto = imageService.temporaryImage(mockFile);
 
         // then
-        assertThat(tempResponseDto.getTempUrl()).isEqualTo("http://bucketName.s3.region/baseFolder/profile/temporary/storageName");
+        assertThat(tempResponseDto.getTempUrl()).isEqualTo("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName");
+    }
+
+    @DisplayName("deleteTempImage: 임시 저장 파일 URL이 주어질 때, S3 key를 찾고 파일을 삭제한다.")
+    @Test
+    void deleteTempImage() {
+        // given
+        String tempUrl = "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName";
+
+        given(s3KeyHandler.getKeyByUrl(eq(tempUrl)))
+                .willReturn("baseFolder/profile/temporary/storageName");
+
+        // when
+        imageService.deleteTempImage(tempUrl);
+
+        // then
+        then(s3KeyHandler).should(times(1)).getKeyByUrl(eq(tempUrl));
+        then(s3Uploader).should(times(1)).deleteFile(eq("baseFolder/profile/temporary/storageName"));
     }
 
 }
