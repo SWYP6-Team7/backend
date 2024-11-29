@@ -16,13 +16,13 @@ public class S3KeyHandler {
 
     private final S3Component s3Component;
     private final String baseFolder;
-    private final String bucketName;
+    private final String s3UrlPrefix;
 
     @Autowired
     public S3KeyHandler(S3Component s3Component) {
         this.s3Component = s3Component;
         this.baseFolder = s3Component.getBaseFolder(); //베이스 폴더 가져오기
-        this.bucketName = s3Component.getBucket();
+        this.s3UrlPrefix = "https://" + s3Component.getBucket() + ".s3." + S3_REGION + ".amazonaws.com/";
     }
 
 
@@ -54,6 +54,7 @@ public class S3KeyHandler {
 
         FileFolder folderType = FileFolder.from(relatedType);
 
+        // TODO: profile, community 케이스 분리 필요? return값이 동일함
         // profile인 경우
         if (folderType == FileFolder.PROFILE) {
             return baseFolder + folderType.name().toLowerCase() + "/" + "temporary" + "/" + storageName;
@@ -64,6 +65,7 @@ public class S3KeyHandler {
             return baseFolder + folderType.name().toLowerCase() + "/" + "temporary" + "/" + storageName;
         }
 
+        // TODO: 잘못된 relatedType은 FileFolder.from에서 예외 처리 되고 있음
         // 유효하지 않은 relatedType일 경우 예외처리
         else {
             throw new IllegalArgumentException("커뮤니티 게시물이 유효하지 않는 타입입니다.: " + relatedType);
@@ -95,21 +97,15 @@ public class S3KeyHandler {
 
     //url로 key를 추출하는 메소드
     public String getKeyByUrl(String url) {
-        log.info("getKeyByUrl, URL에서 S3 key를 추출. url: {}", url);
-
-        //String bucketName = s3Component.getBucket();
-        //String region = "ap-northeast-2";
-
-        String S3_URL_PREFIX = "https://" + bucketName + ".s3." + S3_REGION + ".amazonaws.com/";
-        log.info("S3 URL Prefix: {}", S3_URL_PREFIX);
+        log.info("URL에서 S3 key 추출. url: {}", url);
 
         // URL이 올바른 형식인지 확인
-        if (!url.startsWith(S3_URL_PREFIX)) {
-            log.warn("getKeyByUrl, 옳지 않은 형식의 URL입니다. url: {}", url);
+        if (!url.startsWith(s3UrlPrefix)) {
+            log.warn("옳지 않은 형식의 URL. url: {}", url);
             throw new IllegalArgumentException("URL 형식이 올바르지 않습니다. S3 URL인지 확인해주세요.");
         }
 
-        return url.replace(S3_URL_PREFIX, "");
+        return url.replace(s3UrlPrefix, "");
     }
 
 }

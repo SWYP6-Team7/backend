@@ -24,19 +24,6 @@ class S3KeyHandlerTest {
         s3KeyHandler = new S3KeyHandler(s3ComponentMock);
     }
 
-    @DisplayName("getKeyByUrl: 주어지는 URL을 이용해 S3 Key를 추출할 수 있다.")
-    @Test
-    void getKeyByUrl() {
-        // given
-        String url = "https://mock-bucket.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
-
-        // when
-        String keyByUrl = s3KeyHandler.getKeyByUrl(url);
-
-        // then
-        assertThat(keyByUrl).isEqualTo("images/profile/default/defaultProfile.png");
-    }
-
     @DisplayName("generateTempS3Key: 임시저장 S3 Key를 생성할 수 있다.")
     @Test
     void generateTempS3Key() {
@@ -63,6 +50,32 @@ class S3KeyHandlerTest {
             s3KeyHandler.generateTempS3Key(relatedType, storageName);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid relatedType: " + relatedType);
+    }
+
+    @DisplayName("getKeyByUrl: 주어지는 URL을 이용해 S3 Key를 추출할 수 있다.")
+    @Test
+    void getKeyByUrl() {
+        // given
+        String url = "https://mock-bucket.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
+
+        // when
+        String keyByUrl = s3KeyHandler.getKeyByUrl(url);
+
+        // then
+        assertThat(keyByUrl).isEqualTo("images/profile/default/defaultProfile.png");
+    }
+
+    @DisplayName("getKeyByUrl: 주어지는 URL이 설정된 s3UrlPrefix로 시작하지 않을 경우 예외가 발생한다.")
+    @Test
+    void getKeyByUrlWithInvalidS3UrlPrefix() {
+        // given
+        String url = "https://wrong-bucket-url/images/profile/default/defaultProfile.png";
+
+        // when // then
+        assertThatThrownBy(() -> {
+            s3KeyHandler.getKeyByUrl(url);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("URL 형식이 올바르지 않습니다. S3 URL인지 확인해주세요.");
     }
 
 }
