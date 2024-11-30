@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.dto.request.ImageCreateRequestDto;
-import swyp.swyp6_team7.image.dto.request.ImageUpdateRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.s3.S3Uploader;
@@ -14,7 +13,6 @@ import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +30,6 @@ public class ImageProfileService {
 
     private final ImageRepository imageRepository;
     private final S3Uploader s3Uploader;
-    private final ImageService imageService;
     private final StorageNameHandler storageNameHandler;
     private final S3KeyHandler s3KeyHandler;
 
@@ -63,79 +60,63 @@ public class ImageProfileService {
 
     // 프로필 이미지 변경: 기본 이미지로 변경
     @Transactional
-    public ImageDetailResponseDto updateProfileByDefaultUrl(int relatedNumber, int defaultProfileImageNumber) {
+    public ImageDetailResponseDto updateByDefaultImage(int relatedNumber, int defaultProfileImageNumber) {
         String relatedType = "profile";
-        int order = 0;
-        String url = "";
+        Image searchImage = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, 0)
+                .orElseThrow(() -> {
+                    log.warn("Profile Image Not Found. relatedNumber: {}", relatedNumber);
+                    return new IllegalArgumentException("Profile Image Not Found.");
+                });
+        String presentKey = searchImage.getKey();
 
-        Optional<Image> searchImage = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, 0);
-
-        // TODO: 메서드 분리
-        switch (defaultProfileImageNumber) {
-            case 1:
-                url = DEFAULT_PROFILE_URL;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
-                break;
-            case 2:
-                url = DEFAULT_PROFILE_URL2;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile2.png";
-                break;
-            case 3:
-                url = DEFAULT_PROFILE_URL3;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile3.png";
-                break;
-            case 4:
-                url = DEFAULT_PROFILE_URL4;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png";
-                break;
-            case 5:
-                url = DEFAULT_PROFILE_URL5;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile5.png";
-                break;
-            case 6:
-                url = DEFAULT_PROFILE_URL6;
-                //url = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile6.png";
-                break;
-            default:
-                log.warn("ImageProfileService - 유효하지 않은 default profile image number: {}", defaultProfileImageNumber);
-                throw new IllegalArgumentException("유효하지 않은 default image number 입니다: " + defaultProfileImageNumber);
-        }
-
-        String presentKey = searchImage.get().getKey();
-
-        //이전 이미지가 파일 업로드인지 default 이미지인지 확인
-        //key가 "images/profile/relatedNumber"로 시작하면, 이전 이미지는 파일 업로드 이미지
-        if (presentKey.startsWith("images/profile/" + relatedNumber)) {
-            //이미지 삭제
+        // 이전 프로필 이미지가 default 이미지가 아니라 파일 업로드인 경우 삭제
+        if (s3KeyHandler.isFileUploadProfileImage(presentKey, relatedNumber)) {
             s3Uploader.deleteFile(presentKey);
         }
-        //key가 "images/profile/default"로 시작하면, 이전 이미지는 디폴트 이미지
-        else if (presentKey.startsWith("images/profile/default")) {
-            //이미지 삭제 동작 필요 없음
-        } else {
-            throw new IllegalArgumentException("업데이트 전 DB  데이터에 오류가 있습니다.");
-        }
-        String defaultKey = s3KeyHandler.getKeyByUrl(url);
-        // DB 업데이트 동작
-        ImageUpdateRequestDto updateRequest = ImageUpdateRequestDto.builder()
-                .relatedType(relatedType)
-                .relatedNumber(relatedNumber)
-                .order(0)
-                .key(defaultKey)
-                .url(url)
-                .build();
 
-        return imageService.updateDB(relatedType, relatedNumber, 0, updateRequest);
+        String defaultProfileImageUrl = getDefaultImageUrl(defaultProfileImageNumber);
+        String defaultProfileImageKey = s3KeyHandler.getKeyByUrl(defaultProfileImageUrl);
+
+        Image updatedProfileImage = searchImage.updateWithUrl(defaultProfileImageKey, defaultProfileImageUrl, LocalDateTime.now());
+        return ImageDetailResponseDto.from(updatedProfileImage);
     }
 
-    // 이미지 정식 저장: 기존 이미지 삭제 후, 주어지는 임시 저장 URL로 프로필 이미지 변경
+    private String getDefaultImageUrl(int defaultProfileImageNumber) {
+        String defaultProfileImageUrl = "";
+        switch (defaultProfileImageNumber) {
+            case 1:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL;
+                break;
+            case 2:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL2;
+                break;
+            case 3:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL3;
+                break;
+            case 4:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL4;
+                break;
+            case 5:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL5;
+                break;
+            case 6:
+                defaultProfileImageUrl = DEFAULT_PROFILE_URL6;
+                break;
+            default:
+                log.warn("유효하지 않은 Default Profile Image Number입니다: {}", defaultProfileImageNumber);
+                throw new IllegalArgumentException("유효하지 않은 Default Profile Image Number입니다: " + defaultProfileImageNumber);
+        }
+        return defaultProfileImageUrl;
+    }
+
+    // 프로필 이미지 변경(이미지 정식 저장): 기존 이미지 삭제 후, 주어지는 임시 저장 URL로 프로필 이미지 변경
     @Transactional
     public ImageDetailResponseDto uploadProfileImage(int relatedNumber, String tempUrl) {
         String relatedType = "profile";
         Image searchImage = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, 0)
                 .orElseThrow(() -> {
                     log.warn("Profile Image Not Found. relatedNumber: {}, url: {}", relatedNumber, tempUrl);
-                    return new IllegalArgumentException("Image Not Found");
+                    return new IllegalArgumentException("Profile Image Not Found.");
                 });
         String presentKey = searchImage.getKey();
 
@@ -156,4 +137,5 @@ public class ImageProfileService {
 
         return ImageDetailResponseDto.from(updatedProfileImage);
     }
+
 }

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.image.dto.request.ImageDefaultRequestDto;
+import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
 import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
@@ -68,13 +68,11 @@ public class ImageProfileController {
 
     //default 이미지 중 하나로 프로필 이미지 수정
     @PutMapping("/default")
-    public ResponseEntity<ImageDetailResponseDto> updateDefaultImage(@RequestBody ImageDefaultRequestDto request, Principal principal) {
-
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-        ImageDetailResponseDto response = imageProfileService.updateProfileByDefaultUrl(userNumber, request.getDefaultNumber());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ImageDetailResponseDto> updateProfileImageByDefaultImage(@RequestBody ImageUpdateByDefaultProfileRequest request) {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        ImageDetailResponseDto response = imageProfileService.updateByDefaultImage(loginUserNumber, request.getDefaultNumber());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     //프로필 이미지 데이터 삭제
