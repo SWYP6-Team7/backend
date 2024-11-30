@@ -2,6 +2,8 @@ package swyp.swyp6_team7.image.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.CopyObjectResult;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -151,6 +153,24 @@ class S3UploaderTest {
         // then
         assertThat(imageUrl).isEqualTo("");
         then(amazonS3).should(times(0)).getUrl(anyString(), eq(s3Key));
+    }
+
+    @DisplayName("copyImage: 동일한 bucket내에서 소스 경로의 이미지를 대상 경로에 복사할 수 있다.")
+    @Test
+    void copyImage() {
+        // given
+        String sourceKey = "/baseFolder/temporary/storageName.png";
+        String destinationKey = "/baseFolder/profile/relatedNumber/storageName.png";
+
+        given(amazonS3.copyObject(any(CopyObjectRequest.class)))
+                .willReturn(any(CopyObjectResult.class));
+
+        // when
+        s3Uploader.copyImage(sourceKey, destinationKey);
+
+        // then
+        then(amazonS3).should(times(1))
+                .copyObject(any(CopyObjectRequest.class));
     }
 
 }

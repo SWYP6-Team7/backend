@@ -78,4 +78,16 @@ class S3KeyHandlerTest {
                 .hasMessage("URL 형식이 올바르지 않습니다. S3 URL인지 확인해주세요.");
     }
 
+    @DisplayName("isFileUploadProfileImage: key가 '{baseFolder}/profile/{relatedNumber}'로 시작하면 true를 반환한다.")
+    @Test
+    void isFileUploadProfileImage() {
+        // given
+        String s3Key = "mock-base-folder/profile/2/storageName.png";
+
+        // when
+        boolean result = s3KeyHandler.isFileUploadProfileImage(s3Key, 2);
+
+        // then
+        assertThat(result).isTrue();
+    }
 }

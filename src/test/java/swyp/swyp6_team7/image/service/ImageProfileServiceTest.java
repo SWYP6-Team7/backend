@@ -5,11 +5,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
+import swyp.swyp6_team7.image.s3.S3Uploader;
+import swyp.swyp6_team7.image.util.S3KeyHandler;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
 class ImageProfileServiceTest {
@@ -19,6 +28,12 @@ class ImageProfileServiceTest {
 
     @Autowired
     private ImageRepository imageRepository;
+
+    @MockBean
+    private S3KeyHandler s3KeyHandler;
+
+    @MockBean
+    private S3Uploader s3Uploader;
 
 
     @AfterEach
@@ -31,6 +46,9 @@ class ImageProfileServiceTest {
     void initializeDefaultProfileImage() {
         // given
         int userNumber = 1;
+
+        given(s3KeyHandler.getKeyByUrl(anyString()))
+                .willReturn("images/profile/default/defaultProfile.png");
 
         // when
         ImageDetailResponseDto detailResponseDto = imageProfileService.initializeDefaultProfileImage(userNumber);
@@ -47,5 +65,55 @@ class ImageProfileServiceTest {
                 .contains("profile", 1, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
     }
 
+
+    @DisplayName("uploadProfileImage: 임시 저장 이미지의 URL이 주어질 때, 해당 이미지로 프로필 이미지를 변경한다.")
+    @Test
+    void uploadProfileImage() {
+        // given
+        int userNumber = 2;
+        Image userProfileImage = imageRepository.save(createImage(userNumber, "originalPicture"));
+
+        String tempUrl = "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/targetImage.png";
+
+        given(s3KeyHandler.getKeyByUrl(anyString()))
+                .willReturn("baseFolder/profile/temporary/targetImage.png");
+        given(s3KeyHandler.generateS3Key(anyString(), anyInt(), anyString(), anyInt()))
+                .willReturn("baseFolder/profile/2/targetImage.png");
+        given(s3Uploader.moveImage(anyString(), anyString()))
+                .willReturn("baseFolder/profile/2/targetImage.png");
+        given(s3Uploader.getImageUrl(anyString()))
+                .willReturn("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/2/targetImage.png");
+
+        // when
+        ImageDetailResponseDto updatedProfileImage = imageProfileService.uploadProfileImage(userNumber, tempUrl);
+
+        // then
+        assertThat(imageRepository.findAll()).hasSize(1)
+                .extracting("originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
+                .contains(
+                        tuple(null, null, null, null, "profile", 2, 0, "baseFolder/profile/2/targetImage.png", "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/2/targetImage.png")
+                );
+
+        assertThat(updatedProfileImage)
+                .extracting("imageNumber", "relatedType", "relatedNumber", "key", "url")
+                .contains(userProfileImage.getImageNumber(), "profile", 2, "baseFolder/profile/2/targetImage.png", "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/2/targetImage.png");
+    }
+
+    private Image createImage(int relatedNumber, String originalName) {
+        String storageName = originalName + "storageName.png";
+        String key = "baseFolder/profile/" + relatedNumber + "/" + storageName;
+        return Image.builder()
+                .originalName(originalName + "png")
+                .storageName(storageName)
+                .size(2266L)
+                .format("image/png")
+                .relatedType("profile")
+                .relatedNumber(relatedNumber)
+                .order(0)
+                .key(key)
+                .url("https://bucketName.s3.region.amazonaws.com/" + key)
+                .uploadDate(LocalDateTime.of(2024, 11, 29, 12, 0))
+                .build();
+    }
 
 }

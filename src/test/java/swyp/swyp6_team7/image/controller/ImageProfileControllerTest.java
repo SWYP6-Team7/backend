@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
+import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.service.ImageProfileService;
@@ -47,10 +48,10 @@ class ImageProfileControllerTest {
     private ImageService imageService;
 
 
-    @DisplayName("createdProfileImage: 디폴트 이미지를 이용해 초기 프로필 이미지를 설정 및 생성할 수 있다.")
+    @DisplayName("createProfileImage: 디폴트 이미지를 이용해 초기 프로필 이미지를 설정 및 생성할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
-    void createdProfileImage() throws Exception {
+    void createProfileImage() throws Exception {
         // given
         ImageDetailResponseDto response = ImageDetailResponseDto.builder()
                 .imageNumber(1L)
@@ -123,6 +124,43 @@ class ImageProfileControllerTest {
         // then
         resultActions.andExpect(status().isNoContent());
         then(imageService).should(times(1)).deleteTempImage(eq(tempUrl));
+    }
+
+    @DisplayName("updateProfileImage: 주어지는 URL로 프로필 이미지를 수정한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void updateProfileImage() throws Exception {
+        // given
+        String imageUrl = "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName";
+        TempUploadRequestDto request = new TempUploadRequestDto(imageUrl);
+
+        ImageDetailResponseDto response = ImageDetailResponseDto.builder()
+                .imageNumber(1L)
+                .relatedType("profile")
+                .relatedNumber(2)
+                .key("baseFolder/profile/temporary/storageName")
+                .url("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName")
+                .uploadDate(LocalDateTime.of(2024, 11, 24, 10, 0, 0))
+                .build();
+        given(imageProfileService.uploadProfileImage(anyInt(), anyString()))
+                .willReturn(response);
+
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/profile/image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageNumber").value(1))
+                .andExpect(jsonPath("$.relatedType").value("profile"))
+                .andExpect(jsonPath("$.relatedNumber").value(2))
+                .andExpect(jsonPath("$.key").value("baseFolder/profile/temporary/storageName"))
+                .andExpect(jsonPath("$.url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/storageName"))
+                .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
+        then(imageProfileService).should(times(1))
+                .uploadProfileImage(eq(2), eq(imageUrl));
     }
 
 }
