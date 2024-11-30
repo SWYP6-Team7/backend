@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 
 @SpringBootTest
 class ImageProfileServiceTest {
@@ -65,6 +68,33 @@ class ImageProfileServiceTest {
                 .contains("profile", 1, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
     }
 
+    @DisplayName("updateProfileByDefaultUrl: 번호가 주어질 때, 사용자 프로필 이미지를 디폴트 프로필 이미지로 변경한다.")
+    @Test
+    void updateProfileByDefaultUrl() {
+        // given
+        int userNumber = 2;
+        Image userProfileImage = imageRepository.save(createImage(userNumber, "originalPicture"));
+
+        given(s3KeyHandler.isFileUploadProfileImage(anyString(), anyInt()))
+                .willReturn(true);
+        doNothing().when(s3Uploader).deleteFile(anyString());
+        given(s3KeyHandler.getKeyByUrl(anyString()))
+                .willReturn("images/profile/default/defaultProfile4.png");
+
+        // when
+        ImageDetailResponseDto updatedProfileImage = imageProfileService.updateByDefaultImage(userNumber, 4);
+
+        // then
+        assertThat(imageRepository.findAll()).hasSize(1)
+                .extracting("originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
+                .contains(
+                        tuple(null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile4.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png")
+                );
+
+        assertThat(updatedProfileImage)
+                .extracting("imageNumber", "relatedType", "relatedNumber", "key", "url")
+                .contains(userProfileImage.getImageNumber(), "profile", 2, "images/profile/default/defaultProfile4.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png");
+    }
 
     @DisplayName("uploadProfileImage: 임시 저장 이미지의 URL이 주어질 때, 해당 이미지로 프로필 이미지를 변경한다.")
     @Test
@@ -75,6 +105,9 @@ class ImageProfileServiceTest {
 
         String tempUrl = "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/temporary/targetImage.png";
 
+        given(s3KeyHandler.isFileUploadProfileImage(anyString(), anyInt()))
+                .willReturn(true);
+        doNothing().when(s3Uploader).deleteFile(anyString());
         given(s3KeyHandler.getKeyByUrl(anyString()))
                 .willReturn("baseFolder/profile/temporary/targetImage.png");
         given(s3KeyHandler.generateS3Key(anyString(), anyInt(), anyString(), anyInt()))
@@ -97,6 +130,8 @@ class ImageProfileServiceTest {
         assertThat(updatedProfileImage)
                 .extracting("imageNumber", "relatedType", "relatedNumber", "key", "url")
                 .contains(userProfileImage.getImageNumber(), "profile", 2, "baseFolder/profile/2/targetImage.png", "https://bucketName.s3.region.amazonaws.com/baseFolder/profile/2/targetImage.png");
+
+        then(s3Uploader).should(times(1)).deleteFile(anyString());
     }
 
     private Image createImage(int relatedNumber, String originalName) {

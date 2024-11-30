@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.multipart.MultipartFile;
+import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
 import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
@@ -161,6 +162,41 @@ class ImageProfileControllerTest {
                 .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
         then(imageProfileService).should(times(1))
                 .uploadProfileImage(eq(2), eq(imageUrl));
+    }
+
+    @DisplayName("updateProfileImageByDefaultImage: 디폴트 프로필 이미지 중 하나로 프로필 이미지를 변경한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void updateProfileImageByDefaultImage() throws Exception {
+        // given
+        ImageUpdateByDefaultProfileRequest request = new ImageUpdateByDefaultProfileRequest(4);
+
+        ImageDetailResponseDto response = ImageDetailResponseDto.builder()
+                .imageNumber(1L)
+                .relatedType("profile")
+                .relatedNumber(2)
+                .key("images/profile/default/defaultProfile4.png")
+                .url("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png")
+                .uploadDate(LocalDateTime.of(2024, 11, 24, 10, 0, 0))
+                .build();
+        given(imageProfileService.updateByDefaultImage(anyInt(), anyInt()))
+                .willReturn(response);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/profile/image/default")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageNumber").value(1))
+                .andExpect(jsonPath("$.relatedType").value("profile"))
+                .andExpect(jsonPath("$.relatedNumber").value(2))
+                .andExpect(jsonPath("$.key").value("images/profile/default/defaultProfile4.png"))
+                .andExpect(jsonPath("$.url").value("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png"))
+                .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
+        then(imageProfileService).should(times(1))
+                .updateByDefaultImage(eq(2), eq(4));
     }
 
 }
