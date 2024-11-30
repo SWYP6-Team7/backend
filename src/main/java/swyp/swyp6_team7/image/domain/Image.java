@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -49,11 +48,9 @@ public class Image {
     //게시글 이미지일 경우 1~3
 
 
-
-
     //**upload하고 가져오는 데이터
     //S3에 저장 된 이미지 폴더 경로
-   @Column(name = "image_key")
+    @Column(name = "image_key")
     private String key;
 
     @Column(name = "image_url")
@@ -87,12 +84,12 @@ public class Image {
         this.url = url;
     }
 
-    //update
-    //각 필드에 대해 입력값이 null이면 해당 필드 데이터 지우고, null이 아닌경우 입력 혹은 수정
-    public Image update(String originalName, String storageName, Long size, String format,
-                        String relatedType, int relatedNumber, int order,
-                        String key, String url, LocalDateTime uploadDate) {
-
+    // 각 필드에 대해 입력값이 null이면 해당 필드 데이터 지우고, null이 아닌 경우 수정
+    public Image update(
+            String originalName, String storageName, Long size, String format,
+            String relatedType, int relatedNumber, int order,
+            String key, String url, LocalDateTime uploadDate
+    ) {
         // 전달된 값이 null이면 기존 데이터를 삭제 (null로 설정)
         this.originalName = (originalName != null) ? originalName : null;
         this.storageName = (storageName != null) ? storageName : null;
@@ -104,11 +101,19 @@ public class Image {
         this.key = (key != null) ? key : null;
         this.url = url;
         this.uploadDate = uploadDate;
-
         return this;
     }
 
-
+    public Image updateWithUrl(String key, String url, LocalDateTime uploadDate) {
+        this.originalName = null;
+        this.storageName = null;
+        this.size = null;
+        this.format = null;
+        this.key = key;
+        this.url = url;
+        this.uploadDate = uploadDate;
+        return this;
+    }
 
     //Delete (이미지 삭제)
     public void delete(Long imageNumber) {

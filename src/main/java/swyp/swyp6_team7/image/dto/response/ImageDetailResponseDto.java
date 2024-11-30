@@ -44,6 +44,17 @@ public class ImageDetailResponseDto {
         this.uploadDate = image.getUploadDate();
     }
 
+    public static ImageDetailResponseDto from(Image image) {
+        return ImageDetailResponseDto.builder()
+                .imageNumber(image.getImageNumber())
+                .relatedType(image.getRelatedType())
+                .relatedNumber(image.getRelatedNumber())
+                .key(image.getKey())
+                .url(image.getUrl())
+                .uploadDate(image.getUploadDate())
+                .build();
+    }
+
     @Override
     public String toString() {
         return "ImageDetailResponseDto{" +

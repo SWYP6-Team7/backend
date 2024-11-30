@@ -34,7 +34,7 @@ public class ImageProfileController {
 
     //초기 프로필 등록
     @PostMapping("")
-    public ResponseEntity<ImageDetailResponseDto> createdProfileImage() {
+    public ResponseEntity<ImageDetailResponseDto> createProfileImage() {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(loginUserNumber);
@@ -59,13 +59,11 @@ public class ImageProfileController {
 
     // 이미지 정식 저장: 새로운 이미지 파일로 프로필 수정
     @PutMapping("")
-    public ResponseEntity<ImageDetailResponseDto> updatedProfileImage(@RequestBody TempUploadRequestDto request, Principal principal) {
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-        ImageDetailResponseDto response = imageProfileService.uploadProfileImage("profile", userNumber, request.getImageUrl());
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ImageDetailResponseDto> updateProfileImage(@RequestBody TempUploadRequestDto request) {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        ImageDetailResponseDto response = imageProfileService.uploadProfileImage(loginUserNumber, request.getImageUrl());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     //default 이미지 중 하나로 프로필 이미지 수정

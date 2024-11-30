@@ -13,6 +13,7 @@ import swyp.swyp6_team7.image.s3.S3Uploader;
 import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -127,49 +128,32 @@ public class ImageProfileService {
         return imageService.updateDB(relatedType, relatedNumber, 0, updateRequest);
     }
 
-    //기존 이미지를 지우고 url로 이미지 수정 (이미지 정식 저장)
+    // 이미지 정식 저장: 기존 이미지 삭제 후, 주어지는 임시 저장 URL로 프로필 이미지 변경
     @Transactional
-    public ImageDetailResponseDto uploadProfileImage(String relatedType, int relatedNumber, String tempUrl) {
-        //DB에서 이미지 찾기
-        Optional<Image> searchImage = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, 0);
-        String presentKey = searchImage.get().getKey();
+    public ImageDetailResponseDto uploadProfileImage(int relatedNumber, String tempUrl) {
+        String relatedType = "profile";
+        Image searchImage = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, 0)
+                .orElseThrow(() -> {
+                    log.warn("Profile Image Not Found. relatedNumber: {}, url: {}", relatedNumber, tempUrl);
+                    return new IllegalArgumentException("Image Not Found");
+                });
+        String presentKey = searchImage.getKey();
 
-        //이전 이미지가 파일 업로드인지 default 이미지인지 확인
-        //key가 "images/profile/relatedNumber"로 시작하면, 이전 이미지는 파일 업로드 이미지
-        if (presentKey.startsWith("images/profile/" + relatedNumber)) {
-            //이미지 삭제
+        // 이전 프로필 이미지가 default 이미지가 아니라 파일 업로드인 경우 삭제
+        if (s3KeyHandler.isFileUploadProfileImage(presentKey, relatedNumber)) {
             s3Uploader.deleteFile(presentKey);
         }
-        //key가 "images/profile/default"로 시작하면, 이전 이미지는 디폴트 이미지
-        else if (presentKey.startsWith("images/profile/default")) {
-            //이미지 삭제 동작 필요 없음
-        } else {
-            throw new IllegalArgumentException("업데이트 전 DB 데이터에 오류가 있습니다.");
-        }
 
-        //storage name 추출
-        String storageName = storageNameHandler.extractStorageName(s3KeyHandler.getKeyByUrl(tempUrl));
-        //sourceKey 추출
+        String tempKey = s3KeyHandler.getKeyByUrl(tempUrl); // S3 Key 추출: {baseFolder}/temporary/{storageName}
+        String storageName = storageNameHandler.extractStorageName(tempKey); // storage name 추출
+        String newKey = s3KeyHandler.generateS3Key(relatedType, relatedNumber, storageName, 0); // 새로운 Key 생성
 
-        String tempKey = s3KeyHandler.getKeyByUrl(tempUrl);
-        //새로운 key 생성
-        String newKey = s3KeyHandler.generateS3Key(relatedType, relatedNumber, storageName, 0);
-
-        //정식 경로로 이동
+        // 정식 경로로 이동
         s3Uploader.moveImage(tempKey, newKey);
-        //새로운 url 추출
-        String newUrl = s3Uploader.getImageUrl(newKey);
 
-        // DB 업데이트 동작
-        ImageUpdateRequestDto updateRequest = ImageUpdateRequestDto.builder()
-                .relatedType(relatedType)
-                .relatedNumber(relatedNumber)
-                .order(0)
-                .key(newKey)
-                .url(newUrl)
-                .build();
+        String newUrl = s3Uploader.getImageUrl(newKey); // 새로운 url 생성
+        Image updatedProfileImage = searchImage.updateWithUrl(newKey, newUrl, LocalDateTime.now());
 
-        return imageService.updateDB(relatedType, relatedNumber, 0, updateRequest);
-
+        return ImageDetailResponseDto.from(updatedProfileImage);
     }
 }

@@ -123,19 +123,25 @@ public class S3Uploader {
     }
 
 
-    // 이미지 복사 메서드
+    // 이미지 복사 메서드: 동일한 bucket 내에서 소스 경로의 이미지를 대상 경로에 복사
     public String copyImage(String sourceKey, String destinationKey) {
+
         CopyObjectRequest copyRequest = new CopyObjectRequest(
                 s3Component.getBucket(),    // 소스 버킷 이름
-                sourceKey,                 // 소스 경로 (Key)
+                sourceKey,                 // 소스 경로 (Key), 복사 대상
                 s3Component.getBucket(),    // 대상 버킷 이름
                 destinationKey             // 대상 경로 (Key)
         );
 
-        // S3에서 복사
-        CopyObjectResult result = amazonS3.copyObject(copyRequest);
+        try {
+            // S3에서 복사
+            CopyObjectResult result = amazonS3.copyObject(copyRequest);
+        } catch (Exception e) {
+            log.warn("S3 파일 복사 실패 source: {}, destination: {}", sourceKey, destinationKey);
+            throw new RuntimeException("S3 파일 복사 실패", e);
+        }
 
-        //복사 후 경로 리턴
+        // 복사 된 이미지 경로(대상 경로)를 반환
         return destinationKey;
     }
 
@@ -143,13 +149,13 @@ public class S3Uploader {
     // 이미지 경로 이동 메서드
     public String moveImage(String sourceKey, String destinationKey) {
 
-        //기존 경로에서 이미지 복사
+        // 기존 경로(sourceKey)에서 대상 경로(destinationKey)로 이미지 복사
         copyImage(sourceKey, destinationKey);
 
-        //기존 경로의 이미지 삭제
+        // 기존 경로의 이미지 삭제
         deleteFile(sourceKey);
 
-        //경로 이동 후 path 리턴
+        // 경로 이동 후 path 리턴
         return destinationKey;
     }
 

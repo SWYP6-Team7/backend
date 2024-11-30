@@ -26,8 +26,8 @@ public class S3KeyHandler {
     }
 
 
-    // 동적으로 key 생성 메소드: {baseFolder}/{relatedType}/{id}/{file_name}
-    // relatedType이 profile일때 relatedNumber는 userNumber
+    // key 생성 메소드: {baseFolder}/{relatedType}/{relatedNumber}/{file_name}
+    // relatedNumber: relatedType이 profile일때 relatedNumber는 userNumber
     public String generateS3Key(String relatedType, int relatedNumber, String storageName, int order) {
 
         FileFolder folderType = FileFolder.from(relatedType);
@@ -106,6 +106,14 @@ public class S3KeyHandler {
         }
 
         return url.replace(s3UrlPrefix, "");
+    }
+
+    public boolean isFileUploadProfileImage(String s3Key, int relatedNumber) {
+        // 파일 업로드: key가 "{baseFolder}/profile/{relatedNumber}"로 시작하는 경우
+        if (s3Key.startsWith(baseFolder + "profile" + "/" + relatedNumber)) {
+            return true;
+        }
+        return false;
     }
 
 }
