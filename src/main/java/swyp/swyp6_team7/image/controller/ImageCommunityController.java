@@ -7,12 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.image.dto.request.ImageCommunityRequestDto;
 import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
+import swyp.swyp6_team7.image.dto.request.ImageCommunityRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.security.Principal;
 import java.util.List;
@@ -47,13 +46,12 @@ public class ImageCommunityController {
                 .body(responses);
     }
 
-    // 게시글 별 이미지 조회
+    // 커뮤니티 게시글 이미지 조회
     @GetMapping("/{postNumber}/images")
-    public ResponseEntity<ImageDetailResponseDto[]> getImages(@PathVariable int postNumber) {
-
-        ImageDetailResponseDto[] responses = imageCommunityService.communityImageDetail(postNumber);
-
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<ImageDetailResponseDto>> getImages(@PathVariable(name = "postNumber") int postNumber) {
+        List<ImageDetailResponseDto> responses = imageCommunityService.getCommunityImages(postNumber);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(responses);
     }
 
     //게시글 별 이미지 수정

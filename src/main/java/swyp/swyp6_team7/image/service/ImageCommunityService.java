@@ -2,7 +2,6 @@ package swyp.swyp6_team7.image.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +16,7 @@ import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,8 +42,7 @@ public class ImageCommunityService {
         String key = s3Uploader.uploadInTemporary(file, relatedType);
         String savedImageUrl = s3Uploader.getImageUrl(key);
 
-        // TODO: relatedNumber, order 값? (현재 0으로 초기화)
-        // 메타 데이터 뽑아서 create dto에 담기
+        // 메타 데이터 뽑아서 create DTO로 변환(relatedNumber, order는 0)
         ImageCreateDto imageTempCreateDto = ImageCreateDto.builder()
                 .originalName(file.getOriginalFilename())
                 .storageName(storageNameHandler.extractStorageName(key))
@@ -66,7 +62,7 @@ public class ImageCommunityService {
     // 커뮤니티 이미지 정식 저장
     @Transactional
     public List<ImageDetailResponseDto> saveCommunityImages(int relatedNumber, List<String> deletedTempUrls, List<String> tempUrls) {
-        
+
         // 임시 저장 삭제: 임시 저장 했지만 최종 게시물 등록에는 포함되지 않은 이미지 처리
         if (deletedTempUrls != null && !deletedTempUrls.isEmpty()) {
             deletedTempUrls.stream()
@@ -86,10 +82,7 @@ public class ImageCommunityService {
             log.info("임시 이미지 정식 저장 완료 tempUrls: {}", tempUrls);
         }
 
-        List<Image> images = imageRepository.findAllByRelatedTypeAndRelatedNumber("community", relatedNumber);
-        return images.stream()
-                .map(ImageDetailResponseDto::from)
-                .collect(Collectors.toList());
+        return getCommunityImages(relatedNumber);
     }
 
     private void deleteTempCommunityImage(String deletedTempUrl) {
@@ -259,6 +252,14 @@ public class ImageCommunityService {
             throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
         }
         imageService.deleteImage(relatedType, relatedNumber);
+    }
+
+    // 커뮤니티 게시물 이미지 조회
+    public List<ImageDetailResponseDto> getCommunityImages(int postNumber) {
+        List<Image> images = imageRepository.findAllByRelatedTypeAndRelatedNumber("community", postNumber);
+        return images.stream()
+                .map(ImageDetailResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     // 게시물 별 이미지 조회
