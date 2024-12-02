@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.image.domain.Image;
-import swyp.swyp6_team7.image.dto.request.ImageCreateRequestDto;
+import swyp.swyp6_team7.image.dto.ImageCreateDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.s3.S3Uploader;
@@ -37,28 +37,25 @@ public class ImageProfileService {
     // 프로필 생성 시 이미지 처리
     @Transactional
     public ImageDetailResponseDto initializeDefaultProfileImage(int userNumber) {
-        String defaultKey = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
+        String defaultImageKey = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
 
         // TODO: Image 클래스에서 create메서드 호출
         // TODO: save 후 결과물을 dto로 변환 후 반환
-        //DB insert 동작
-        ImageCreateRequestDto imageCreateDto = ImageCreateRequestDto.builder()
+        ImageCreateDto imageCreateDto = ImageCreateDto.builder()
                 .relatedType("profile")
                 .relatedNumber(userNumber)
                 .order(0)
-                .key(defaultKey)
+                .key(defaultImageKey)
                 .url(DEFAULT_PROFILE_URL)
                 .build();
-
-        // DB에 저장
         Image image = imageCreateDto.toImageEntity();
-        Image uploadedImage = imageRepository.save(image);
 
+        Image uploadedImage = imageRepository.save(image);
         return new ImageDetailResponseDto(uploadedImage);
     }
 
 
-    // 프로필 이미지 변경: 기본 이미지로 변경
+    // 프로필 이미지 변경: 기본 이미지 중 하나로 변경
     @Transactional
     public ImageDetailResponseDto updateByDefaultImage(int relatedNumber, int defaultProfileImageNumber) {
         String relatedType = "profile";

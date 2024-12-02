@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.image.domain.Image;
-import swyp.swyp6_team7.image.dto.request.ImageCreateRequestDto;
+import swyp.swyp6_team7.image.dto.ImageCreateDto;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
@@ -38,7 +38,7 @@ public class ImageService {
         String savedImageUrl = s3Uploader.getImageUrl(key);
 
         // 메타 데이터 뽑아서 create dto에 담기
-        ImageCreateRequestDto imageCreateDto = ImageCreateRequestDto.builder()
+        ImageCreateDto imageCreateDto = ImageCreateDto.builder()
                 .originalName(file.getOriginalFilename())
                 .storageName(storageNameHandler.generateUniqueFileName(file.getOriginalFilename()))
                 .size(file.getSize())

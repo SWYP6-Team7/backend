@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.image.domain.Image;
-import swyp.swyp6_team7.image.dto.request.ImageCreateRequestDto;
+import swyp.swyp6_team7.image.dto.ImageCreateDto;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
@@ -46,7 +46,7 @@ public class ImageCommunityService {
 
 
         // 메타 데이터 뽑아서 create dto에 담기
-        ImageCreateRequestDto imageTempCreateDto = ImageCreateRequestDto.builder()
+        ImageCreateDto imageTempCreateDto = ImageCreateDto.builder()
                 .originalName(file.getOriginalFilename())
                 .storageName(storageNameHandler.generateUniqueFileName(file.getOriginalFilename()))
                 .size(file.getSize())
