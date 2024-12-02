@@ -134,6 +134,30 @@ class ImageProfileServiceTest {
         then(s3Uploader).should(times(1)).deleteFile(anyString());
     }
 
+    @DisplayName("deleteProfileImage: 사용자 이미지를 디폴트 이미지로 변경한다.")
+    @Test
+    void deleteProfileImage() {
+        // given
+        int userNumber = 2;
+        Image image = imageRepository.save(createImage(userNumber, "fileUploadImage"));
+
+        given(s3KeyHandler.isFileUploadProfileImage(anyString(), anyInt()))
+                .willReturn(true);
+        doNothing().when(s3Uploader).deleteFile(anyString());
+        given(s3KeyHandler.getKeyByUrl(anyString()))
+                .willReturn("images/profile/default/defaultProfile.png");
+
+        // when
+        imageProfileService.deleteProfileImage(userNumber);
+
+        // then
+        assertThat(imageRepository.findAll()).hasSize(1)
+                .extracting("imageNumber", "originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
+                .contains(
+                        tuple(image.getImageNumber(), null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
+                );
+    }
+
     private Image createImage(int relatedNumber, String originalName) {
         String storageName = originalName + "storageName.png";
         String key = "baseFolder/profile/" + relatedNumber + "/" + storageName;

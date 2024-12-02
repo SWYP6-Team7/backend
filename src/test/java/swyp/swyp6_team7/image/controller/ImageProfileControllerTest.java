@@ -199,6 +199,22 @@ class ImageProfileControllerTest {
                 .updateByDefaultImage(eq(2), eq(4));
     }
 
+    @DisplayName("delete: 사용자의 프로필 이미지 데이터를 삭제한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void deleteProfile() throws Exception {
+        // given
+        doNothing().when(imageService).deleteImage(anyString(), anyInt());
+
+        // when
+        ResultActions resultActions = mockMvc.perform(delete("/api/profile/image"));
+
+        // then
+        resultActions.andExpect(status().isNoContent());
+        then(imageProfileService).should(times(1))
+                .deleteProfileImage(eq(2));
+    }
+
     @DisplayName("getProfileImage: 사용자의 프로필 이미지를 조회한다.")
     @WithMockCustomUser(userNumber = 2)
     @Test

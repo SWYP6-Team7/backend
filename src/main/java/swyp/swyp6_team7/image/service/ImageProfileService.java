@@ -138,4 +138,22 @@ public class ImageProfileService {
         return ImageDetailResponseDto.from(updatedProfileImage);
     }
 
+    @Transactional
+    public void deleteProfileImage(int relatedNumber) {
+        Image image = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder("profile", relatedNumber, 0)
+                .orElseThrow(() -> {
+                    log.warn("Profile Image Not Found. relatedNumber: {}", relatedNumber);
+                    return new IllegalArgumentException("Profile Image Not Found.");
+                });
+        String presentKey = image.getKey();
+
+        // 이전 이미지가 파일 업로드인 경우에만 S3 이미지 삭제 후 디폴트 이미지로 변경
+        if (s3KeyHandler.isFileUploadProfileImage(presentKey, relatedNumber)) {
+            s3Uploader.deleteFile(presentKey); // s3 이미지 삭제
+
+            String key = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
+            image.updateWithUrl(key, DEFAULT_PROFILE_URL, LocalDateTime.now());
+        }
+    }
+
 }

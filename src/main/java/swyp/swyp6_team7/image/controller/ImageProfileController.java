@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
 import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
@@ -14,10 +13,7 @@ import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.service.ImageProfileService;
 import swyp.swyp6_team7.image.service.ImageService;
-import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
-
-import java.security.Principal;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,11 +22,7 @@ import java.security.Principal;
 public class ImageProfileController {
 
     private final ImageService imageService;
-    private final MemberService memberService;
     private final ImageProfileService imageProfileService;
-    private final JwtProvider jwtProvider;
-
-    //todo: MemberAuthorizeUtil.getLoginUserNumber로 전부 수정
 
     //초기 프로필 등록
     @PostMapping("")
@@ -75,22 +67,13 @@ public class ImageProfileController {
                 .body(response);
     }
 
-    //프로필 이미지 데이터 삭제
+    //프로필 이미지 s3 데이터 삭제 후 디폴트 이미지로 설정
     @DeleteMapping("")
-    public ResponseEntity<Void> delete(Principal principal) {
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-        try {
-            imageService.deleteImage("profile", userNumber);
-            // 성공 시 204
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            // 기타 오류 발생 시 500 Internal Server Error 반환
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity delete() {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        imageProfileService.deleteProfileImage(loginUserNumber);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
 
     //프로필 이미지 조회
     @GetMapping("")
