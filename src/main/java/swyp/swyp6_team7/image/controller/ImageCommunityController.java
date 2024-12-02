@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.image.dto.request.ImageCommunityRequestDto;
-import swyp.swyp6_team7.image.dto.request.ImageSaveRequestDto;
+import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
-import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
 
 
 @Slf4j
@@ -35,15 +36,15 @@ public class ImageCommunityController {
                 .body(response);
     }
 
-    //이미지 정식 저장
+    // 정식 저장: 커뮤니티 글이 게시되는 시점에 호출
     @PostMapping("/{postNumber}/images")
-    public ResponseEntity<ImageDetailResponseDto[]> saveImages(
-            @PathVariable int postNumber,
-            @RequestBody ImageSaveRequestDto allUrls
+    public ResponseEntity<List<ImageDetailResponseDto>> saveImages(
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequestBody CommunityImageSaveRequest request
     ) {
-
-        ImageDetailResponseDto[] responses = imageCommunityService.saveCommunityImage(postNumber, allUrls.getDeletedTempUrls(), allUrls.getTempUrls());
-        return ResponseEntity.ok(responses);
+        List<ImageDetailResponseDto> responses = imageCommunityService.saveCommunityImages(postNumber, request.getDeletedTempUrls(), request.getTempUrls());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(responses);
     }
 
     // 게시글 별 이미지 조회

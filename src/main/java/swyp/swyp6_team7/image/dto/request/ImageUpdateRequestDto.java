@@ -2,7 +2,6 @@ package swyp.swyp6_team7.image.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
-import swyp.swyp6_team7.image.domain.Image;
 
 import java.time.LocalDateTime;
 
@@ -23,9 +22,9 @@ public class ImageUpdateRequestDto {
 
     // 전체 필드를 받는 빌더
     @Builder
-    public ImageUpdateRequestDto(String originalName, String storageName, Long size, String format,
-                                 String relatedType, int relatedNumber, int order,
-                                 String key, String url) {
+    public ImageUpdateRequestDto(
+            String originalName, String storageName, Long size, String format,
+            String relatedType, int relatedNumber, int order, String key, String url, LocalDateTime uploadDate) {
         this.originalName = originalName;
         this.storageName = storageName;
         this.size = size;
@@ -35,7 +34,7 @@ public class ImageUpdateRequestDto {
         this.order = order;
         this.key = key;
         this.url = url;
-        this.uploadDate = LocalDateTime.now();
+        this.uploadDate = uploadDate;
     }
 
     // 최소 필드를 받는 빌더 (url로 이미지 저장)
@@ -52,15 +51,5 @@ public class ImageUpdateRequestDto {
         this.url = url;
         this.uploadDate = LocalDateTime.now();
     }
-
-    //이미지 임시저장 후 정식 저장 시 받는 빌더
-//    @Builder
-//    public ImageUpdateRequestDto(int relatedNumber, int order, String key, String url) {
-//        this.relatedNumber = relatedNumber;
-//        this.order = order;
-//        this.key = key;
-//        this.url = url;
-//        this.uploadDate = LocalDateTime.now();
-//    }
 
 }

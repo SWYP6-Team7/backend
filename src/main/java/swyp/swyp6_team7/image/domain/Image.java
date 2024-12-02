@@ -19,6 +19,7 @@ public class Image {
     @Column(name = "image_number", updatable = false, nullable = false)
     private Long imageNumber;
 
+
     //파일에서 뽑아오는 데이터
     @Column(name = "image_original_name")
     private String originalName;    //실제 파일 이름
@@ -99,6 +100,15 @@ public class Image {
         this.relatedNumber = relatedNumber;
         this.order = order;
         this.key = (key != null) ? key : null;
+        this.url = url;
+        this.uploadDate = uploadDate;
+        return this;
+    }
+
+    public Image update(int relatedNumber, int order, String key, String url, LocalDateTime uploadDate) {
+        this.relatedNumber = relatedNumber;
+        this.order = order;
+        this.key = key;
         this.url = url;
         this.uploadDate = uploadDate;
         return this;

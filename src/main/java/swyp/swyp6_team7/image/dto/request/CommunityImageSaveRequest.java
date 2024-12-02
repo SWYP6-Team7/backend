@@ -7,10 +7,14 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class ImageSaveRequestDto {
+public class CommunityImageSaveRequest {
 
+    // 임시저장 이미지 중 정식 등록 하지 않는 이미지 URL
     private List<String> deletedTempUrls;
+
+    // 임시저장 이미지 중 정식 등록 할 이미지 URL
     private List<String> tempUrls;
 
 }
