@@ -22,18 +22,17 @@ import java.security.Principal;
 @RestController
 @RequestMapping("api/community")
 public class ImageCommunityController {
+
     private final ImageCommunityService imageCommunityService;
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
 
-    //이미지 임시 저장
+    // 임시 저장: 사용자가 커뮤니티 작성 페이지에 이미지를 추가하는 시점에 호출
     @PostMapping("/images/temp")
-
-    public ResponseEntity<ImageDetailResponseDto> uploadTemporaryImage(
-            @RequestParam(value = "file") MultipartFile file) throws IOException {
-
+    public ResponseEntity<ImageDetailResponseDto> uploadTempImage(@RequestParam(value = "file") MultipartFile file) {
         ImageDetailResponseDto response = imageCommunityService.uploadTempImage(file);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(response);
     }
 
     //이미지 정식 저장

@@ -52,7 +52,7 @@ public class ImageCreateDto {
     @Builder
     public ImageCreateDto(
             String originalName, String storageName, long size, String format,
-            String relatedType, String key, String url
+            String relatedType, String key, String url, LocalDateTime uploadDate
     ) {
         this.originalName = originalName;
         this.storageName = storageName;
@@ -61,7 +61,7 @@ public class ImageCreateDto {
         this.relatedType = relatedType;
         this.key = key;
         this.url = url;
-        this.uploadDate = LocalDateTime.now();
+        this.uploadDate = uploadDate;
     }
 
     //TODO: Image에 create static method로 수정
@@ -77,7 +77,7 @@ public class ImageCreateDto {
                 .order(order)
                 .key(key)
                 .url(url)
-                .uploadDate(LocalDateTime.now()) // uploadDate는 현재 시간으로 설정
+                .uploadDate(uploadDate)
                 .build();
     }
 }

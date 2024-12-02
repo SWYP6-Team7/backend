@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 @Getter
 public class ImageDetailResponseDto {
 
-    // todo: ImageDetailResponseDto -> ImageDetailResponse 이름 수정
-
     private Long imageNumber;
     private String relatedType;
     private int relatedNumber;

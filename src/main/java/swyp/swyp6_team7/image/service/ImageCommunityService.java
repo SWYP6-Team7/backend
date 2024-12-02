@@ -16,7 +16,7 @@ import swyp.swyp6_team7.image.s3.S3Uploader;
 import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
-import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,40 +27,37 @@ import java.util.Optional;
 public class ImageCommunityService {
 
     private final ImageRepository imageRepository;
-    private final S3Uploader s3Uploader;
+    private final CommunityRepository communityRepository;
     private final ImageService imageService;
+    private final S3Uploader s3Uploader;
     private final StorageNameHandler storageNameHandler;
     private final S3KeyHandler s3KeyHandler;
-    private final CommunityRepository communityRepository;
 
 
-    //커뮤니티 이미지 임시 저장
+    // 커뮤니티 이미지 임시 저장
     @Transactional
-    public ImageDetailResponseDto uploadTempImage(MultipartFile file) throws IOException {
-
+    public ImageDetailResponseDto uploadTempImage(MultipartFile file) {
         String relatedType = "community";
 
-        //임시 경로에 이미지 업로드
+        // S3 임시 경로에 이미지 업로드
         String key = s3Uploader.uploadInTemporary(file, relatedType);
         String savedImageUrl = s3Uploader.getImageUrl(key);
 
-
+        // TODO: relatedNumber, order 값? (현재 0으로 초기화)
         // 메타 데이터 뽑아서 create dto에 담기
         ImageCreateDto imageTempCreateDto = ImageCreateDto.builder()
                 .originalName(file.getOriginalFilename())
-                .storageName(storageNameHandler.generateUniqueFileName(file.getOriginalFilename()))
+                .storageName(storageNameHandler.extractStorageName(key))
                 .size(file.getSize())
                 .format(file.getContentType())
                 .relatedType(relatedType)
                 .key(key)
                 .url(savedImageUrl)
+                .uploadDate(LocalDateTime.now())
                 .build();
 
-        // DB에 저장
-        Image image = imageTempCreateDto.toImageEntity();
-
-        Image uploadedImage = imageRepository.save(image);
-        return new ImageDetailResponseDto(uploadedImage);
+        Image uploadedImage = imageRepository.save(imageTempCreateDto.toImageEntity());
+        return ImageDetailResponseDto.from(uploadedImage);
     }
 
 

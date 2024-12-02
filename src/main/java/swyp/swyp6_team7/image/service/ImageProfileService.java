@@ -47,10 +47,10 @@ public class ImageProfileService {
                 .order(0)
                 .key(defaultImageKey)
                 .url(DEFAULT_PROFILE_URL)
+                .uploadDate(LocalDateTime.now())
                 .build();
-        Image image = imageCreateDto.toImageEntity();
 
-        Image uploadedImage = imageRepository.save(image);
+        Image uploadedImage = imageRepository.save(imageCreateDto.toImageEntity());
         return new ImageDetailResponseDto(uploadedImage);
     }
 
