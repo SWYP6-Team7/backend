@@ -125,6 +125,29 @@ class ImageCommunityServiceTest {
                 );
     }
 
+    @DisplayName("getCommunityImages: 커뮤니티 게시물에 포함되는 이미지들을 가져올 수 있다.")
+    @Test
+    void getCommunityImages() {
+        // given
+        int postNumber = 2;
+        Image image1 = createImage("image1.png", postNumber, 1);
+        Image image2 = createImage("image2.png", postNumber, 2);
+        Image image3 = createImage("image3.png", postNumber, 3);
+        imageRepository.saveAll(List.of(image1, image2, image3));
+
+        // when
+        List<ImageDetailResponseDto> imageDetails = imageCommunityService.getCommunityImages(postNumber);
+
+        // then
+        assertThat(imageDetails).hasSize(3)
+                .extracting("relatedType", "relatedNumber", "key", "url", "uploadDate")
+                .containsExactlyInAnyOrder(
+                        tuple("community", 2, "baseFolder/community/2/1/stored-image1.png","https://bucketName.s3.ap-northeast-2.amazonaws.com/baseFolder/community/2/1/stored-image1.png", LocalDateTime.of(2024,11,29,12,0)),
+                        tuple("community", 2, "baseFolder/community/2/2/stored-image2.png","https://bucketName.s3.ap-northeast-2.amazonaws.com/baseFolder/community/2/2/stored-image2.png", LocalDateTime.of(2024,11,29,12,0)),
+                        tuple("community", 2, "baseFolder/community/2/3/stored-image3.png","https://bucketName.s3.ap-northeast-2.amazonaws.com/baseFolder/community/2/3/stored-image3.png", LocalDateTime.of(2024,11,29,12,0))
+                        );
+    }
+
     private Image createTempImage(String imageName) {
         String storageName = "stored-" + imageName;
         String key = "baseFolder/community/temporary/" + storageName;
@@ -141,4 +164,22 @@ class ImageCommunityServiceTest {
                 .uploadDate(LocalDateTime.of(2024, 11, 29, 12, 0))
                 .build();
     }
+
+    private Image createImage(String imageName, int relatedNumber, int order) {
+        String storageName = "stored-" + imageName;
+        String key = "baseFolder/community/" + relatedNumber + "/" + order + "/" + storageName;
+        return Image.builder()
+                .originalName(imageName)
+                .storageName(storageName)
+                .size(2266L)
+                .format("image/png")
+                .relatedType("community")
+                .relatedNumber(relatedNumber)
+                .order(order)
+                .key(key)
+                .url("https://bucketName.s3.ap-northeast-2.amazonaws.com/" + key)
+                .uploadDate(LocalDateTime.of(2024, 11, 29, 12, 0))
+                .build();
+    }
+
 }

@@ -23,8 +23,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,6 +123,33 @@ class ImageCommunityControllerTest {
                 .andExpect(jsonPath("$.[1].uploadDate").value("2024년 11월 24일 10시 00분"));
         then(imageCommunityService).should(times(1))
                 .saveCommunityImages(eq(postNumber), eq(deletedUrls), eq(tempUrls));
+    }
+
+    @DisplayName("getImages: 커뮤니티 게시글에 포함되는 이미지들을 조회한다.")
+    @WithMockCustomUser
+    @Test
+    void getImages() throws Exception {
+        // given
+        int postNumber = 2;
+        ImageDetailResponseDto image = createdDetailResponse(1, postNumber,
+                "baseFolder/community/2/1/storageName2.png",
+                "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png");
+        List<ImageDetailResponseDto> response = List.of(image);
+
+        given(imageCommunityService.getCommunityImages(anyInt()))
+                .willReturn(response);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(get("/api/community/{postNumber}/images", postNumber));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].imageNumber").value(1L))
+                .andExpect(jsonPath("$.[0].relatedType").value("community"))
+                .andExpect(jsonPath("$.[0].relatedNumber").value(postNumber))
+                .andExpect(jsonPath("$.[0].key").value("baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"));
     }
 
     private ImageDetailResponseDto createdDetailResponse(long imageNumber, int relatedNumber, String key, String url) {
