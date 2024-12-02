@@ -199,4 +199,36 @@ class ImageProfileControllerTest {
                 .updateByDefaultImage(eq(2), eq(4));
     }
 
+    @DisplayName("getProfileImage: 사용자의 프로필 이미지를 조회한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void getProfileImage() throws Exception {
+        // given
+        ImageDetailResponseDto response = ImageDetailResponseDto.builder()
+                .imageNumber(1L)
+                .relatedType("profile")
+                .relatedNumber(2)
+                .key("baseFolder/profile/1/storageName.png")
+                .url("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/1/storageName.png")
+                .uploadDate(LocalDateTime.of(2024, 11, 24, 10, 0, 0))
+                .build();
+
+        given(imageService.getImageDetail(anyString(), anyInt(), anyInt()))
+                .willReturn(response);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(get("/api/profile/image"));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageNumber").value(1))
+                .andExpect(jsonPath("$.relatedType").value("profile"))
+                .andExpect(jsonPath("$.relatedNumber").value(2))
+                .andExpect(jsonPath("$.key").value("baseFolder/profile/1/storageName.png"))
+                .andExpect(jsonPath("$.url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/profile/1/storageName.png"))
+                .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
+        then(imageService).should(times(1))
+                .getImageDetail(eq("profile"), eq(2), eq(0));
+    }
+
 }

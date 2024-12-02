@@ -94,13 +94,11 @@ public class ImageProfileController {
 
     //프로필 이미지 조회
     @GetMapping("")
-    public ResponseEntity<ImageDetailResponseDto> getProfileImage(Principal principal) {
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-        ImageDetailResponseDto response = imageService.getImageDetailByNumber("Profile", userNumber, 0);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ImageDetailResponseDto> getProfileImage() {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        ImageDetailResponseDto response = imageService.getImageDetail("profile", loginUserNumber, 0);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
 }

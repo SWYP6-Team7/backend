@@ -135,12 +135,15 @@ public class ImageService {
         }
     }
 
-    // 이미지 정보
-    public ImageDetailResponseDto getImageDetailByNumber(String relatedType, int relatedNumber, int order) {
+    // 이미지 정보 조회
+    public ImageDetailResponseDto getImageDetail(String relatedType, int relatedNumber, int order) {
         Image image = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, order)
-                .orElseThrow(() -> new IllegalArgumentException("이미지 상세 조회 : 해당 이미지를 찾을 수 없습니다." + relatedType + ":" + relatedNumber));
+                .orElseThrow(() -> {
+                    log.warn("Image Not Found. relatedType: {}, relatedNumber: {}, order: {}", relatedType, relatedNumber, order);
+                    throw new IllegalArgumentException("이미지를 찾을 수 없습니다.");
+                });
 
-        return new ImageDetailResponseDto(image);
+        return ImageDetailResponseDto.from(image);
     }
 
     //임시저장

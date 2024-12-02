@@ -17,7 +17,6 @@ import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -297,7 +296,7 @@ public class ImageCommunityService {
             System.out.println("postNumber : " + postNumber);
             System.out.println("order : " + image.getOrder());
 
-            ImageDetailResponseDto response = imageService.getImageDetailByNumber("community", postNumber, image.getOrder());
+            ImageDetailResponseDto response = imageService.getImageDetail("community", postNumber, image.getOrder());
             responses[i] = response;
         }
         return responses;

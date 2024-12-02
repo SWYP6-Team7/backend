@@ -86,7 +86,7 @@ public class CommunityService {
         boolean liked = likeStatus.isLiked(); //좋아요 여부
 
         // 게시글 작성자 프로필 이미지 url 가져오기
-        String profileImageUrl = imageService.getImageDetailByNumber("profile", PostWriter.getUserNumber(), 0).getUrl();
+        String profileImageUrl = imageService.getImageDetail("profile", PostWriter.getUserNumber(), 0).getUrl();
 
         //데이터 Dto에 담기
         CommunityDetailResponseDto detailResponse = CommunityDetailResponseDto.builder()
