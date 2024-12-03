@@ -3,7 +3,6 @@ package swyp.swyp6_team7.image.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +44,6 @@ class ImageCommunityControllerTest {
 
 
     @DisplayName("uploadTempImage: 커뮤니티 이미지를 임시저장한다.")
-    @WithMockCustomUser(userNumber = 2)
     @Test
     void uploadTempImage() throws Exception {
         // given
@@ -82,7 +80,6 @@ class ImageCommunityControllerTest {
     }
 
     @DisplayName("saveImages: 임시 저장 커뮤니티 이미지를 정식으로 저장한다.")
-    @WithMockCustomUser
     @Test
     void saveImages() throws Exception {
         // given
