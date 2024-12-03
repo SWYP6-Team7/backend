@@ -13,11 +13,12 @@ import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberDeletedService;
+import swyp.swyp6_team7.tag.domain.Tag;
+import swyp.swyp6_team7.tag.domain.UserTagPreference;
+import swyp.swyp6_team7.tag.repository.TagRepository;
+import swyp.swyp6_team7.tag.repository.UserTagPreferenceRepository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,8 @@ public class GoogleService {
     private final SocialUserRepository socialUserRepository;
     private final JwtProvider jwtProvider;
     private final MemberDeletedService memberDeletedService;
+    private final TagRepository tagRepository;
+    private final UserTagPreferenceRepository userTagPreferenceRepository;
 
     public Map<String, String> getUserInfoFromGoogle(String code) {
         log.info("Google 사용자 정보 요청: code={}", code);
@@ -75,10 +78,31 @@ public class GoogleService {
             user.setUserAgeGroup(AgeGroup.fromValue(signupData.getAgeGroup()));
             user.setUserStatus(UserStatus.ABLE);
 
-            if (signupData.getPreferredTags() != null) {
+            if (signupData.getPreferredTags() != null && !signupData.getPreferredTags().isEmpty()) {
                 Set<String> preferredTags = signupData.getPreferredTags();
                 log.info("사용자 선호 태그 처리: userNumber={}, tags={}", user.getUserNumber(), preferredTags);
-                // 선호 태그 저장 로직 추가 가능
+
+                // 선호 태그 저장 로직
+                Set<UserTagPreference> tagPreferences = new HashSet<>();
+
+                for (String tagName : preferredTags) {
+                    Tag tag = tagRepository.findByName(tagName)
+                            .orElseGet(() -> {
+                                Tag newTag = Tag.of(tagName);
+                                tagRepository.save(newTag);
+                                return newTag;
+                            });
+
+                    // 사용자와 태그 연결
+                    UserTagPreference userTagPreference = new UserTagPreference();
+                    userTagPreference.setUser(user);
+                    userTagPreference.setTag(tag);
+                    tagPreferences.add(userTagPreference);
+                }
+
+                // 저장
+                userTagPreferenceRepository.saveAll(tagPreferences);
+                log.info("사용자 선호 태그 저장 완료: userNumber={}, tagCount={}", user.getUserNumber(), tagPreferences.size());
             }
 
             userRepository.save(user);
