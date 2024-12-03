@@ -21,15 +21,10 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     // 관련 타입이 community일 때 여러 이미지를 찾는 메소드
     List<Image> findAllByRelatedTypeAndRelatedNumber(String relatedType, int relatedNumber);
 
-    //key로 이미지찾기
-    Optional<Image> findByRelatedTypeAndRelatedNumberAndKey(String relatedType, int relatedNumber, String key);
-
     Optional<Image> findByRelatedTypeAndRelatedNumberAndOrder(String relatedType, int relatedNumber, int order);
 
     Optional<Image> findByKey(String key);
 
     Optional<Image> findByUrl(String url);
 
-
-    Optional<Image> findByImageNumber(Long imageNumber);
 }

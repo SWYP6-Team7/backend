@@ -4,13 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Getter
 @AllArgsConstructor
-public class ImageSaveRequestDto {
-
-    private List<String> deletedTempUrls;
-    private List<String> tempUrls;
-
+@NoArgsConstructor
+public class ImageUpdateByDefaultProfileRequest {
+    private int defaultNumber;
 }

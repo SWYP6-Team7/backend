@@ -15,21 +15,16 @@ import java.time.LocalDateTime;
 public class ImageDetailResponseDto {
 
     private Long imageNumber;
-
     private String relatedType;
     private int relatedNumber;
-
     private String key;
     private String url;
-
-    @JsonFormat( shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일 HH시 MM분")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일 HH시 mm분")
     private LocalDateTime uploadDate;
 
 
     @Builder
-    public ImageDetailResponseDto(
-            Long imageNumber, String relatedType, int relatedNumber, String key, String url, LocalDateTime uploadDate)
-    {
+    public ImageDetailResponseDto(Long imageNumber, String relatedType, int relatedNumber, String key, String url, LocalDateTime uploadDate) {
         this.imageNumber = imageNumber;
         this.relatedType = relatedType;
         this.relatedNumber = relatedNumber;
@@ -38,13 +33,16 @@ public class ImageDetailResponseDto {
         this.uploadDate = uploadDate;
     }
 
-    public ImageDetailResponseDto(Image image) {
-        this.imageNumber = image.getImageNumber();
-        this.relatedType = image.getRelatedType();
-        this.relatedNumber = image.getRelatedNumber();
-        this.key = image.getKey();
-        this.url = image.getUrl();
-        this.uploadDate = image.getUploadDate();
+
+    public static ImageDetailResponseDto from(Image image) {
+        return ImageDetailResponseDto.builder()
+                .imageNumber(image.getImageNumber())
+                .relatedType(image.getRelatedType())
+                .relatedNumber(image.getRelatedNumber())
+                .key(image.getKey())
+                .url(image.getUrl())
+                .uploadDate(image.getUploadDate())
+                .build();
     }
 
     @Override
