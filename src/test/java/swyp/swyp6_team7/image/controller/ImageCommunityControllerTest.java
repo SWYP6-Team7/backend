@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
+import swyp.swyp6_team7.image.dto.request.CommunityImageUpdateRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
@@ -141,6 +142,42 @@ class ImageCommunityControllerTest {
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/community/{postNumber}/images", postNumber));
+
+        // then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].imageNumber").value(1L))
+                .andExpect(jsonPath("$.[0].relatedType").value("community"))
+                .andExpect(jsonPath("$.[0].relatedNumber").value(postNumber))
+                .andExpect(jsonPath("$.[0].key").value("baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"));
+    }
+
+    @DisplayName("updateImages: 커뮤니티 게시글에 포함되는 이미지를 수정한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void updateImages() throws Exception {
+        // given
+        int postNumber = 2;
+        List<String> status = List.of("d", "y");
+        List<String> urls = List.of(
+                "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName1.png",
+                "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/2/storageName2.png"
+        );
+        CommunityImageUpdateRequest request = new CommunityImageUpdateRequest(status, urls);
+
+        ImageDetailResponseDto image = createdDetailResponse(1, postNumber,
+                "baseFolder/community/2/1/storageName2.png",
+                "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png");
+        List<ImageDetailResponseDto> response = List.of(image);
+
+        given(imageCommunityService.updateCommunityImages(postNumber, 2, status, urls))
+                .willReturn(response);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(put("/api/community/{postNumber}/images", postNumber)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(request)));
 
         // then
         resultActions.andExpect(status().isOk())
