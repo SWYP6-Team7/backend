@@ -66,7 +66,7 @@ public class ImageCommunityService {
         // 임시 저장 삭제: 임시 저장 했지만 최종 게시물 등록에는 포함되지 않은 이미지 처리
         if (deletedTempUrls != null && !deletedTempUrls.isEmpty()) {
             deletedTempUrls.stream()
-                    .forEach(deletedTempUrl -> deleteTempCommunityImage(deletedTempUrl));
+                    .forEach(deletedTempUrl -> deleteCommunityImage(deletedTempUrl));
             log.info("임시 이미지 삭제 완료 deletedTempUrls: {}", deletedTempUrls);
         }
 
@@ -76,8 +76,8 @@ public class ImageCommunityService {
                 // 이미지 순서 설정 (1부터 시작)
                 int order = i + 1;
 
-                // 임시 경로에 저장된 각 이미지를 정식 저장
-                saveOfficialCommunityImage(tempUrls.get(i), relatedNumber, order);
+                // 임시 경로에 저장된 각 이미지를 정식 경로에 이동
+                moveCommunityImage(tempUrls.get(i), relatedNumber, order);
             }
             log.info("임시 이미지 정식 저장 완료 tempUrls: {}", tempUrls);
         }
@@ -85,163 +85,88 @@ public class ImageCommunityService {
         return getCommunityImages(relatedNumber);
     }
 
-    private void deleteTempCommunityImage(String deletedTempUrl) {
-        Image deletedTempImage = imageRepository.findByUrl(deletedTempUrl)
+    private void deleteCommunityImage(String url) {
+        Image targetImage = imageRepository.findByUrl(url)
                 .orElseThrow(() -> {
-                    log.warn("Image Not Found. URL: {}", deletedTempUrl);
-                    throw new IllegalArgumentException("해당 이미지를 찾을 수 없습니다. URL: " + deletedTempUrl);
+                    log.warn("Image Not Found. URL: {}", url);
+                    throw new IllegalArgumentException("해당 이미지를 찾을 수 없습니다. URL: " + url);
                 });
-        String deletedTempKey = deletedTempImage.getKey();
+        String targetImageKey = targetImage.getKey();
 
-        // S3에서 임시 저장한 파일 삭제
-        s3Uploader.deleteFile(deletedTempKey);
+        // S3에서 파일 삭제
+        s3Uploader.deleteFile(targetImageKey);
 
         // DB에서 이미지 데이터 삭제
-        imageRepository.delete(deletedTempImage);
+        imageRepository.delete(targetImage);
     }
 
-    public void saveOfficialCommunityImage(String tempUrl, int relatedNumber, int order) {
-        Image tempImage = imageRepository.findByUrl(tempUrl)
+    private void moveCommunityImage(String url, int relatedNumber, int order) {
+        Image image = imageRepository.findByUrl(url)
                 .orElseThrow(() -> {
-                    log.warn("Image Not Found. URL: {}", tempUrl);
-                    throw new IllegalArgumentException("해당 이미지를 찾을 수 없습니다. URL: " + tempUrl);
+                    log.warn("Image Not Found. URL: {}", url);
+                    throw new IllegalArgumentException("해당 이미지를 찾을 수 없습니다. URL: " + url);
                 });
-        String tempKey = tempImage.getKey();
+        String key = image.getKey();
 
-        if (!s3Uploader.existObject(tempKey)) {
-            throw new IllegalArgumentException("임시 저장된 데이터가 존재하지 않습니다. Url을 확인해주세요. URL: " + tempUrl);
+        if (!s3Uploader.existObject(key)) {
+            throw new IllegalArgumentException("저장된 데이터가 존재하지 않습니다. Url을 확인해주세요. URL: " + url);
         }
 
-        // 정식 저장을 위한 Key 생성
-        String newKey = s3KeyHandler.generateS3Key("community", relatedNumber, tempImage.getStorageName(), order);
+        // 새로운 S3 Key 생성
+        String newKey = s3KeyHandler.generateS3Key("community", relatedNumber, image.getStorageName(), order);
 
-        // 임시 경로에 있는 이미지 정식 경로로 이동
-        s3Uploader.moveImage(tempKey, newKey);
+        // 이미지를 새로운 경로로 이동
+        s3Uploader.moveImage(key, newKey);
 
-        // 정식 경로 key로 url 가져오기
+        // 새로운 key에 해당하는 URL
         String newUrl = s3Uploader.getImageUrl(newKey);
 
         // DB 이미지 데이터 수정
-        tempImage.update(relatedNumber, order, newKey, newUrl, LocalDateTime.now());
+        image.update(relatedNumber, order, newKey, newUrl, LocalDateTime.now());
     }
 
+    // 커뮤니티 이미지 수정
     @Transactional
-    //커뮤니티 이미지 수정
-    public ImageDetailResponseDto[] updateCommunityImage(int relatedNumber, List<String> statuses, List<String> urls, int userNumber) {
+    public List<ImageDetailResponseDto> updateCommunityImages(int relatedNumber, int userNumber, List<String> statuses, List<String> urls) {
 
-        //게시글 작성자인지 검증
-        if (userNumber == communityRepository.findByPostNumber(relatedNumber).get().getUserNumber()) {
-        } else {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
-
+        // 게시글 작성자 검증
+        if (userNumber != communityRepository.findByPostNumber(relatedNumber).get().getUserNumber()) {
+            log.warn("커뮤니티 게시글 수정 권한이 없습니다. communityPostNumber: {}", relatedNumber);
+            throw new IllegalArgumentException("커뮤니티 게시글 수정 권한이 없습니다.");
         }
 
-        String relatedType = "community";
-
+        // 각 이미지에 대해 변경 사항 적용
         int order = 1;
-        int index = 0;
-
         for (int i = 0; i < urls.size(); i++) {
-            index = i;
-            String status = statuses.get(index);
-            String url = urls.get(index);
+            String status = statuses.get(i);
+            String url = urls.get(i);
 
+            // 아무 변화가 없는 경우
             if (status.equals("n")) {
-                //아무 동작 하지 않고 순서값 +1
-                order++;
-            } else if (status.equals("y")) {
-                //현재 url로 key 가져오기
-                String key = s3KeyHandler.getKeyByUrl(url);
-                System.out.println("key : " + key);
+                order++; // 아무 동작 하지 않고 순서값 +1
+            }
 
-                //unique 한 값인 key로 db 데이터 가져오기
-                Image image = imageRepository.findByKey(key)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 이미지를 찾을 수 없습니다."));
+            // 이미지 순서 변경 or 임시저장 이미지인 경우
+            else if (status.equals("y") || status.equals("i")) {
+                moveCommunityImage(url, relatedNumber, order);
+                order++; // 순서값 증가
+                log.info("이미지 경로 수정 완료 URL: {}", url);
+            }
 
+            // 이미지가 삭제되는 경우
+            else if (status.equals("d")) {
+                deleteCommunityImage(url);
+                log.info("이미지 삭제 완료 URL: {}", url);
+            }
 
-                //현재 순서 값에 대한 새로운 key 생성
-                String newKey = s3KeyHandler.generateS3Key(relatedType, relatedNumber, image.getStorageName(), order);
-                System.out.println("newKey : " + newKey);
-                //새로운 key로 경로 이동
-                String destinationKey = s3Uploader.moveImage(key, newKey);
-                //새로운 key로 새로운 url 가져오기
-                String newUrl = s3Uploader.getImageUrl(destinationKey);
-                System.out.println("newUrl : " + newUrl);
-
-                //DB update 동작
-                ImageUpdateRequestDto updateRequest = ImageUpdateRequestDto.builder()
-                        .relatedType("community")
-                        .relatedNumber(relatedNumber)
-                        .order(order)
-                        .key(destinationKey)
-                        .url(newUrl) // 새 이미지 URL
-                        .build();
-                finalizeTemporaryImages(key, updateRequest);
-
-                //순서값 +1
-                order++;
-
-            } else if (status.equals("d")) {
-
-                //S3 에서 이미지 삭제
-                //url로 key값 가져와서 삭제 동작
-                String key = s3KeyHandler.getKeyByUrl(url);
-                s3Uploader.deleteFile(key);
-
-                //DB에서 이미지 삭제
-                //unique 한 값인 key로 db 데이터 가져오기
-                Image image = imageRepository.findByKey(key)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 이미지를 찾을 수 없습니다."));
-                //DB에서 삭제
-                imageRepository.delete(image);
-
-                //순서값 변동 X
-
-            } else if (status.equals("i")) {
-                //임시 저장 이미지
-                String tempUrl = url;
-                // 임시 경로 key 추출
-                String tempKey = s3KeyHandler.getKeyByUrl(tempUrl);
-                System.out.println("tempKey : " + tempKey);
-
-                //해당 경로에 이미지가 존재하는지 확인
-                if (s3Uploader.existObject(tempKey)) {
-
-                    //unique한 값인 key로 db의 임시 이미지 데이터 가져오기
-                    Image tempImage = imageRepository.findByKey(tempKey)
-                            .orElseThrow(() -> new IllegalArgumentException("해당 이미지를 찾을 수 없습니다."));
-
-
-                    //정식 경로 key 생성
-                    String newKey = s3KeyHandler.generateS3Key(relatedType, relatedNumber, tempImage.getStorageName(), order);
-                    System.out.println("newKey : " + newKey);
-                    //임시 경로에 있는 이미지 정식 경로로 이동
-                    s3Uploader.moveImage(tempKey, newKey);
-                    //정식 경로 key로 url 가져오기
-                    String newUrl = s3Uploader.getImageUrl(newKey);
-                    System.out.println("newUrl : " + newUrl);
-
-                    //DB 업데이트 동작
-                    ImageUpdateRequestDto updateRequest = ImageUpdateRequestDto.builder()
-                            .relatedType(relatedType)
-                            .relatedNumber(relatedNumber)
-                            .order(order)
-                            .key(newKey)
-                            .url(newUrl) // 새 이미지 URL
-                            .build();
-                    finalizeTemporaryImages(tempKey, updateRequest);
-
-                    //순서값 +1
-                    order++;
-
-                } else {
-                    throw new IllegalArgumentException(" 잘못된 입력입니다. status 값을 확인해주세요");
-
-                }
+            // status 예외 처리
+            else {
+                log.warn("잘못된 커뮤니티 이미지 수정 status입니다. status: {}", status);
+                throw new IllegalArgumentException("잘못된 status입니다. 가능한 status값: n(변경 없음), d(삭제), y(순서 변경), i(임시 저장)");
             }
         }
-        ImageDetailResponseDto[] responses = communityImageDetail(relatedNumber);
-        return responses;
+
+        return getCommunityImages(relatedNumber);
     }
 
     @Transactional

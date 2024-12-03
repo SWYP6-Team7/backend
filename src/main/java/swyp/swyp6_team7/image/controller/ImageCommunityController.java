@@ -2,19 +2,22 @@ package swyp.swyp6_team7.image.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
-import swyp.swyp6_team7.image.dto.request.ImageCommunityRequestDto;
+import swyp.swyp6_team7.image.dto.request.CommunityImageUpdateRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 
 
 @Slf4j
@@ -54,16 +57,16 @@ public class ImageCommunityController {
                 .body(responses);
     }
 
-    //게시글 별 이미지 수정
+    // 커뮤니티 게시글 이미지 수정
     @PutMapping("/{postNumber}/images")
-    public ResponseEntity<ImageDetailResponseDto[]> updateImages(
-            @PathVariable int postNumber, @RequestBody ImageCommunityRequestDto request, Principal principal) {
-
-        //user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
-
-        ImageDetailResponseDto[] responses = imageCommunityService.updateCommunityImage(postNumber, request.getStatuses(), request.getUrls(), userNumber);
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<List<ImageDetailResponseDto>> updateImages(
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequestBody CommunityImageUpdateRequest request
+    ) {
+        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        List<ImageDetailResponseDto> responses = imageCommunityService.updateCommunityImages(postNumber, loginUserNumber, request.getStatuses(), request.getUrls());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(responses);
     }
 
     //게시글 별 이미지 삭제
