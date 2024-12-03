@@ -49,7 +49,7 @@ class S3KeyHandlerTest {
         assertThatThrownBy(() -> {
             s3KeyHandler.generateTempS3Key(relatedType, storageName);
         }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid relatedType: " + relatedType);
+                .hasMessage("유효하지 않는 타입입니다: " + relatedType);
     }
 
     @DisplayName("getKeyByUrl: 주어지는 URL을 이용해 S3 Key를 추출할 수 있다.")

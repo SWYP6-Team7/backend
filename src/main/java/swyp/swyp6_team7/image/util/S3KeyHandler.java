@@ -56,7 +56,7 @@ public class S3KeyHandler {
             return baseFolder + folderType.name().toLowerCase() + "/" + "temporary" + "/" + storageName;
         } catch (Exception e) {
             log.warn("유효하지 않는 타입입니다. relatedType: {}", relatedType);
-            throw new IllegalArgumentException("유효하지 않는 타입입니다. " + relatedType);
+            throw new IllegalArgumentException("유효하지 않는 타입입니다: " + relatedType);
         }
     }
 
