@@ -8,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
@@ -26,7 +24,6 @@ public class TravelController {
     private final TravelService travelService;
 
     @PostMapping("/api/travel")
-
     public ResponseEntity<TravelDetailResponse> create(@RequestBody @Validated TravelCreateRequest request) {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         logger.info("Travel 생성 요청 - userId: {}", loginUserNumber);
