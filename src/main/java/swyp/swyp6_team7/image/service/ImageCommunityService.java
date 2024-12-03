@@ -27,7 +27,6 @@ public class ImageCommunityService {
 
     private final ImageRepository imageRepository;
     private final CommunityRepository communityRepository;
-    private final ImageService imageService;
     private final S3Uploader s3Uploader;
     private final StorageNameHandler storageNameHandler;
     private final S3KeyHandler s3KeyHandler;
@@ -170,13 +169,21 @@ public class ImageCommunityService {
     }
 
     @Transactional
-    public void deleteCommunityImage(String relatedType, int relatedNumber, int userNumber) {
-        //게시글 작성자인지 검증
+    public void deleteCommunityImages(int relatedNumber, int userNumber) {
+        // 게시글 작성자 검증
         if (userNumber != communityRepository.findByPostNumber(relatedNumber).get().getUserNumber()) {
-        } else {
-            throw new IllegalArgumentException("게시글 작성자가 아닙니다.");
+            log.warn("커뮤니티 이미지 삭제 권한이 없습니다. communityPostNumber: {}", relatedNumber);
+            throw new IllegalArgumentException("커뮤니티 이미지 삭제 권한이 없습니다.");
         }
-        imageService.deleteImage(relatedType, relatedNumber);
+
+        List<Image> images = imageRepository.findAllByRelatedTypeAndRelatedNumber("community", relatedNumber);
+        for (Image image : images) {
+            // S3에서 파일 삭제
+            s3Uploader.deleteFile(image.getKey());
+
+            // 이미지 데이터 삭제
+            imageRepository.delete(image);
+        }
     }
 
     // 커뮤니티 게시물 이미지 조회
