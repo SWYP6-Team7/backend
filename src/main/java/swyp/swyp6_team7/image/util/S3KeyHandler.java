@@ -51,46 +51,12 @@ public class S3KeyHandler {
 
     // 임시저장 key 생성 메소드: {baseFolder}/{relatedType}/{temporary}/{file_name}
     public String generateTempS3Key(String relatedType, String storageName) {
-
-        FileFolder folderType = FileFolder.from(relatedType);
-
-        // TODO: profile, community 케이스 분리 필요? return값이 동일함
-        // profile인 경우
-        if (folderType == FileFolder.PROFILE) {
+        try {
+            FileFolder folderType = FileFolder.from(relatedType);
             return baseFolder + folderType.name().toLowerCase() + "/" + "temporary" + "/" + storageName;
-        }
-
-        // 커뮤니티인 경우
-        else if (folderType == FileFolder.COMMUNITY) {
-            return baseFolder + folderType.name().toLowerCase() + "/" + "temporary" + "/" + storageName;
-        }
-
-        // TODO: 잘못된 relatedType은 FileFolder.from에서 예외 처리 되고 있음
-        // 유효하지 않은 relatedType일 경우 예외처리
-        else {
-            throw new IllegalArgumentException("커뮤니티 게시물이 유효하지 않는 타입입니다.: " + relatedType);
-        }
-    }
-
-
-    //path 를 찾는 메소드
-    public String getPath(String relatedType, int relatedNumber, int order) {
-
-        FileFolder folderType = FileFolder.from(relatedType);
-
-        // profile인 경우
-        if (folderType == FileFolder.PROFILE) {
-            return baseFolder + folderType.name().toLowerCase() + "/" + relatedNumber + "/";
-        }
-
-        // 커뮤니티인 경우
-        else if (folderType == FileFolder.COMMUNITY) {
-            return baseFolder + folderType.name().toLowerCase() + "/" + relatedNumber + "/" + (order > 0 ? order + "/" : "");
-        }
-
-        // 유효하지 않은 relatedType일 경우 예외처리
-        else {
-            throw new IllegalArgumentException("커뮤니티 게시물이 유효하지 않는 타입입니다.: " + relatedType);
+        } catch (Exception e) {
+            log.warn("유효하지 않는 타입입니다. relatedType: {}", relatedType);
+            throw new IllegalArgumentException("유효하지 않는 타입입니다. " + relatedType);
         }
     }
 

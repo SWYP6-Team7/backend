@@ -79,19 +79,9 @@ public class S3Uploader {
         return S3Key;
     }
 
-
-    //해당 경로에 파일이 존재하는지 확인하는 메소드
-    public boolean existObject(String relatedType, int relatedNumber, int order) {
-        String storageName = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, order).get().getStorageName();
-        String key = s3KeyHandler.generateS3Key(relatedType, relatedNumber, storageName, order);
-
-        return amazonS3.doesObjectExist(s3Component.getBucket(), key);
-    }
-
     //해당 경로에 특정 파일이 존재하는지 확인하는 메소드 (key로 확인)
     public boolean existObject(String key) {
         return amazonS3.doesObjectExist(s3Component.getBucket(), key);
-
     }
 
 
@@ -157,13 +147,6 @@ public class S3Uploader {
 
         // 경로 이동 후 path 리턴
         return destinationKey;
-    }
-
-    //relatedType, relatedNumber, order로 key를 추출하는 메소드
-    public String getKey(String relatedType, int relatedNumber, int order) {
-        String storageName = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, order).get().getStorageName();
-        String key = s3KeyHandler.generateS3Key(relatedType, relatedNumber, storageName, order);
-        return key;
     }
 
 }

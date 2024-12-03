@@ -37,35 +37,7 @@ public class ImageCreateDto {
         this.uploadDate = uploadDate;
     }
 
-    // 최소 필드만 받는 생성자 (프로필 이미지 기본 이미지용)
-    @Builder
-    public ImageCreateDto(String relatedType, int relatedNumber, int order, String key, String url) {
-        this.relatedType = relatedType;
-        this.relatedNumber = relatedNumber;
-        this.order = order;
-        this.key = key;
-        this.url = url;
-        this.uploadDate = LocalDateTime.now();
-    }
-
-    //임시저장시 사용하는 생성자 (커뮤니티)
-    @Builder
-    public ImageCreateDto(
-            String originalName, String storageName, long size, String format,
-            String relatedType, String key, String url, LocalDateTime uploadDate
-    ) {
-        this.originalName = originalName;
-        this.storageName = storageName;
-        this.size = size;
-        this.format = format;
-        this.relatedType = relatedType;
-        this.key = key;
-        this.url = url;
-        this.uploadDate = uploadDate;
-    }
-
-    //TODO: Image에 create static method로 수정
-    //DB저장
+    // Image 엔티티로 변환
     public Image toImageEntity() {
         return Image.builder()
                 .originalName(originalName)
@@ -80,4 +52,5 @@ public class ImageCreateDto {
                 .uploadDate(uploadDate)
                 .build();
     }
+
 }

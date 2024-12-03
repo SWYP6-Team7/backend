@@ -33,14 +33,6 @@ public class ImageDetailResponseDto {
         this.uploadDate = uploadDate;
     }
 
-    public ImageDetailResponseDto(Image image) {
-        this.imageNumber = image.getImageNumber();
-        this.relatedType = image.getRelatedType();
-        this.relatedNumber = image.getRelatedNumber();
-        this.key = image.getKey();
-        this.url = image.getUrl();
-        this.uploadDate = image.getUploadDate();
-    }
 
     public static ImageDetailResponseDto from(Image image) {
         return ImageDetailResponseDto.builder()

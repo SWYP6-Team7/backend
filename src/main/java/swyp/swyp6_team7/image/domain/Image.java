@@ -125,9 +125,4 @@ public class Image {
         return this;
     }
 
-    //Delete (이미지 삭제)
-    public void delete(Long imageNumber) {
-        this.imageNumber = imageNumber;
-    }
-
 }

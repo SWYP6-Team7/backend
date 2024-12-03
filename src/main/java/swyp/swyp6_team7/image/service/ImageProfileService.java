@@ -38,9 +38,7 @@ public class ImageProfileService {
     @Transactional
     public ImageDetailResponseDto initializeDefaultProfileImage(int userNumber) {
         String defaultImageKey = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
-
-        // TODO: Image 클래스에서 create메서드 호출
-        // TODO: save 후 결과물을 dto로 변환 후 반환
+        
         ImageCreateDto imageCreateDto = ImageCreateDto.builder()
                 .relatedType("profile")
                 .relatedNumber(userNumber)
@@ -51,7 +49,7 @@ public class ImageProfileService {
                 .build();
 
         Image uploadedImage = imageRepository.save(imageCreateDto.toImageEntity());
-        return new ImageDetailResponseDto(uploadedImage);
+        return ImageDetailResponseDto.from(uploadedImage);
     }
 
 

@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CommunityImageUpdateRequest {
 
+    // n: 불변, d: 삭제, y: 순서 변경, i: 정식 저장
     private List<String> statuses;
     private List<String> urls;
 

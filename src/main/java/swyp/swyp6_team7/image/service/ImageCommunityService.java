@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.dto.ImageCreateDto;
-import swyp.swyp6_team7.image.dto.request.ImageUpdateRequestDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.s3.S3Uploader;
@@ -192,53 +191,6 @@ public class ImageCommunityService {
         return images.stream()
                 .map(ImageDetailResponseDto::from)
                 .collect(Collectors.toList());
-    }
-
-    // 게시물 별 이미지 조회
-    public ImageDetailResponseDto[] communityImageDetail(int postNumber) {
-        log.info("게시물 별 이미지 조회 postNumber: {}", postNumber);
-
-        List<Image> images = imageRepository.findAllByRelatedTypeAndRelatedNumber("community", postNumber);
-        ImageDetailResponseDto[] responses = new ImageDetailResponseDto[images.size()];
-
-        for (int i = 0; i < images.size(); i++) {
-            Image image = images.get(i);
-            log.info("postNumber: {}, order: {}", postNumber, image.getOrder());
-
-            ImageDetailResponseDto imageDetail = ImageDetailResponseDto.from(image);
-            responses[i] = imageDetail;
-        }
-
-        return responses;
-    }
-
-    @Transactional
-    public ImageDetailResponseDto finalizeTemporaryImages(String sourceKey, ImageUpdateRequestDto updateRequest) {
-        System.out.println("이미지 정식 저장된 이미지 DB업데이트 메소드 동작 : " + updateRequest.getOrder());
-
-        Image searchImage = imageRepository.findByKey(sourceKey)
-                .orElseThrow(() -> new IllegalArgumentException("정식 저장 DB update 동작 에러 : 수정할 이미지를 찾을 수 없습니다. : " + sourceKey));
-
-        //update 메소드 호출
-        searchImage.update(
-                updateRequest.getOriginalName(),
-                updateRequest.getStorageName(),
-                updateRequest.getSize(),
-                updateRequest.getFormat(),
-                updateRequest.getRelatedType(),
-                updateRequest.getRelatedNumber(),
-                updateRequest.getOrder(),
-                updateRequest.getKey(),
-                updateRequest.getUrl(),
-                updateRequest.getUploadDate()
-        );
-        Image updatedImage = imageRepository.save(searchImage); // save 호출 추가
-
-
-        System.out.println("finalizeTemporaryImages 메소드 동작 : " + updatedImage.getOrder());
-
-        //DB에 update 적용
-        return new ImageDetailResponseDto(updatedImage);
     }
 
 }
