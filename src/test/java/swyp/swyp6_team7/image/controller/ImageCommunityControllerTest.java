@@ -3,6 +3,7 @@ package swyp.swyp6_team7.image.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -187,6 +189,22 @@ class ImageCommunityControllerTest {
                 .andExpect(jsonPath("$.[0].key").value("baseFolder/community/2/1/storageName2.png"))
                 .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
                 .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"));
+    }
+
+    @DisplayName("deleteImages: 커뮤니티 게시글의 이미지를 삭제한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    void deleteImages() throws Exception {
+        // given
+        int postNumber = 2;
+        doNothing().when(imageCommunityService).deleteCommunityImages(anyInt(), anyInt());
+
+        // when
+        ResultActions resultActions = mockMvc.perform(delete("/api/community/{postNumber}/images", postNumber));
+
+        // then
+        resultActions.andExpect(status().isNoContent());
+        then(imageCommunityService).should().deleteCommunityImages(postNumber, 2);
     }
 
     private ImageDetailResponseDto createdDetailResponse(long imageNumber, int relatedNumber, String key, String url) {

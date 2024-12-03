@@ -254,6 +254,53 @@ class ImageCommunityServiceTest {
                 .hasMessage("커뮤니티 게시글 수정 권한이 없습니다.");
     }
 
+    @DisplayName("deleteCommunityImages: 커뮤니티 게시글에 포함된 이미지 전체 삭제")
+    @Test
+    void deleteCommunityImages() {
+        // given
+        int postNumber = 2;
+        int requestUserNumber = 1;
+        Image image1 = createImage("image1.png", postNumber, 1);
+        Image image2 = createImage("image2.png", postNumber, 2);
+        Image image3 = createImage("image3.png", postNumber, 2);
+        imageRepository.saveAll(List.of(image1, image2, image3));
+
+        Community post = Community.builder()
+                .userNumber(1)
+                .build();
+        given(communityRepository.findByPostNumber(anyInt())).willReturn(Optional.of(post));
+        doNothing().when(s3Uploader).deleteFile(anyString());
+
+        // when
+        imageCommunityService.deleteCommunityImages(postNumber, requestUserNumber);
+
+        // then
+        assertThat(imageRepository.findAll()).isEmpty();
+    }
+
+    @DisplayName("deleteCommunityImages: 커뮤니티 게시글 작성자가 아닐 때 예외가 발생한다.")
+    @Test
+    void deleteCommunityImagesWhenNotPostOwner() {
+        // given
+        int postNumber = 2;
+        int requestUserNumber = 1;
+        Image image1 = createImage("image1.png", postNumber, 1);
+        Image image2 = createImage("image2.png", postNumber, 2);
+        Image image3 = createImage("image3.png", postNumber, 2);
+        imageRepository.saveAll(List.of(image1, image2, image3));
+
+        Community post = Community.builder()
+                .userNumber(3)
+                .build();
+        given(communityRepository.findByPostNumber(anyInt())).willReturn(Optional.of(post));
+
+        // when // then
+        assertThatThrownBy(() -> {
+            imageCommunityService.deleteCommunityImages(postNumber, requestUserNumber);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("커뮤니티 이미지 삭제 권한이 없습니다.");
+    }
+
     private Image createTempImage(String imageName) {
         String storageName = "stored-" + imageName;
         String key = "baseFolder/community/temporary/" + storageName;
