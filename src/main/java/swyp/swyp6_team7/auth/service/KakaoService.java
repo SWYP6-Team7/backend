@@ -137,7 +137,7 @@ public class KakaoService {
 
     @Transactional
     private Users saveSocialUser(Map<String, String> userInfo) {
-        String email = userInfo.getOrDefault("email", "unknown@example.com");
+        String email = userInfo.getOrDefault("email", "unknown@" + UUID.randomUUID().toString().substring(0, 8) + ".email");
         String socialLoginId = userInfo.get("socialLoginId");
         String nickname = userInfo.get("nickname");
 
