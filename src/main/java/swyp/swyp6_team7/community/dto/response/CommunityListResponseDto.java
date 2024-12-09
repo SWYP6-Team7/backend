@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Builder
 public class CommunityListResponseDto {
 
     private int postNumber;         //게시글 번호
