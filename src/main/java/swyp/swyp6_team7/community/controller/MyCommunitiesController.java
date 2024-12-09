@@ -15,6 +15,7 @@ import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityMyListResponseDto;
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.security.Principal;
 
@@ -37,7 +38,7 @@ public class MyCommunitiesController {
             ) {
         
         //조회 중인 유저
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
+        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         Page<CommunityMyListResponseDto> result = communityListService.getMyCommunityList(PageRequest.of(page, size), sortingTypeName, userNumber);
 
