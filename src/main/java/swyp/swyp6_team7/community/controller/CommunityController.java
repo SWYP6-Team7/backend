@@ -54,12 +54,12 @@ public class CommunityController {
 
     //게시물 목록
     @GetMapping("/posts")
-    public ResponseEntity<Page<CommunityListResponseDto>> getList(
+    public ResponseEntity<?> getList(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String categoryName,
-            @RequestParam(defaultValue = "최신순") String sortingTypeName,
+            @RequestParam(name = "keyword",required = false) String keyword,
+            @RequestParam(name = "categoryName", required = false) String categoryName,
+            @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
             Principal principal) {
 
         int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
@@ -99,28 +99,26 @@ public class CommunityController {
                 .pageRequest(PageRequest.of(page, size))
                 .keyword(keyword)
                 .categoryNumber(categoryNumber)
-                .sortingType(String.valueOf(sortingType))
+                .sortingType(sortingType.toString())
                 .build();
 
-        Page<CommunityListResponseDto> result;
         try {
-            result = communityListService.getCommunityList(pageRequest, condition, userNumber);
-            log.info("커뮤니티 목록 조회 성공 - 데이터 수: {}", result.getTotalElements());
+            Page<CommunityListResponseDto> result = communityListService.getCommunityList(pageRequest, condition, userNumber);
+            log.info("조회 성공: 총 데이터 수 = {}", result.getTotalElements());
+            return ResponseEntity.ok(result);
         } catch (DataAccessException e) {
-            log.error("데이터베이스 접근 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Page.empty(pageRequest));
+            log.error("데이터베이스 접근 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터베이스 접근 오류가 발생했습니다.");
         } catch (Exception e) {
-            log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Page.empty(pageRequest));
+            log.error("예상치 못한 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버에서 오류가 발생했습니다.");
         }
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(result);    }
+    }
 
 
     //R
     @GetMapping("/posts/{postNumber}")
-    public ResponseEntity<CommunityDetailResponseDto> getDetail( @PathVariable int postNumber, Principal principal
+    public ResponseEntity<CommunityDetailResponseDto> getDetail( @PathVariable(name = "postNumber") int postNumber, Principal principal
     ) {
 
         //user number 가져오기
@@ -135,7 +133,7 @@ public class CommunityController {
     //U
     @PutMapping("/posts/{postNumber}")
     public ResponseEntity<CommunityDetailResponseDto> update(
-            @RequestBody CommunityUpdateRequestDto request, Principal principal, @PathVariable int postNumber) {
+            @RequestBody CommunityUpdateRequestDto request, Principal principal, @PathVariable(name = "postNumber")  int postNumber) {
 
         //user number 가져오기
         int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
@@ -148,7 +146,7 @@ public class CommunityController {
     }
 
     @DeleteMapping("/posts/{postNumber}")
-    public ResponseEntity<Void> delete(@PathVariable int postNumber, Principal principal){
+    public ResponseEntity<Void> delete(@PathVariable(name = "postNumber") int postNumber, Principal principal){
 
         //user number 가져오기
         int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
