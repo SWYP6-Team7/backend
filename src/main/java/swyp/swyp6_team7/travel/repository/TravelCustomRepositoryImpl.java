@@ -201,7 +201,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
 
 
     @Override
-    public Page<TravelSearchDto> search(TravelSearchCondition condition, Integer loginUserNumber) {
+    public Page<TravelSearchDto> search(TravelSearchCondition condition) {
 
         // 조회 조건에 해당하는 Travel의 Number를 가져온다
         List<Integer> travels = queryFactory
@@ -235,7 +235,6 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
                 .leftJoin(travel.travelTags, travelTag)
                 .leftJoin(travelTag.tag, tag)
-                .leftJoin(bookmark).on(travel.number.eq(bookmark.travelNumber))
                 .where(
                         travel.number.in(travels)
                 )
@@ -246,9 +245,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                                 users.userNumber,
                                 users.userName,
                                 travel.companions.size(),
-                                list(tag.name),
-                                bookmark.userNumber.eq(loginUserNumber))
-                ));
+                                list(tag.name)
+                )));
 
         // 페이징을 위한 countQuery
         JPAQuery<Long> countQuery = queryFactory
@@ -350,7 +348,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
 
     private List<OrderSpecifier<?>> getOrderSpecifier(TravelSearchSortingType sortingType) {
         if (sortingType == null) {
-            return List.of(travel.dueDate.asc());
+            return List.of(travel.dueDate.asc(), travel.createdAt.desc());
         }
         switch (sortingType) {
             case RECOMMEND:

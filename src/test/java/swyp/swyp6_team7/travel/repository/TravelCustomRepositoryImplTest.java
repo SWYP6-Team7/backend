@@ -225,10 +225,9 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
-        assertThat(results.getTotalElements()).isEqualTo(1);
         assertThat(results.getContent()).hasSize(1)
                 .extracting("title")
                 .allMatch(title -> ((String) title).contains("키워드"));
@@ -255,10 +254,9 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
-        assertThat(results.getTotalElements()).isEqualTo(1);
         assertThat(results.getContent()).hasSize(1)
                 .extracting("location")
                 .allMatch(locationName -> ((String) locationName).contains("Seoul"));
@@ -284,7 +282,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(2);
@@ -312,7 +310,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(2)
@@ -344,7 +342,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(1)
@@ -376,7 +374,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -407,7 +405,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -442,7 +440,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -476,7 +474,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> domesticResults = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> domesticResults = travelRepository.search(condition);
 
         // then
         assertThat(domesticResults.getContent()).hasSize(2)
@@ -509,7 +507,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> domesticResults = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> domesticResults = travelRepository.search(condition);
 
         // then
         assertThat(domesticResults.getContent()).hasSize(2)
@@ -539,7 +537,36 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
+
+        // then
+        assertThat(results.getContent()).hasSize(3)
+                .extracting("travelNumber")
+                .containsExactly(travel3.getNumber(), travel2.getNumber(), travel1.getNumber());
+    }
+
+    @DisplayName("search: 검색할 때 정렬 키워드가 주어지지 않았을 때, dueDate가 동일하면 최근 생성된 순서로 정렬된다.")
+    @Test
+    public void searchWithoutSortingType2() {
+        // given
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 7);
+        Travel travel1 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+        Travel travel2 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+        Travel travel3 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+
+        TravelSearchCondition condition = TravelSearchCondition.builder()
+                .pageRequest(PageRequest.of(0, 5))
+                .build();
+
+        // when
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)
@@ -576,7 +603,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)
@@ -613,7 +640,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)

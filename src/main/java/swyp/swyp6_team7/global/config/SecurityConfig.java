@@ -48,7 +48,8 @@ public class SecurityConfig {
                         // 비회원(비로그인) 관련 권한 설정
                         .requestMatchers(
                                 "/api/travel/detail/**",
-                                "/api/travels/recent"
+                                "/api/travels/recent",
+                                "/api/travels/search"
                         ).permitAll()
 
                         // 기타 경로

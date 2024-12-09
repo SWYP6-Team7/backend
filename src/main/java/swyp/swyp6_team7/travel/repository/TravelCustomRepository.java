@@ -19,6 +19,6 @@ public interface TravelCustomRepository {
 
     Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate);
 
-    Page<TravelSearchDto> search(TravelSearchCondition condition, Integer loginUserNumber);
+    Page<TravelSearchDto> search(TravelSearchCondition condition);
 
 }

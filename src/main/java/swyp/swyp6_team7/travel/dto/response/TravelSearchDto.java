@@ -38,7 +38,7 @@ public class TravelSearchDto {
     public TravelSearchDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int maxPerson, int nowPerson,
-            LocalDateTime createdAt, LocalDate registerDue, String postStatus
+            LocalDateTime createdAt, LocalDate registerDue, String postStatus, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -51,13 +51,14 @@ public class TravelSearchDto {
         this.createdAt = createdAt;
         this.registerDue = registerDue;
         this.postStatus = postStatus;
+        this.bookmarked = isBookmarked;
     }
 
 
     @QueryProjection
     public TravelSearchDto(
             Travel travel, int userNumber, String userName,
-            int companionCount, List<String> tags, boolean isBookmarked
+            int companionCount, List<String> tags
     ) {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
@@ -70,7 +71,11 @@ public class TravelSearchDto {
         this.createdAt = travel.getCreatedAt();
         this.registerDue = travel.getDueDate();
         this.postStatus = travel.getStatus().getName();
-        this.bookmarked = isBookmarked;
+        this.bookmarked = false;
+    }
+
+    public void updateBookmarked(Boolean bookmarked) {
+        this.bookmarked = bookmarked;
     }
 
     @Override
