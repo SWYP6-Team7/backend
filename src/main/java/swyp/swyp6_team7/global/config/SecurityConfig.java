@@ -45,6 +45,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/api/logout").authenticated()
 
+                        // 비회원(비로그인) 관련 권한 설정
+                        .requestMatchers("/api/travel/detail/**").permitAll()
+
                         // 기타 경로
                         .requestMatchers(
                                 "/api/admins/new",

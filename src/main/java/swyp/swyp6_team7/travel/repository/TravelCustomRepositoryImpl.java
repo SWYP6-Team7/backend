@@ -61,15 +61,13 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
     QLocation location = QLocation.location;
 
     @Override
-    public TravelDetailDto getDetailsByNumber(int travelNumber, Integer loginUserNumber) {
+    public TravelDetailDto getDetailsByNumber(int travelNumber) {
         return queryFactory
                 .select(travel)
                 .from(travel)
                 .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
                 .leftJoin(travel.travelTags, travelTag)
                 .leftJoin(travelTag.tag, tag)
-                .leftJoin(bookmark).on(bookmark.userNumber.eq(loginUserNumber)
-                        .and(bookmark.travelNumber.eq(travel.number)))
                 .where(travel.number.eq(travelNumber))
                 .transform(groupBy(travel.number).as(new QTravelDetailDto(
                         travel,
@@ -77,8 +75,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                         users.userName,
                         users.userAgeGroup,
                         travel.companions.size(),
-                        list(tag.name),
-                        bookmark.bookmarkId.isNotNull()
+                        list(tag.name)
                 ))).get(travelNumber);
     }
 

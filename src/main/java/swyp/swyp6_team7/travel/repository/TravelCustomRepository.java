@@ -13,12 +13,12 @@ import java.util.List;
 
 public interface TravelCustomRepository {
 
+    TravelDetailDto getDetailsByNumber(int travelNumber);
+
     Page<TravelRecentDto> findAllSortedByCreatedAt(PageRequest pageRequest, Integer loginUserNumber);
 
     Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate);
 
     Page<TravelSearchDto> search(TravelSearchCondition condition, Integer loginUserNumber);
-
-    TravelDetailDto getDetailsByNumber(int travelNumber, Integer loginUserNumber);
 
 }

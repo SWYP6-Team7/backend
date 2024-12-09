@@ -10,6 +10,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
+import swyp.swyp6_team7.travel.domain.TravelStatus;
+import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
@@ -31,19 +33,25 @@ public class TravelController {
         Travel createdTravel = travelService.create(request, loginUserNumber);
         logger.info("Travel 생성 완료 - userId: {}, createdTravel: {}", loginUserNumber, createdTravel);
 
+        // TODO: 여행 번호만 전달
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(travelService.getDetailsByNumber(createdTravel.getNumber(), loginUserNumber));
+                .body(travelService.getDetailsByNumber(createdTravel.getNumber()));
     }
 
     @GetMapping("/api/travel/detail/{travelNumber}")
-    public ResponseEntity<TravelDetailResponse> getDetailsByNumber(
-            @PathVariable("travelNumber") int travelNumber
-    ) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        logger.info("Travel 상세 조회 요청 - userId: {}, travelNumber: {}", loginUserNumber, travelNumber);
+    public ResponseEntity<TravelDetailResponse> getDetailsByNumber(@PathVariable("travelNumber") int travelNumber) {
 
-        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber, loginUserNumber);
+        // 여행 상세 정보
+        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber);
         travelService.addViewCount(travelNumber); //조회수 update
+
+        // 로그인 사용자 추가 정보
+        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        if (loginUserNumber != null) {
+            TravelDetailLoginMemberRelatedDto loginMemberRelatedInfo = travelService
+                    .getTravelDetailMemberRelatedInfo(loginUserNumber, travelDetails.getTravelNumber(), travelDetails.getUserNumber(), travelDetails.getPostStatus());
+            travelDetails.updateLoginMemberRelatedInfo(loginMemberRelatedInfo);
+        }
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(travelDetails);
@@ -60,8 +68,9 @@ public class TravelController {
         Travel updatedTravel = travelService.update(travelNumber, request, loginUserNumber);
         logger.info("Travel 수정 요청 - userId: {}, updatedTravel: {}", loginUserNumber, updatedTravel);
 
+        // TODO: 여행 번호만 전달
         return ResponseEntity.status(HttpStatus.OK)
-                .body(travelService.getDetailsByNumber(travelNumber, loginUserNumber));
+                .body(travelService.getDetailsByNumber(travelNumber));
     }
 
     @DeleteMapping("/api/travel/{travelNumber}")

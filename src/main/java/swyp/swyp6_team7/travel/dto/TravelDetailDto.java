@@ -4,6 +4,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.travel.domain.Travel;
+import swyp.swyp6_team7.travel.domain.TravelStatus;
 
 import java.util.List;
 
@@ -16,12 +17,11 @@ public class TravelDetailDto {
     private String hostAgeGroup;
     private int companionCount;
     private List<String> tags;
-    private boolean bookmarked;
 
     @QueryProjection
     public TravelDetailDto(
             Travel travel, int hostNumber, String hostName, AgeGroup hostAgeGroup,
-            int companionCount, List<String> tags, boolean isBookmarked
+            int companionCount, List<String> tags
     ) {
         this.travel = travel;
         this.hostNumber = hostNumber;
@@ -29,7 +29,10 @@ public class TravelDetailDto {
         this.hostAgeGroup = hostAgeGroup.getValue();
         this.companionCount = companionCount;
         this.tags = tags;
-        this.bookmarked = isBookmarked;
+    }
+
+    public TravelStatus getTravelStatus() {
+        return travel.getStatus();
     }
 
 }

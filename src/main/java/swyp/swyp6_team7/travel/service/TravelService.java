@@ -21,6 +21,7 @@ import swyp.swyp6_team7.tag.service.TravelTagService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
+import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
@@ -83,45 +84,64 @@ public class TravelService {
         return location;
     }
 
-    public TravelDetailResponse getDetailsByNumber(int travelNumber, int requestUserNumber) {
-        Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
+    public TravelDetailResponse getDetailsByNumber(int travelNumber) {
 
-        if (travel.getStatus() == TravelStatus.DRAFT) {
-            if (travel.getUserNumber() != requestUserNumber) {
-                log.warn("DRAFT 상태의 여행 조회 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
-                throw new IllegalArgumentException("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
-            }
-        } else if (travel.getStatus() == TravelStatus.DELETED) {
+        boolean travelExistence = travelRepository.existsTravelByNumber(travelNumber);
+        if (!travelExistence) {
+            log.warn("해당하는 여행을 찾을 수 없습니다. travelNumber: {}", travelNumber);
+            throw new IllegalArgumentException("해당하는 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber);
+        }
+
+        // 여행 상세 정보 조회
+        TravelDetailDto travelDetail = travelRepository.getDetailsByNumber(travelNumber);
+
+        // 여행 상태가 삭제인 경우 예외 처리
+        if (travelDetail.getTravelStatus() == TravelStatus.DELETED) {
             log.warn("Deleted 상태의 여행 콘텐츠는 상세 조회할 수 없습니다 - travelNumber: {}", travelNumber);
             throw new IllegalArgumentException("Deleted 상태의 여행 콘텐츠입니다.");
         }
 
-        TravelDetailDto travelDetail = travelRepository.getDetailsByNumber(travelNumber, requestUserNumber);
-
-        //주최자 프로필 이미지(만약 못찾을 경우 default 이미지 url)
+        // 주최자 프로필 이미지 (만약 못찾을 경우 default 프로필 이미지로 설정)
         String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
                 .orElse(DEFAULT_PROFILE_IMAGE_URL);
 
-        //enrollment 개수
+        // enrollment 개수
         int enrollmentCount = enrollmentRepository.countByTravelNumber(travelNumber);
 
-        //bookmark 개수
+        // bookmark 개수
         int bookmarkCount = bookmarkRepository.countByTravelNumber(travelNumber);
 
-        // TravelDetailResponse 생성
-        TravelDetailResponse detailResponse = new TravelDetailResponse(travelDetail, hostProfileImageUrl, enrollmentCount, bookmarkCount);
+        return new TravelDetailResponse(travelDetail, hostProfileImageUrl, enrollmentCount, bookmarkCount);
+    }
 
-        //로그인 요청자 주최 여부, 신청 확인
-        if (travelDetail.getHostNumber() == requestUserNumber) {
-            detailResponse.setHostUserCheckTrue();
-        } else {
-            Enrollment enrollmented = enrollmentRepository
-                    .findOneByUserNumberAndTravelNumber(requestUserNumber, travelNumber);
-            detailResponse.setEnrollmentNumber(enrollmented);
+    public TravelDetailLoginMemberRelatedDto getTravelDetailMemberRelatedInfo(int requestUserNumber, int travelNumber, int hostNumber, String postStatus) {
+
+        // DRAFT 여부 체크
+        if (postStatus.equals(TravelStatus.DRAFT.getName())) {
+            if (hostNumber != requestUserNumber) {
+                log.warn("DRAFT 상태의 여행 조회 권한이 없습니다. - travelNumber: {}, requestUser: {}", travelNumber, requestUserNumber);
+                throw new IllegalArgumentException("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
+            }
         }
 
-        return detailResponse;
+        TravelDetailLoginMemberRelatedDto loginMemberRelatedInfo = new TravelDetailLoginMemberRelatedDto();
+
+        // 주최자 여부, 신청 여부
+        if (hostNumber == requestUserNumber) {
+            loginMemberRelatedInfo.setHostUserCheckTrue();
+        } else {
+            Enrollment enrollment = enrollmentRepository
+                    .findTopByUserNumberAndTravelNumberOrderByCreatedAtDesc(requestUserNumber, travelNumber);
+            loginMemberRelatedInfo.setEnrollmentNumber(enrollment);
+        }
+
+        // 북마크 여부
+        boolean isBookmarked = bookmarkRepository.existsByUserNumberAndTravelNumber(requestUserNumber, travelNumber);
+        if (isBookmarked) {
+            loginMemberRelatedInfo.setBookmarkedTrue();
+        }
+
+        return loginMemberRelatedInfo;
     }
 
     @Transactional
@@ -192,7 +212,7 @@ public class TravelService {
             log.warn("Enrollment LastViewed - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", travelNumber);
             throw new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
         }
-        
+
         travelRepository.updateEnrollmentsLastViewedAtByNumber(travelNumber, lastViewedAt);
     }
 
