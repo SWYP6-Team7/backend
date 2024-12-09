@@ -21,6 +21,7 @@ import swyp.swyp6_team7.travel.repository.TravelRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -187,4 +188,25 @@ public class BookmarkServiceTest {
         // then
         assertThat(responses.getContent()).isEmpty();
     }
+
+    @DisplayName("주어지는 여행 목록에 대한 사용자의 북마크 여부 조회")
+    @Test
+    void getBookmarkExistenceByTravelNumbers() {
+        // given
+        int userNumber = 1;
+        List<Integer> travelNumbers = List.of(1, 2, 3, 4);
+        when(bookmarkRepository.findExistingBookmarkedTravelNumbers(userNumber, travelNumbers))
+                .thenReturn(List.of(2, 3));
+
+        // when
+        Map<Integer, Boolean> bookmarkedMap = bookmarkService.getBookmarkExistenceByTravelNumbers(userNumber, travelNumbers);
+
+        // then
+        assertThat(bookmarkedMap).hasSize(4);
+        assertThat(bookmarkedMap.get(1)).isEqualTo(false);
+        assertThat(bookmarkedMap.get(2)).isEqualTo(true);
+        assertThat(bookmarkedMap.get(3)).isEqualTo(true);
+        assertThat(bookmarkedMap.get(4)).isEqualTo(false);
+    }
+    
 }
