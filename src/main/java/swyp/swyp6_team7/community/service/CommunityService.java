@@ -23,6 +23,7 @@ import swyp.swyp6_team7.member.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
@@ -46,7 +47,9 @@ public class CommunityService {
         try {
             log.info("커뮤니티 게시글 작성 요청: userNumber={}, request={}", userNumber, request);
             //카테고리 명으로 카테고리 번호 가져와서
-            int categoryNumber = categoryRepository.findByCategoryName(request.getCategoryName()).getCategoryNumber();
+            int categoryNumber = Optional.ofNullable(categoryRepository.findByCategoryName(request.getCategoryName()))
+                    .orElseThrow(() -> new IllegalArgumentException("커뮤니티 카테고리를 찾을 수 없습니다: " + request.getCategoryName()))
+                    .getCategoryNumber();
 
             //DB create 동작
             Community savedPost = communityRepository.save(request.toCommunityEntity(
