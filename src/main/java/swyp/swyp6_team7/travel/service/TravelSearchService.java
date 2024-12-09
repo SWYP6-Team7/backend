@@ -34,9 +34,9 @@ public class TravelSearchService {
             Map<Integer, Boolean> bookmarkedMap = bookmarkService.getBookmarkExistenceByTravelNumbers(loginUserNumber, travelsNumber);
 
             // 각 여행에 대해 북마크 여부 설정
-            for (TravelSearchDto travelRecentDto : result.getContent()) {
-                Boolean bookmarked = bookmarkedMap.get(travelRecentDto.getTravelNumber());
-                travelRecentDto.updateBookmarked(bookmarked);
+            for (TravelSearchDto travelSearchDto : result.getContent()) {
+                Boolean bookmarked = bookmarkedMap.get(travelSearchDto.getTravelNumber());
+                travelSearchDto.updateBookmarked(bookmarked);
             }
         }
 
