@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import swyp.swyp6_team7.bookmark.service.BookmarkService;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -20,16 +21,20 @@ import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
+import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static swyp.swyp6_team7.travel.domain.TravelStatus.IN_PROGRESS;
 
 
@@ -54,6 +59,9 @@ class TravelHomeServiceTest {
     @MockBean
     private UserTagPreferenceRepository userTagPreferenceRepository;
 
+    @MockBean
+    private BookmarkService bookmarkService;
+
     @AfterEach
     void tearDown() {
         travelTagRepository.deleteAllInBatch();
@@ -62,6 +70,64 @@ class TravelHomeServiceTest {
         locationRepository.deleteAllInBatch();
     }
 
+    @DisplayName("최근 생성된 순서로 여행 목록을 가져오고 로그인 상태인 경우 사용자의 북마크 여부를 추가로 설정한다.")
+    @Test
+    void getTravelsSortedByCreatedAt() {
+        // given
+        Integer loginUserNumber = 1;
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 7);
+        Travel travel1 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+        Travel travel2 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+
+        Map<Integer, Boolean> bookmarkedMap = new HashMap<>();
+        bookmarkedMap.put(travel1.getNumber(), true);
+        bookmarkedMap.put(travel2.getNumber(), false);
+        given(bookmarkService.getBookmarkExistenceByTravelNumbers(anyInt(), anyList()))
+                .willReturn(bookmarkedMap);
+
+        // when
+        Page<TravelRecentDto> result = travelHomeService.getTravelsSortedByCreatedAt(PageRequest.of(0, 5), loginUserNumber);
+
+        // then
+        then(bookmarkService).should().getBookmarkExistenceByTravelNumbers(loginUserNumber, List.of(travel2.getNumber(), travel1.getNumber()));
+        assertThat(result.getContent()).hasSize(2)
+                .extracting("travelNumber", "bookmarked")
+                .containsExactly(
+                        tuple(travel2.getNumber(), false),
+                        tuple(travel1.getNumber(), true)
+                );
+    }
+
+    @DisplayName("최근 생성된 순서로 여행 목록을 가져오고 비로그인 상태인 경우 사용자의 북마크 여부는 전부 false이다.")
+    @Test
+    void getTravelsSortedByCreatedAtWhenNotLogin() {
+        // given
+        Integer loginUserNumber = null;
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 7);
+        Travel travel1 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+        Travel travel2 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+
+        // when
+        Page<TravelRecentDto> result = travelHomeService.getTravelsSortedByCreatedAt(PageRequest.of(0, 5), loginUserNumber);
+
+        // then
+        assertThat(result.getContent()).hasSize(2)
+                .extracting("travelNumber", "bookmarked")
+                .containsExactly(
+                        tuple(travel2.getNumber(), false),
+                        tuple(travel1.getNumber(), false)
+                );
+    }
 
     @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 큰 순서대로 여행 목록을 가져온다.")
     @Test

@@ -15,7 +15,7 @@ public interface TravelCustomRepository {
 
     TravelDetailDto getDetailsByNumber(int travelNumber);
 
-    Page<TravelRecentDto> findAllSortedByCreatedAt(PageRequest pageRequest, Integer loginUserNumber);
+    Page<TravelRecentDto> findAllSortedByCreatedAt(PageRequest pageRequest);
 
     Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate);
 

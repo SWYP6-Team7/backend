@@ -81,7 +81,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
 
 
     @Override
-    public Page<TravelRecentDto> findAllSortedByCreatedAt(PageRequest pageRequest, Integer loginUserNumber) {
+    public Page<TravelRecentDto> findAllSortedByCreatedAt(PageRequest pageRequest) {
 
         List<Integer> travels = queryFactory
                 .select(travel.number)
@@ -100,8 +100,6 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
                 .leftJoin(travel.travelTags, travelTag)
                 .leftJoin(travelTag.tag, tag)
-                .leftJoin(bookmark).on(bookmark.userNumber.eq(loginUserNumber)
-                        .and(bookmark.travelNumber.eq(travel.number)))
                 .where(
                         travel.number.in(travels)
                 )
@@ -112,8 +110,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                                 users.userNumber,
                                 users.userName,
                                 travel.companions.size(),
-                                list(tag.name),
-                                bookmark.bookmarkId.isNotNull()
+                                list(tag.name)
                         ))
                 );
 

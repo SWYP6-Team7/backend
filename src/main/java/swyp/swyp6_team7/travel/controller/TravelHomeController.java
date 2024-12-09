@@ -21,7 +21,6 @@ public class TravelHomeController {
 
     private final TravelHomeService travelHomeService;
 
-
     @GetMapping("/api/travels/recent")
     public ResponseEntity<Page<TravelRecentDto>> getRecentlyCreatedTravels(
             @RequestParam(name = "page", defaultValue = "0") int page,

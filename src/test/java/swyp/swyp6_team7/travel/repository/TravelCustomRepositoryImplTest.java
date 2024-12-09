@@ -4,9 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.entity.Bookmark;
@@ -60,9 +58,6 @@ class TravelCustomRepositoryImplTest {
     @Autowired
     private BookmarkRepository bookmarkRepository;
 
-    @MockBean
-    private DateTimeProvider dateTimeProvider;
-
 
     @DisplayName("getDetailsByNumber: 여행 번호가 주어지면 여행의 디테일 정보를 가져올 수 있다.")
     @Test
@@ -111,14 +106,14 @@ class TravelCustomRepositoryImplTest {
 
         // when
         Page<TravelRecentDto> results = travelRepository
-                .findAllSortedByCreatedAt(PageRequest.of(0, 5), 1);
+                .findAllSortedByCreatedAt(PageRequest.of(0, 5));
 
         // then
         assertThat(results.getContent()).hasSize(2)
-                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue", "bookmarked")
+                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
                 .containsExactly(
-                        tuple(travel2.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 0, dueDate, false),
-                        tuple(travel1.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 2, dueDate, false)
+                        tuple(travel2.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 0, dueDate),
+                        tuple(travel1.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 2, dueDate)
                 );
     }
 

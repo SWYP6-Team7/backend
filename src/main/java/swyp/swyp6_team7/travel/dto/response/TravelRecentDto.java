@@ -33,12 +33,11 @@ public class TravelRecentDto {
     private boolean bookmarked;
 
 
-
     @Builder
     public TravelRecentDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue
+            LocalDateTime createdAt, LocalDate registerDue, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -50,12 +49,13 @@ public class TravelRecentDto {
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
         this.registerDue = registerDue;
+        this.bookmarked = isBookmarked;
     }
 
     @QueryProjection
     public TravelRecentDto(
             Travel travel, int userNumber, String userName,
-            int companionCount, List<String> tags, boolean isBookmarked
+            int companionCount, List<String> tags
     ) {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
@@ -67,7 +67,11 @@ public class TravelRecentDto {
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
         this.registerDue = travel.getDueDate();
-        this.bookmarked = isBookmarked;
+        this.bookmarked = false;
+    }
+
+    public void updateBookmarked(Boolean bookmarked) {
+        this.bookmarked = bookmarked;
     }
 
 }
