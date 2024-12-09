@@ -82,12 +82,12 @@ class TravelCustomRepositoryImplTest {
         travelRepository.save(travel1);
 
         // when
-        TravelDetailDto details = travelRepository.getDetailsByNumber(travel1.getNumber(), 1);
+        TravelDetailDto details = travelRepository.getDetailsByNumber(travel1.getNumber());
 
         // then
         assertThat(details)
-                .extracting("travel", "hostNumber", "hostName", "hostAgeGroup", "companionCount", "tags", "bookmarked")
-                .contains(travel1, host.getUserNumber(), "주최자 이름", "10대", 0, List.of("쇼핑", "자연"), false);
+                .extracting("travel", "hostNumber", "hostName", "hostAgeGroup", "companionCount", "tags")
+                .contains(travel1, host.getUserNumber(), "주최자 이름", "10대", 0, List.of("쇼핑", "자연"));
     }
 
     @DisplayName("findAll: 여행을 최신순으로 가져올 수 있다.")

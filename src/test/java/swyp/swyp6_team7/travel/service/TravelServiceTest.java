@@ -5,8 +5,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
+import swyp.swyp6_team7.enrollment.domain.Enrollment;
+import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
+import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -22,6 +27,7 @@ import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
+import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
@@ -32,6 +38,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
 class TravelServiceTest {
@@ -53,6 +61,12 @@ class TravelServiceTest {
 
     @Autowired
     private TagRepository tagRepository;
+
+    @MockBean
+    private EnrollmentRepository enrollmentRepository;
+
+    @MockBean
+    private BookmarkRepository bookmarkRepository;
 
     @BeforeTestClass
     void init() {
@@ -115,14 +129,12 @@ class TravelServiceTest {
         // given
         String defaultProfileUrl = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
         Users host = userRepository.save(createHostUser());
-        Integer requestUserNumber = host.getUserNumber() + 1;
-
         Location location = locationRepository.save(createLocation("Seoul"));
         LocalDate dueDate = LocalDate.of(2024, 11, 4);
         Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.IN_PROGRESS));
 
         // when
-        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
+        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(savedTravel.getNumber());
 
         // then
         assertThat(travelDetails.getTravelNumber()).isEqualTo(savedTravel.getNumber());
@@ -143,9 +155,20 @@ class TravelServiceTest {
         assertThat(travelDetails.getPeriodType()).isEqualTo(PeriodType.ONE_WEEK.toString());
         assertThat(travelDetails.getTags()).hasSize(1);
         assertThat(travelDetails.getPostStatus()).isEqualTo(TravelStatus.IN_PROGRESS.toString());
-        assertThat(travelDetails.isHostUserCheck()).isFalse();
-        assertThat(travelDetails.getEnrollmentNumber()).isNull();
-        assertThat(travelDetails.isBookmarked()).isFalse();
+        assertThat(travelDetails.getLoginMemberRelatedInfo()).isNull();
+    }
+
+    @DisplayName("getDetailsByNumber: 여행 번호가 주어졌을 때, 여행이 존재하지 않으면 예외가 발생한다.")
+    @Test
+    void getDetailsByNumberWhenTravelNotExist() {
+        // given
+        int targetTravelNumber = 10;
+
+        // when // then
+        assertThatThrownBy(() -> {
+            travelService.getDetailsByNumber(targetTravelNumber);
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당하는 여행을 찾을 수 없습니다. - travelNumber: " + targetTravelNumber);
     }
 
     @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Deleted인 경우 예외가 발생한다.")
@@ -153,7 +176,6 @@ class TravelServiceTest {
     void getDetailsByNumberWhenDeletedStatus() {
         // given
         Users host = userRepository.save(createHostUser());
-        Integer requestUserNumber = host.getUserNumber() + 1;
 
         Location location = locationRepository.save(createLocation("Seoul"));
         LocalDate dueDate = LocalDate.of(2024, 11, 4);
@@ -161,25 +183,53 @@ class TravelServiceTest {
 
         // when // then
         assertThatThrownBy(() -> {
-            travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
+            travelService.getDetailsByNumber(savedTravel.getNumber());
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Deleted 상태의 여행 콘텐츠입니다.");
     }
 
-    @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Draft인 경우 작성자가 아니라면 예외가 발생한다.")
+    @DisplayName("getTravelDetailMemberRelatedInfo: 로그인 유저의 여행 상세 조회 요청 시, 필요한 추가 정보를 가져올 수 있다.")
     @Test
-    void getDetailsByNumberWhenDraftStatus() {
+    void getTravelDetailMemberRelatedInfo() {
         // given
-        Users host = userRepository.save(createHostUser());
-        Integer requestUserNumber = host.getUserNumber() + 1;
+        int travelNumber = 10;
+        int requestUserNumber = 1;
+        int hostUserNumber = 2;
+        String status = TravelStatus.IN_PROGRESS.getName();
 
-        Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.DRAFT));
+        Enrollment enrollment = Enrollment.builder()
+                .number(5)
+                .travelNumber(travelNumber)
+                .userNumber(requestUserNumber)
+                .status(EnrollmentStatus.PENDING)
+                .build();
+
+        given(enrollmentRepository.findTopByUserNumberAndTravelNumberOrderByCreatedAtDesc(anyInt(), anyInt()))
+                .willReturn(enrollment);
+        given(bookmarkRepository.existsByUserNumberAndTravelNumber(requestUserNumber, travelNumber))
+                .willReturn(false);
+
+        // when
+        TravelDetailLoginMemberRelatedDto memberRelatedInfo = travelService.getTravelDetailMemberRelatedInfo(requestUserNumber, travelNumber, hostUserNumber, status);
+
+        // then
+        assertThat(memberRelatedInfo).isNotNull()
+                .extracting("hostUser", "enrollmentNumber", "bookmarked")
+                .contains(false, 5L, false);
+    }
+
+    @DisplayName("getTravelDetailMemberRelatedInfo: 여행 Status가 Draft인 경우 작성자가 아니라면 예외가 발생한다.")
+    @Test
+    void getTravelDetailMemberRelatedInfoWhenDraft() {
+        // given
+        int travelNumber = 10;
+        int requestUserNumber = 1;
+        int hostUserNumber = 2;
+        String status = TravelStatus.DRAFT.getName();
 
         // when // then
         assertThatThrownBy(() -> {
-            travelService.getDetailsByNumber(savedTravel.getNumber(), requestUserNumber);
+            travelService.getTravelDetailMemberRelatedInfo(requestUserNumber, travelNumber, hostUserNumber, status);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
     }
