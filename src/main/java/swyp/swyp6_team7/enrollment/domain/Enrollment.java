@@ -71,4 +71,15 @@ public class Enrollment {
         this.status = EnrollmentStatus.REJECTED;
     }
 
+    @Override
+    public String toString() {
+        return "Enrollment{" +
+                "number=" + number +
+                ", userNumber=" + userNumber +
+                ", travelNumber=" + travelNumber +
+                ", createdAt=" + createdAt +
+                ", message='" + message + '\'' +
+                ", status=" + status +
+                '}';
+    }
 }
