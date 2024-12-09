@@ -18,6 +18,7 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
+import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
 
@@ -261,6 +262,40 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.loginMemberRelatedInfo.bookmarked").value(true));
         then(travelService).should().getDetailsByNumber(travelNumber);
         then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
+    }
+
+    @DisplayName("update: 사용자는 여행 콘텐츠를 수정할 수 있다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    public void update() throws Exception {
+        // given
+        TravelUpdateRequest request = TravelUpdateRequest.builder()
+                .locationName("서울")
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType("모두")
+                .dueDate(LocalDate.now().plusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
+                .completionStatus(true)
+                .build();
+
+        int travelNumber = 10;
+        Travel updatedTravel = createTravel(travelNumber, 2);
+
+        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
+                .willReturn(updatedTravel);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isCreated())
+                .andExpect(jsonPath("$.travelNumber").value(10));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
     private Travel createTravel(int travelNumber, int hostNumber){

@@ -10,12 +10,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
-import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelCreateResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
+import swyp.swyp6_team7.travel.dto.response.TravelUpdateResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
 
 @Slf4j
@@ -58,7 +58,7 @@ public class TravelController {
     }
 
     @PutMapping("/api/travel/{travelNumber}")
-    public ResponseEntity<TravelDetailResponse> update(
+    public ResponseEntity<TravelUpdateResponse> update(
             @PathVariable("travelNumber") int travelNumber,
             @RequestBody TravelUpdateRequest request
     ) {
@@ -68,9 +68,8 @@ public class TravelController {
         Travel updatedTravel = travelService.update(travelNumber, request, loginUserNumber);
         logger.info("Travel 수정 요청 - userId: {}, updatedTravel: {}", loginUserNumber, updatedTravel);
 
-        // TODO: 여행 번호만 전달
         return ResponseEntity.status(HttpStatus.OK)
-                .body(travelService.getDetailsByNumber(travelNumber));
+                .body(new TravelUpdateResponse(updatedTravel.getNumber()));
     }
 
     @DeleteMapping("/api/travel/{travelNumber}")
