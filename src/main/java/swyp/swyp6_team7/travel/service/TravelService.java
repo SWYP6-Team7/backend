@@ -50,7 +50,6 @@ public class TravelService {
     private final CommentRepository commentRepository;
 
     @Transactional
-
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
 
         Location location = getLocation(request.getLocationName());

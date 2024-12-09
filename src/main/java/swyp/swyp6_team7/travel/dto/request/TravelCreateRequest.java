@@ -20,13 +20,13 @@ import java.util.List;
 public class TravelCreateRequest {
 
     private String locationName;
-    @Size(max = 20)
+    @Size(max = 20, message = "여행 제목은 최대 20자 입니다.")
     private String title;
     private String details;
-    @PositiveOrZero
+    @PositiveOrZero(message = "여행 참가 최대 인원은 0보다 작을 수 없습니다.")
     private int maxPerson;
     private String genderType;
-    @FutureOrPresent
+    @FutureOrPresent(message = "여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다.")
     private LocalDate dueDate;
     private String periodType;
     @NotNull

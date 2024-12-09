@@ -14,6 +14,7 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
+import swyp.swyp6_team7.travel.dto.response.TravelCreateResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
 
@@ -26,16 +27,15 @@ public class TravelController {
     private final TravelService travelService;
 
     @PostMapping("/api/travel")
-    public ResponseEntity<TravelDetailResponse> create(@RequestBody @Validated TravelCreateRequest request) {
+    public ResponseEntity<TravelCreateResponse> create(@RequestBody @Validated TravelCreateRequest request) {
         int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         logger.info("Travel 생성 요청 - userId: {}", loginUserNumber);
 
         Travel createdTravel = travelService.create(request, loginUserNumber);
         logger.info("Travel 생성 완료 - userId: {}, createdTravel: {}", loginUserNumber, createdTravel);
 
-        // TODO: 여행 번호만 전달
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(travelService.getDetailsByNumber(createdTravel.getNumber()));
+                .body(new TravelCreateResponse(createdTravel.getNumber()));
     }
 
     @GetMapping("/api/travel/detail/{travelNumber}")
