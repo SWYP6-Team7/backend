@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/travel/detail/**",
                                 "/api/travels/recent",
+                                "/api/travels/recommend",
                                 "/api/travels/search"
                         ).permitAll()
 

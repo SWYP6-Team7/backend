@@ -20,7 +20,7 @@ import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
-import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
@@ -131,7 +131,7 @@ class TravelHomeServiceTest {
 
     @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 큰 순서대로 여행 목록을 가져온다.")
     @Test
-    void getRecommendTravelsByUser() {
+    void getRecommendTravelsByMember() {
         // given
         Tag tag1 = Tag.of("쇼핑");
         Tag tag2 = Tag.of("자연");
@@ -161,7 +161,7 @@ class TravelHomeServiceTest {
                 .willReturn(Arrays.asList("쇼핑", "자연", "먹방"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
+        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(4)
@@ -176,7 +176,7 @@ class TravelHomeServiceTest {
 
     @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 동일한 경우 registerDue가 빠른 순서대로 여행을 가져온다.")
     @Test
-    void getRecommendTravelsByUserWhenSamePreferredNumber() {
+    void getRecommendTravelsByMemberWhenSamePreferredNumber() {
         Tag tag1 = Tag.of("쇼핑");
         Tag tag2 = Tag.of("자연");
         tagRepository.saveAll(List.of(tag1, tag2));
@@ -197,7 +197,7 @@ class TravelHomeServiceTest {
                 .willReturn(Arrays.asList("쇼핑", "자연"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
+        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -210,7 +210,7 @@ class TravelHomeServiceTest {
 
     @DisplayName("preferredNumber, registerDue가 동일한 경우 title을 기준으로 가나다 순서대로 가져온다.")
     @Test
-    void getRecommendTravelsByUserWhenSamePreferredNumberSameRegisterDue() {
+    void getRecommendTravelsByMemberWhenSamePreferredNumberSameRegisterDue() {
         Tag tag1 = Tag.of("쇼핑");
         Tag tag2 = Tag.of("자연");
         tagRepository.saveAll(List.of(tag1, tag2));
@@ -231,7 +231,7 @@ class TravelHomeServiceTest {
                 .willReturn(Arrays.asList("쇼핑", "자연"));
 
         // when
-        Page<TravelRecommendDto> result = travelHomeService.getRecommendTravelsByUser(PageRequest.of(0, 5), 1, requestDate);
+        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(2)

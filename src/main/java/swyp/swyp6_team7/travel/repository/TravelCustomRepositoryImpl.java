@@ -26,10 +26,7 @@ import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.QTravel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
-import swyp.swyp6_team7.travel.dto.QTravelDetailDto;
-import swyp.swyp6_team7.travel.dto.TravelDetailDto;
-import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
-import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
+import swyp.swyp6_team7.travel.dto.*;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.util.TravelSearchConstant;
@@ -118,14 +115,14 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .select(travel.number.countDistinct())
                 .from(travel)
                 .where(
-                        statusActivated()
+                        statusInProgress()
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
     }
 
     @Override
-    public Page<TravelRecommendDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate) {
+    public Page<TravelRecommendForMemberDto> findAllByPreferredTags(PageRequest pageRequest, Integer loginUserNumber, List<String> preferredTags, LocalDate requestDate) {
 
         NumberExpression<Long> matchingTagCount = new CaseBuilder()
                 .when(travel.travelTags.isEmpty()).then(Expressions.nullExpression())
@@ -164,8 +161,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
             travelMap.put(tuple.get(travel.number), tuple.get(matchingTagCount).intValue());
         }
 
-
-        List<TravelRecommendDto> content = queryFactory
+        List<TravelRecommendForMemberDto> content = queryFactory
                 .select(travel)
                 .from(travel)
                 .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
@@ -174,10 +170,11 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(bookmark).on(bookmark.userNumber.eq(loginUserNumber)
                         .and(bookmark.travelNumber.eq(travel.number)))
                 .where(
-                        travel.number.in(travels)
+                        travel.number.in(travels),
+                        travel.dueDate.after(requestDate)
                 )
                 .transform(groupBy(travel.number).list(
-                        Projections.constructor(TravelRecommendDto.class,
+                        Projections.constructor(TravelRecommendForMemberDto.class,
                                 travel,
                                 users.userNumber,
                                 users.userName,
@@ -193,12 +190,56 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .select(travel.number.countDistinct())
                 .from(travel)
                 .where(
-                        statusActivated()
+                        statusInProgress(),
+                        travel.dueDate.after(requestDate)
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
     }
 
+    @Override
+    public Page<TravelRecommendForNonMemberDto> findAllSortedByBookmarkNumberAndTitle(PageRequest pageRequest, LocalDate requestDate) {
+
+        NumberExpression<Integer> bookmarkCount = bookmark.bookmarkId.count().intValue();
+
+        List<TravelRecommendForNonMemberDto> content = queryFactory
+                .select(travel)
+                .from(travel)
+                .leftJoin(users).on(travel.userNumber.eq(users.userNumber))
+                .leftJoin(travel.travelTags, travelTag)
+                .leftJoin(travelTag.tag, tag)
+                .leftJoin(bookmark).on(bookmark.travelNumber.eq(travel.number))
+                .where(
+                        statusInProgress(),
+                        travel.dueDate.after(requestDate)
+                )
+                .groupBy(travel.number)
+                .orderBy(
+                        bookmarkCount.desc(),
+                        travel.title.asc()
+                )
+                .offset(pageRequest.getOffset())
+                .limit(pageRequest.getPageSize())
+                .transform(groupBy(travel.number).list(
+                                Projections.constructor(TravelRecommendForNonMemberDto.class,
+                                        travel,
+                                        users.userNumber,
+                                        users.userName,
+                                        travel.companions.size(),
+                                        list(tag.name),
+                                        bookmarkCount
+                                )));
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(travel.number.countDistinct())
+                .from(travel)
+                .where(
+                        statusInProgress(),
+                        travel.dueDate.after(requestDate)
+                );
+
+        return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
+    }
 
     @Override
     public Page<TravelSearchDto> search(TravelSearchCondition condition) {
@@ -246,7 +287,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                                 users.userName,
                                 travel.companions.size(),
                                 list(tag.name)
-                )));
+                        )));
 
         // 페이징을 위한 countQuery
         JPAQuery<Long> countQuery = queryFactory
