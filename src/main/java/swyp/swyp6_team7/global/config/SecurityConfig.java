@@ -50,7 +50,10 @@ public class SecurityConfig {
                                 "/api/travel/detail/**",
                                 "/api/travels/recent",
                                 "/api/travels/recommend",
-                                "/api/travels/search"
+                                "/api/travels/search",
+                                "/api/community/posts",
+                                "/api/community/posts/{postNumber}",
+                                "/api/{relatedType}/{relatedNumber}/comments"
                         ).permitAll()
 
                         // 기타 경로
