@@ -23,7 +23,7 @@ import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.repository.UserRepository;
-
+import swyp.swyp6_team7.category.domain.Category;
 import java.util.List;
 
 @Slf4j
@@ -56,8 +56,9 @@ public class CommunityListService {
                                     .map(user -> user.getUserName())
                                     .orElse("알 수 없는 사용자");
 
-                            String categoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
-                                    .getCategoryName();
+                            String categoryName = categoryRepository.findByCategoryNumber(community.getUserNumber())
+                                    .map(Category::getCategoryName)
+                                    .orElse(null);
 
                             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", community.getPostNumber());
 
@@ -119,7 +120,8 @@ public class CommunityListService {
                                     .orElse("알 수 없는 사용자");
 
                             String categoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
-                                    .getCategoryName();
+                                    .map(Category::getCategoryName)
+                                    .orElse(null);;
 
                             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", community.getPostNumber());
 
