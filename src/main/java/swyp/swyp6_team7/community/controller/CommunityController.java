@@ -17,6 +17,7 @@ import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
 import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
+import swyp.swyp6_team7.category.domain.Category;
 
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
@@ -63,20 +64,24 @@ public class CommunityController {
             Principal principal) {
 
         int userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
+        if (principal == null) {
+            log.info("비회원 커뮤니티 목록 조회 요청");
+        } else {
+            log.info("회원 커뮤니티 목록 조회 요청 - userNumber: {}", userNumber);
+        }
         PageRequest pageRequest = PageRequest.of(page, size);
 
         Integer categoryNumber = null;
         // categoryName이 null이 아닐 경우에만 카테고리 번호를 조회
         if (categoryName != null) {
-            // 카테고리 이름에 대한 조회 시 예외 처리
-            try {
-                categoryNumber = categoryRepository.findByCategoryName(categoryName).getCategoryNumber();
-                log.info("커뮤니티 목록 조회 - 카테고리 이름: {}, 카테고리 번호: {}", categoryName, categoryNumber);
-            } catch (Exception e) {
-                log.error("커뮤니티 목록 조회시 카테고리 조회 중 오류 발생: {}", e.getMessage(), e);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Page.empty(pageRequest)); // 빈 페이지 반환
+            categoryNumber = categoryRepository.findByCategoryName(categoryName)
+                    .map(Category::getCategoryNumber)
+                    .orElse(null); // 카테고리가 없을 경우 null
+            if (categoryNumber == null) {
+                log.warn("유효하지 않은 카테고리 이름: {}", categoryName);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Page.empty(pageRequest)); // 빈 페이지 반환
             }
+            log.info("커뮤니티 목록 조회 - 카테고리 이름: {}, 카테고리 번호: {}", categoryName, categoryNumber);
         }
 
         CommunitySearchSortingType sortingType;
@@ -108,10 +113,10 @@ public class CommunityController {
             return ResponseEntity.ok(result);
         } catch (DataAccessException e) {
             log.error("데이터베이스 접근 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터베이스 접근 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터를 불러오는 중 문제가 발생했습니다. 관리자에게 문의해주세요.");
         } catch (Exception e) {
             log.error("예상치 못한 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버에서 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다. 다시 시도해주세요.");
         }
     }
 
