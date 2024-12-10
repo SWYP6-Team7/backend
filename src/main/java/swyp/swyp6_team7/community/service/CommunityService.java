@@ -91,7 +91,7 @@ public class CommunityService {
             // 좋아요 상태 가져오기 (비회원인 경우 좋아요 여부는 false로 처리)
             LikeReadResponseDto likeStatus = (userNumber != null)
                     ? LikeStatus.getLikeStatus(likeRepository, "community", postNumber, userNumber)
-                    : new LikeReadResponseDto(false, 0);
+                    : new LikeReadResponseDto("community",postNumber,false, 0);
 
             // 게시글 작성자 프로필 이미지 url 가져오기
             String profileImageUrl = imageService.getImageDetail("profile", PostWriter.getUserNumber(), 0).getUrl();
