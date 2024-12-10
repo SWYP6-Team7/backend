@@ -40,7 +40,7 @@ public class CommunityListService {
     private final ImageRepository imageRepository;
 
     @Transactional(readOnly = true)
-    public Page<CommunityListResponseDto> getCommunityList(PageRequest pageRequest, CommunitySearchCondition searchCondition, int userNumber) {
+    public Page<CommunityListResponseDto> getCommunityList(PageRequest pageRequest, CommunitySearchCondition searchCondition, Integer userNumber) {
         try {
             log.info("게시물 목록 조회 요청: searchCondition={}, userNumber={}", searchCondition, userNumber);
 
@@ -62,8 +62,9 @@ public class CommunityListService {
 
                             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", community.getPostNumber());
 
-                            LikeReadResponseDto likeStatus = LikeStatus.getLikeStatus(
-                                    likeRepository, "community", community.getPostNumber(), userNumber);
+                            LikeReadResponseDto likeStatus = (userNumber != null)
+                                    ? LikeStatus.getLikeStatus(likeRepository, "community", community.getPostNumber(), userNumber)
+                                    : new LikeReadResponseDto("community",community.getPostNumber(),false, 0);
                             long likeCount = likeStatus.getTotalLikes();
                             boolean liked = likeStatus.isLiked();
 
