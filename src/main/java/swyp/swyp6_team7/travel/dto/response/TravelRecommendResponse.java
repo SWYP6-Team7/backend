@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForNonMemberDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,19 +31,32 @@ public class TravelRecommendResponse {
     private LocalDate registerDue;
     private boolean bookmarked;
 
-    public TravelRecommendResponse(TravelRecommendDto dto) {
+    public TravelRecommendResponse(TravelRecommendForMemberDto dto) {
         this.travelNumber = dto.getTravelNumber();
         this.title = dto.getTitle();
         this.location = dto.getLocation();
         this.userNumber = dto.getUserNumber();
         this.userName = dto.getUserName();
-        this.location = dto.getLocation();
         this.tags = dto.getTags();
         this.nowPerson = dto.getNowPerson();
         this.maxPerson = dto.getMaxPerson();
         this.createdAt = dto.getCreatedAt();
         this.registerDue = dto.getRegisterDue();
         this.bookmarked = dto.isBookmarked();
+    }
+
+    public TravelRecommendResponse(TravelRecommendForNonMemberDto dto) {
+        this.travelNumber = dto.getTravelNumber();
+        this.title = dto.getTitle();
+        this.location = dto.getLocation();
+        this.userNumber = dto.getUserNumber();
+        this.userName = dto.getUserName();
+        this.tags = dto.getTags();
+        this.nowPerson = dto.getNowPerson();
+        this.maxPerson = dto.getMaxPerson();
+        this.createdAt = dto.getCreatedAt();
+        this.registerDue = dto.getRegisterDue();
+        this.bookmarked = false;
     }
 
 }

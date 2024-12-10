@@ -45,6 +45,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/profile/**").authenticated()
                         .requestMatchers("/api/logout").authenticated()
 
+                        // 비회원(비로그인) 관련 권한 설정
+                        .requestMatchers(
+                                "/api/travel/detail/**",
+                                "/api/travels/recent",
+                                "/api/travels/recommend",
+                                "/api/travels/search"
+                        ).permitAll()
+
                         // 기타 경로
                         .requestMatchers(
                                 "/api/admins/new",
@@ -54,7 +62,7 @@ public class SecurityConfig {
                                 "/api/social/login",
                                 "/api/social/kakao/complete-signup",
                                 "/api/social/google/complete-signup",
-                                "/api/login/oauth/kakao/**","/api/login/oauth/naver/**","/api/login/oauth/google/**",
+                                "/api/login/oauth/kakao/**", "/api/login/oauth/naver/**", "/api/login/oauth/google/**",
                                 "/error",
                                 "/api/users-email",
                                 "/actuator/health", // Health check endpoint permission

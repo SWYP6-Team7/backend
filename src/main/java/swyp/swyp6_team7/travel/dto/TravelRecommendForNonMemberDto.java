@@ -1,7 +1,6 @@
 package swyp.swyp6_team7.travel.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,9 +13,8 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class TravelRecommendDto {
+public class TravelRecommendForNonMemberDto {
 
-    @NotNull
     private int travelNumber;
     private String title;
     private String location;
@@ -27,14 +25,13 @@ public class TravelRecommendDto {
     private int maxPerson;
     private LocalDateTime createdAt;
     private LocalDate registerDue;
-    private int preferredNumber;
-    private boolean bookmarked;
+    private int bookmarkCount;
 
     @Builder
-    public TravelRecommendDto(
+    public TravelRecommendForNonMemberDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber, boolean bookmarked
+            LocalDateTime createdAt, LocalDate registerDue, int bookmarkCount
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -46,14 +43,13 @@ public class TravelRecommendDto {
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
         this.registerDue = registerDue;
-        this.preferredNumber = preferredNumber;
-        this.bookmarked = bookmarked;
+        this.bookmarkCount = bookmarkCount;
     }
 
     @QueryProjection
-    public TravelRecommendDto(
+    public TravelRecommendForNonMemberDto(
             Travel travel, int userNumber, String userName,
-            int companionCount, List<String> tags, boolean isBookmarked
+            int companionCount, List<String> tags, int bookmarkCount
     ) {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
@@ -65,30 +61,23 @@ public class TravelRecommendDto {
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
         this.registerDue = travel.getDueDate();
-        this.bookmarked = isBookmarked;
-    }
-
-    public void updatePreferredNumber(Integer number) {
-        this.preferredNumber = number;
+        this.bookmarkCount = bookmarkCount;
     }
 
     @Override
     public String toString() {
-        return "TravelRecommendDto{" +
+        return "TravelRecommendForNonMemberDto{" +
                 "travelNumber=" + travelNumber +
                 ", title='" + title + '\'' +
                 ", location='" + location + '\'' +
                 ", userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
-                ", location='" + location + '\'' +
                 ", tags=" + tags +
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
                 ", registerDue=" + registerDue +
-                ", preferredNumber=" + preferredNumber +
-                ", bookmarked=" + bookmarked +
+                ", bookmarkCount=" + bookmarkCount +
                 '}';
     }
 }
-

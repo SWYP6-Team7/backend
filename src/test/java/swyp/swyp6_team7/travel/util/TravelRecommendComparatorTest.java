@@ -2,7 +2,7 @@ package swyp.swyp6_team7.travel.util;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,13 +17,13 @@ class TravelRecommendComparatorTest {
     @Test
     public void compareTo() {
         // given
-        TravelRecommendDto dto1 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto1 = TravelRecommendForMemberDto.builder()
                 .preferredNumber(1)
                 .build();
-        TravelRecommendDto dto2 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto2 = TravelRecommendForMemberDto.builder()
                 .preferredNumber(5)
                 .build();
-        List<TravelRecommendDto> result = new ArrayList<>(List.of(dto1, dto2));
+        List<TravelRecommendForMemberDto> result = new ArrayList<>(List.of(dto1, dto2));
 
         // when
         Collections.sort(result, new TravelRecommendComparator());
@@ -37,15 +37,15 @@ class TravelRecommendComparatorTest {
     @Test
     public void compareToWhenPreferredNumberSame() {
         // given
-        TravelRecommendDto dto1 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto1 = TravelRecommendForMemberDto.builder()
                 .preferredNumber(5)
                 .registerDue(LocalDate.now().plusDays(5))
                 .build();
-        TravelRecommendDto dto2 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto2 = TravelRecommendForMemberDto.builder()
                 .preferredNumber(5)
                 .registerDue(LocalDate.now().plusDays(1))
                 .build();
-        List<TravelRecommendDto> result = new ArrayList<>(List.of(dto1, dto2));
+        List<TravelRecommendForMemberDto> result = new ArrayList<>(List.of(dto1, dto2));
 
         // when
         Collections.sort(result, new TravelRecommendComparator());
@@ -59,17 +59,17 @@ class TravelRecommendComparatorTest {
     @Test
     public void compareToWhenDueDateSame() {
         // given
-        TravelRecommendDto dto1 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto1 = TravelRecommendForMemberDto.builder()
                 .title("나")
                 .preferredNumber(5)
                 .registerDue(LocalDate.now().plusDays(5))
                 .build();
-        TravelRecommendDto dto2 = TravelRecommendDto.builder()
+        TravelRecommendForMemberDto dto2 = TravelRecommendForMemberDto.builder()
                 .title("가다")
                 .preferredNumber(5)
                 .registerDue(LocalDate.now().plusDays(5))
                 .build();
-        List<TravelRecommendDto> result = new ArrayList<>(List.of(dto1, dto2));
+        List<TravelRecommendForMemberDto> result = new ArrayList<>(List.of(dto1, dto2));
 
         // when
         Collections.sort(result, new TravelRecommendComparator());

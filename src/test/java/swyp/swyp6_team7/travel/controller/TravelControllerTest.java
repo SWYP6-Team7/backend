@@ -1,44 +1,38 @@
 package swyp.swyp6_team7.travel.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.context.WebApplicationContext;
-import swyp.swyp6_team7.location.domain.Location;
-import swyp.swyp6_team7.location.domain.LocationType;
-import swyp.swyp6_team7.location.repository.LocationRepository;
-import swyp.swyp6_team7.member.entity.*;
-import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.member.entity.AgeGroup;
+import swyp.swyp6_team7.mock.WithMockCustomUser;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
+import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
-import swyp.swyp6_team7.travel.repository.TravelRepository;
+import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
+import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
+import swyp.swyp6_team7.travel.service.TravelService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,70 +44,58 @@ class TravelControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    TravelRepository travelRepository;
-
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    LocationRepository locationRepository;
-
-    Users user;
+    @MockBean
+    private TravelService travelService;
 
 
-    @BeforeEach
-    void setSecurityContext() {
-        user = userRepository.save(Users.builder()
-                .userNumber(1)
-                .userEmail("abc@test.com")
-                .userPw("1234")
-                .userName("username")
-                .userGender(Gender.M)
-                .userAgeGroup(AgeGroup.TWENTY)
-                .role(UserRole.USER)
-                .userRegDate(LocalDateTime.now())
-                .userStatus(UserStatus.ABLE)
-                .build());
-
-        var userDetails = userDetailsService.loadUserByUsername(String.valueOf(user.getUserNumber()));
-        SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-    }
-
-    @AfterEach
-    void tearDown() {
-        travelRepository.deleteAllInBatch();
-        locationRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
-    }
-
-    @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다")
+    @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다.")
+    @WithMockCustomUser(userNumber = 2)
     @Test
     public void create() throws Exception {
         // given
-        Location travelLocation = Location.builder()
-                .locationName("서울")
-                .locationType(LocationType.DOMESTIC)
-                .build();
-        Location savedLocation = locationRepository.save(travelLocation);
-
-        LocalDate dueDate = LocalDate.now().plusDays(1);
         TravelCreateRequest request = TravelCreateRequest.builder()
-                .locationName("Seoul")
+                .locationName("서울")
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
-                .genderType(GenderType.MIXED.toString())
-                .dueDate(dueDate)
-                .periodType(PeriodType.ONE_WEEK.toString())
-                .tags(List.of())
+                .genderType("모두")
+                .dueDate(LocalDate.now().plusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
+                .completionStatus(true)
+                .build();
+
+        int travelNumber = 10;
+        Travel createdTravel = createTravel(travelNumber, 2);
+
+        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
+                .willReturn(createdTravel);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isCreated())
+                .andExpect(jsonPath("$.travelNumber").value(10));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
+    }
+
+    @DisplayName("create: 여행 생성 요청 시 title 길이가 20자를 넘으면 예외가 발생한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    public void createWithValidateTitleLength() throws Exception {
+        // given
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("서울")
+                .title("*".repeat(21))
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType("모두")
+                .dueDate(LocalDate.now().plusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
                 .completionStatus(true)
                 .build();
 
@@ -123,94 +105,227 @@ class TravelControllerTest {
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
-        resultActions.andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userNumber").value(user.getUserNumber()))
-                .andExpect(jsonPath("$.location").value("Seoul"))
-                .andExpect(jsonPath("$.title").value("여행 제목"))
-                .andExpect(jsonPath("$.details").value("여행 내용"))
-                .andExpect(jsonPath("$.dueDate").value(dueDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
-                .andExpect(jsonPath("$.postStatus").value(TravelStatus.IN_PROGRESS.toString()));
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("여행 제목은 최대 20자 입니다."));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
+    }
+
+    @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작을 경우 예외가 발생한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    public void createWithValidateMaxPerson() throws Exception {
+        // given
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("서울")
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(-1)
+                .genderType("모두")
+                .dueDate(LocalDate.now().plusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
+                .completionStatus(true)
+                .build();
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
+    }
+
+    @DisplayName("create: 여행 생성 요청 시 dueDate가 오늘보다 이전인 경우 예외가 발생한다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    public void createWithValidateDueDate() throws Exception {
+        // given
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("서울")
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType("모두")
+                .dueDate(LocalDate.now().minusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
+                .completionStatus(true)
+                .build();
+
+        int travelNumber = 10;
+        Travel createdTravel = createTravel(travelNumber, 2);
+
+        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
+                .willReturn(createdTravel);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다."));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
 
-    @DisplayName("getDetailsByNumber: 여행 콘텐츠 단건 상세 정보 조회에 성공한다")
+    @DisplayName("getDetailsByNumber: 비회원(비로그인) 사용자는 여행 상세 정보를 단건 조회할 수 있다.")
     @Test
-    //@DirtiesContext
-    public void getDetailsByNumber() throws Exception {
+    public void getDetailsByNumberWhenNonMember() throws Exception {
         // given
-        String url = "/api/travel/detail/{travelNumber}";
-        Travel savedTravel = createTravel(user.getUserNumber(), TravelStatus.IN_PROGRESS);
-        Location travelLocation = Location.builder()
-                .locationName("Jeju-" + UUID.randomUUID().toString())
-                .locationType(LocationType.DOMESTIC)
-                .build();
-        Location savedLocation = locationRepository.save(travelLocation);
+        int travelNumber = 10;
+        int hostNumber = 1;
+        TravelDetailResponse travelDetailResponse = createDetailResponse(travelNumber, hostNumber);
+
+        given(travelService.getDetailsByNumber(anyInt()))
+                .willReturn(travelDetailResponse);
 
         // when
-        ResultActions resultActions = mockMvc.perform(get(url, savedTravel.getNumber()));
-
+        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
 
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(savedTravel.getTitle()))
-                .andExpect(jsonPath("$.userNumber").value(user.getUserNumber()));
+                .andExpect(jsonPath("$.travelNumber").value(10))
+                .andExpect(jsonPath("$.userNumber").value(1))
+                .andExpect(jsonPath("$.userName").value("주최자명"))
+                .andExpect(jsonPath("$.userAgeGroup").value("20대"))
+                .andExpect(jsonPath("$.profileUrl").value("https://user-profile-url"))
+                .andExpect(jsonPath("$.createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.location").value("서울"))
+                .andExpect(jsonPath("$.title").value("여행 제목"))
+                .andExpect(jsonPath("$.details").value("여행 상세 내용"))
+                .andExpect(jsonPath("$.viewCount").value(10))
+                .andExpect(jsonPath("$.enrollCount").value(2))
+                .andExpect(jsonPath("$.bookmarkCount").value(5))
+                .andExpect(jsonPath("$.nowPerson").value(1))
+                .andExpect(jsonPath("$.maxPerson").value(4))
+                .andExpect(jsonPath("$.genderType").value("모두"))
+                .andExpect(jsonPath("$.dueDate").value("2024-12-30"))
+                .andExpect(jsonPath("$.tags[0]").value("자연"))
+                .andExpect(jsonPath("$.tags[1]").value("쇼핑"))
+                .andExpect(jsonPath("$.postStatus").value("진행중"))
+                .andExpect(jsonPath("$.loginMemberRelatedInfo").value(nullValue()));
+        then(travelService).should().getDetailsByNumber(travelNumber);
     }
 
-   /* @DisplayName("getDetailsByNumber: 작성자가 아닌 경우 Draft 상태의 콘텐츠 단건 조회를 하면 예외가 발생")
+    @DisplayName("getDetailsByNumber: 로그인 사용자는 여행 상세 단건 정보와 자신과 관련된 추가 정보를 함께 조회할 수 있다.")
+    @WithMockCustomUser(userNumber = 2)
     @Test
-    @DirtiesContext
-    public void getDetailsByNumberDraftException() throws Exception {
+    public void getDetailsByNumberWhenMember() throws Exception {
         // given
-        String url = "/api/travel/detail/{travelNumber}";
-        Travel savedTravel = createTravel(2, TravelStatus.DRAFT);
-        Location travelLocation = Location.builder()
-                .locationName("Seoul-"+System.currentTimeMillis())
-                .locationType(LocationType.DOMESTIC)
+        int travelNumber = 10;
+        int hostNumber = 1;
+        TravelDetailResponse travelDetailResponse = createDetailResponse(travelNumber, hostNumber);
+        TravelDetailLoginMemberRelatedDto memberRelatedDto = TravelDetailLoginMemberRelatedDto.builder()
+                .isHostUser(false)
+                .enrollmentNumber(5L)
+                .isBookmarked(true)
                 .build();
 
+        given(travelService.getDetailsByNumber(anyInt()))
+                .willReturn(travelDetailResponse);
+        given(travelService.getTravelDetailMemberRelatedInfo(anyInt(), anyInt(), anyInt(), anyString()))
+                .willReturn(memberRelatedDto);
+
         // when
-        ResultActions resultActions = mockMvc.perform(get(url, savedTravel.getNumber(), travelLocation));
+        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
 
         // then
         resultActions
-                .andExpect(status().is5xxServerError());
-    }*/
-
-    @DisplayName("getDetailsByNumber: Deleted 상태의 콘텐츠 단건 조회를 하면 예외가 발생")
-    @Test
-    //@DirtiesContext
-    public void getDetailsByNumberDeletedException() throws Exception {
-        // given
-        String url = "/api/travel/detail/{travelNumber}";
-        Travel savedTravel = createTravel(user.getUserNumber(), TravelStatus.DELETED);
-        Location travelLocation = Location.builder()
-                .locationName("Seoul" + UUID.randomUUID().toString())
-                .locationType(LocationType.DOMESTIC)
-                .build();
-
-        // when
-        ResultActions resultActions = mockMvc.perform(get(url, savedTravel.getNumber(), travelLocation));
-
-        // then
-        resultActions
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.travelNumber").value(10))
+                .andExpect(jsonPath("$.userNumber").value(1))
+                .andExpect(jsonPath("$.userName").value("주최자명"))
+                .andExpect(jsonPath("$.userAgeGroup").value("20대"))
+                .andExpect(jsonPath("$.profileUrl").value("https://user-profile-url"))
+                .andExpect(jsonPath("$.createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.location").value("서울"))
+                .andExpect(jsonPath("$.title").value("여행 제목"))
+                .andExpect(jsonPath("$.details").value("여행 상세 내용"))
+                .andExpect(jsonPath("$.viewCount").value(10))
+                .andExpect(jsonPath("$.enrollCount").value(2))
+                .andExpect(jsonPath("$.bookmarkCount").value(5))
+                .andExpect(jsonPath("$.nowPerson").value(1))
+                .andExpect(jsonPath("$.maxPerson").value(4))
+                .andExpect(jsonPath("$.genderType").value("모두"))
+                .andExpect(jsonPath("$.dueDate").value("2024-12-30"))
+                .andExpect(jsonPath("$.tags[0]").value("자연"))
+                .andExpect(jsonPath("$.tags[1]").value("쇼핑"))
+                .andExpect(jsonPath("$.postStatus").value("진행중"))
+                .andExpect(jsonPath("$.loginMemberRelatedInfo.hostUser").value(false))
+                .andExpect(jsonPath("$.loginMemberRelatedInfo.enrollmentNumber").value(5L))
+                .andExpect(jsonPath("$.loginMemberRelatedInfo.bookmarked").value(true));
+        then(travelService).should().getDetailsByNumber(travelNumber);
+        then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
     }
 
-    private Travel createTravel(int userNumber, TravelStatus status) {
-        Location travelLocation = Location.builder()
-                .locationName("Seoul")
-                .locationType(LocationType.DOMESTIC)
+    @DisplayName("update: 사용자는 여행 콘텐츠를 수정할 수 있다.")
+    @WithMockCustomUser(userNumber = 2)
+    @Test
+    public void update() throws Exception {
+        // given
+        TravelUpdateRequest request = TravelUpdateRequest.builder()
+                .locationName("서울")
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType("모두")
+                .dueDate(LocalDate.now().plusDays(10))
+                .periodType("일주일 이하")
+                .tags(List.of("쇼핑"))
+                .completionStatus(true)
                 .build();
-        Location savedLocation = locationRepository.save(travelLocation);
-        return travelRepository.save(Travel.builder()
-                .title("Travel Controller")
-                .location(travelLocation)
+
+        int travelNumber = 10;
+        Travel updatedTravel = createTravel(travelNumber, 2);
+
+        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
+                .willReturn(updatedTravel);
+
+        // when
+        ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        resultActions.andExpect(status().isCreated())
+                .andExpect(jsonPath("$.travelNumber").value(10));
+        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
+    }
+
+    private Travel createTravel(int travelNumber, int hostNumber){
+        return Travel.builder()
+                .number(travelNumber)
+                .userNumber(hostNumber)
+                .build();
+    }
+
+    private TravelDetailResponse createDetailResponse(int travelNumber, int userNumber) {
+        return TravelDetailResponse.builder()
+                .travelNumber(travelNumber)
                 .userNumber(userNumber)
-                .genderType(GenderType.NONE)
-                .periodType(PeriodType.NONE)
-                .status(status)
-                .build()
-        );
+                .userName("주최자명")
+                .userAgeGroup(AgeGroup.TWENTY.getValue())
+                .profileUrl("https://user-profile-url")
+                .createdAt(LocalDateTime.of(2024, 12, 06, 12, 0))
+                .location("서울")
+                .title("여행 제목")
+                .details("여행 상세 내용")
+                .viewCount(10)
+                .enrollCount(2)
+                .bookmarkCount(5)
+                .nowPerson(1)
+                .maxPerson(4)
+                .genderType(GenderType.MIXED.getDescription())
+                .dueDate(LocalDate.of(2024, 12, 30))
+                .periodType(PeriodType.ONE_WEEK.getDescription())
+                .tags(List.of("자연", "쇼핑"))
+                .postStatus(TravelStatus.IN_PROGRESS.toString())
+                .build();
     }
 }

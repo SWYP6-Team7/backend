@@ -21,7 +21,6 @@ public class TravelHomeController {
 
     private final TravelHomeService travelHomeService;
 
-
     @GetMapping("/api/travels/recent")
     public ResponseEntity<Page<TravelRecentDto>> getRecentlyCreatedTravels(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -44,8 +43,19 @@ public class TravelHomeController {
         Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         LocalDate requestDate = LocalDate.now();
 
+        // 로그인 사용자: 태그 기반 추천 + 마감일이 빠른 순서 + title
+        if (loginUserNumber != null) {
+            Page<TravelRecommendResponse> result = travelHomeService
+                    .getRecommendTravelsByMember(PageRequest.of(page, size), loginUserNumber, requestDate)
+                    .map(TravelRecommendResponse::new);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(result);
+        }
+
+        // 비로그인 사용자: 북마크 개수 기반 추천 + title
         Page<TravelRecommendResponse> result = travelHomeService
-                .getRecommendTravelsByUser(PageRequest.of(page, size), loginUserNumber, requestDate)
+                .getRecommendTravelsByNonMember(PageRequest.of(page, size), requestDate)
                 .map(TravelRecommendResponse::new);
 
         return ResponseEntity.status(HttpStatus.OK)

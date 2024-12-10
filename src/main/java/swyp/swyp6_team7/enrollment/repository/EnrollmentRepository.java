@@ -12,6 +12,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long>, E
 
     long countByTravelNumberAndStatus(int travelNumber, EnrollmentStatus status);
 
+    Enrollment findTopByUserNumberAndTravelNumberOrderByCreatedAtDesc(int userNumber, int travelNumber);
+
     Enrollment findOneByUserNumberAndTravelNumber(int userNumber, int travelNumber);
 
     boolean existsByUserNumberAndTravelNumber(int userNumber, int travelNumber);
