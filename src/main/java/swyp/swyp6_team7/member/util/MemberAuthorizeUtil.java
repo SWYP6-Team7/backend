@@ -13,7 +13,17 @@ public class MemberAuthorizeUtil {
 
     public static Integer getLoginUserNumber() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getUserNumber();
+
+        // 로그인 한 경우
+        if (authentication != null && authentication.isAuthenticated()) {
+            if (authentication.getPrincipal() instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                Integer userNumber = userDetails.getUserNumber();
+                return userNumber;
+            }
+        }
+
+        // 로그인 하지 않은 경우
+        return null;
     }
 }

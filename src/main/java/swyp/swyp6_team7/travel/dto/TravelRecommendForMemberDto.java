@@ -1,8 +1,6 @@
-package swyp.swyp6_team7.travel.dto.response;
+package swyp.swyp6_team7.travel.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,9 +13,8 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class TravelSearchDto {
+public class TravelRecommendForMemberDto {
 
-    @NotNull
     private int travelNumber;
     private String title;
     private String location;
@@ -26,19 +23,16 @@ public class TravelSearchDto {
     private List<String> tags;
     private int nowPerson;
     private int maxPerson;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate registerDue;
-    private String postStatus;
+    private int preferredNumber;
     private boolean bookmarked;
 
-
     @Builder
-    public TravelSearchDto(
+    public TravelRecommendForMemberDto(
             int travelNumber, String title, String location, int userNumber, String userName,
-            List<String> tags, int maxPerson, int nowPerson,
-            LocalDateTime createdAt, LocalDate registerDue, String postStatus, boolean isBookmarked
+            List<String> tags, int nowPerson, int maxPerson,
+            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -50,15 +44,14 @@ public class TravelSearchDto {
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
         this.registerDue = registerDue;
-        this.postStatus = postStatus;
+        this.preferredNumber = preferredNumber;
         this.bookmarked = isBookmarked;
     }
 
-
     @QueryProjection
-    public TravelSearchDto(
+    public TravelRecommendForMemberDto(
             Travel travel, int userNumber, String userName,
-            int companionCount, List<String> tags
+            int companionCount, List<String> tags, boolean isBookmarked
     ) {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
@@ -70,17 +63,16 @@ public class TravelSearchDto {
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
         this.registerDue = travel.getDueDate();
-        this.postStatus = travel.getStatus().getName();
-        this.bookmarked = false;
+        this.bookmarked = isBookmarked;
     }
 
-    public void updateBookmarked(Boolean bookmarked) {
-        this.bookmarked = bookmarked;
+    public void updatePreferredNumber(Integer number) {
+        this.preferredNumber = number;
     }
 
     @Override
     public String toString() {
-        return "TravelSearchDto{" +
+        return "TravelRecommendDto{" +
                 "travelNumber=" + travelNumber +
                 ", title='" + title + '\'' +
                 ", location='" + location + '\'' +
@@ -92,8 +84,9 @@ public class TravelSearchDto {
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
                 ", registerDue=" + registerDue +
-                ", postStatus='" + postStatus + '\'' +
+                ", preferredNumber=" + preferredNumber +
                 ", bookmarked=" + bookmarked +
                 '}';
     }
 }
+

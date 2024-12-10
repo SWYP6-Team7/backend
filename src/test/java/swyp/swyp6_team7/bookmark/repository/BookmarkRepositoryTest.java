@@ -136,6 +136,23 @@ public class BookmarkRepositoryTest {
 
         // then
         assertThat(deletedCount).isEqualTo(1); // 삭제된 엔티티의 수가 1인지 확인
+    }
 
+    @DisplayName("주어지는 여행 번호 중 사용자가 북마크한 여행 번호만 가져온다.")
+    @Test
+    void findExistingBookmarkedTravelNumbers() {
+        // given
+        int userNumber = 1;
+        List<Integer> travelNumbers = List.of(1, 2, 3, 4);
+        Bookmark bookmark1 = new Bookmark(userNumber, 2, LocalDateTime.now());
+        Bookmark bookmark2 = new Bookmark(userNumber, 3, LocalDateTime.now());
+        bookmarkRepository.saveAll(List.of(bookmark1, bookmark2));
+
+        // when
+        List<Integer> bookmarkedTravels = bookmarkRepository.findExistingBookmarkedTravelNumbers(userNumber, travelNumbers);
+
+        // then
+        assertThat(bookmarkedTravels).hasSize(2)
+                .contains(2, 3);
     }
 }

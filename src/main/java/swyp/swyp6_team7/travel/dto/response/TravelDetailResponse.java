@@ -5,8 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
+import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,17 +37,15 @@ public class TravelDetailResponse {
     private String periodType;
     private List<String> tags;
     private String postStatus;
-    private boolean hostUserCheck;       //주최자 여부
-    private Long enrollmentNumber;       //신청 번호(없으면 null)
-    private boolean bookmarked;     //북마크 여부
+    private TravelDetailLoginMemberRelatedDto loginMemberRelatedInfo; // 로그인 사용자 관련 추가 정보
+
 
     @Builder
     public TravelDetailResponse(
             int travelNumber, int userNumber, String userName, String userAgeGroup, String profileUrl, LocalDateTime createdAt,
             String location, String title, String details, int viewCount, int enrollCount, int bookmarkCount,
             int nowPerson, int maxPerson, String genderType, LocalDate dueDate, String periodType,
-            List<String> tags, String postStatus, boolean hostUserCheck, Long enrollmentNumber,
-            boolean isBookmarked
+            List<String> tags, String postStatus
     ) {
         this.travelNumber = travelNumber;
         this.userNumber = userNumber;
@@ -68,14 +66,10 @@ public class TravelDetailResponse {
         this.periodType = periodType;
         this.tags = tags;
         this.postStatus = postStatus;
-        this.hostUserCheck = hostUserCheck;
-        this.enrollmentNumber = enrollmentNumber;
-        this.bookmarked = isBookmarked;
     }
 
     public TravelDetailResponse(
-            TravelDetailDto travelDetail, String hostProfileImageUrl,
-            int enrollCount, int bookmarkCount
+            TravelDetailDto travelDetail, String hostProfileImageUrl, int enrollCount, int bookmarkCount
     ) {
         this.travelNumber = travelDetail.getTravel().getNumber();
         this.userNumber = travelDetail.getHostNumber();
@@ -96,20 +90,11 @@ public class TravelDetailResponse {
         this.periodType = travelDetail.getTravel().getPeriodType().toString();
         this.tags = travelDetail.getTags();
         this.postStatus = travelDetail.getTravel().getStatus().toString();
-        this.bookmarked = travelDetail.isBookmarked();
+        this.loginMemberRelatedInfo = null;
     }
 
-
-    public void setHostUserCheckTrue() {
-        this.hostUserCheck = true;
-    }
-
-    public void setEnrollmentNumber(Enrollment enrollment) {
-        if (enrollment==null) {
-            this.enrollmentNumber = null;
-        } else {
-            this.enrollmentNumber = enrollment.getNumber();
-        }
+    public void updateLoginMemberRelatedInfo(TravelDetailLoginMemberRelatedDto memberRelatedDto) {
+        this.loginMemberRelatedInfo = memberRelatedDto;
     }
 
     @Override
@@ -134,9 +119,7 @@ public class TravelDetailResponse {
                 ", periodType='" + periodType + '\'' +
                 ", tags=" + tags +
                 ", postStatus='" + postStatus + '\'' +
-                ", hostUserCheck=" + hostUserCheck +
-                ", enrollmentNumber=" + enrollmentNumber +
-                ", bookmarked=" + bookmarked +
+                ", loginMemberRelatedInfo=" + loginMemberRelatedInfo +
                 '}';
     }
 }

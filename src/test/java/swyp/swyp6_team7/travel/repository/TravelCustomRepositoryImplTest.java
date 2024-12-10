@@ -4,9 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.entity.Bookmark;
@@ -28,7 +26,8 @@ import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
-import swyp.swyp6_team7.travel.dto.TravelRecommendDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
+import swyp.swyp6_team7.travel.dto.TravelRecommendForNonMemberDto;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
@@ -60,9 +59,6 @@ class TravelCustomRepositoryImplTest {
     @Autowired
     private BookmarkRepository bookmarkRepository;
 
-    @MockBean
-    private DateTimeProvider dateTimeProvider;
-
 
     @DisplayName("getDetailsByNumber: 여행 번호가 주어지면 여행의 디테일 정보를 가져올 수 있다.")
     @Test
@@ -82,12 +78,12 @@ class TravelCustomRepositoryImplTest {
         travelRepository.save(travel1);
 
         // when
-        TravelDetailDto details = travelRepository.getDetailsByNumber(travel1.getNumber(), 1);
+        TravelDetailDto details = travelRepository.getDetailsByNumber(travel1.getNumber());
 
         // then
         assertThat(details)
-                .extracting("travel", "hostNumber", "hostName", "hostAgeGroup", "companionCount", "tags", "bookmarked")
-                .contains(travel1, host.getUserNumber(), "주최자 이름", "10대", 0, List.of("쇼핑", "자연"), false);
+                .extracting("travel", "hostNumber", "hostName", "hostAgeGroup", "companionCount", "tags")
+                .contains(travel1, host.getUserNumber(), "주최자 이름", "10대", 0, List.of("쇼핑", "자연"));
     }
 
     @DisplayName("findAll: 여행을 최신순으로 가져올 수 있다.")
@@ -111,14 +107,14 @@ class TravelCustomRepositoryImplTest {
 
         // when
         Page<TravelRecentDto> results = travelRepository
-                .findAllSortedByCreatedAt(PageRequest.of(0, 5), 1);
+                .findAllSortedByCreatedAt(PageRequest.of(0, 5));
 
         // then
         assertThat(results.getContent()).hasSize(2)
-                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue", "bookmarked")
+                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
                 .containsExactly(
-                        tuple(travel2.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 0, dueDate, false),
-                        tuple(travel1.getNumber(), "여행", "Seoul", 1, "주최자 이름", List.of(), 0, 2, dueDate, false)
+                        tuple(travel2.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
+                        tuple(travel1.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 2, dueDate)
                 );
     }
 
@@ -152,7 +148,7 @@ class TravelCustomRepositoryImplTest {
         LocalDate requestDate = LocalDate.of(2024, 11, 6);
 
         // when
-        Page<TravelRecommendDto> result = travelRepository
+        Page<TravelRecommendForMemberDto> result = travelRepository
                 .findAllByPreferredTags(PageRequest.of(0, 5), 1, preferredTags, requestDate);
 
         // then
@@ -198,7 +194,7 @@ class TravelCustomRepositoryImplTest {
         LocalDate requestDate = LocalDate.of(2024, 11, 8);
 
         // when
-        Page<TravelRecommendDto> result = travelRepository
+        Page<TravelRecommendForMemberDto> result = travelRepository
                 .findAllByPreferredTags(PageRequest.of(0, 5), 1, preferredTags, requestDate);
 
         // then
@@ -207,6 +203,120 @@ class TravelCustomRepositoryImplTest {
                 .containsExactlyInAnyOrder(
                         tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1),
                         tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
+                );
+    }
+
+    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 많은 순서로 여행을 가져온다.")
+    @Test
+    void findAllByBookmarkNumberAndTitle() {
+        // given
+        Users host = userRepository.save(createHostUser());
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 9);
+        Travel travel1 = createTravel(
+                host.getUserNumber(), location, "여행1", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        Travel travel2 = createTravel(
+                host.getUserNumber(), location, "여행2", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        travelRepository.saveAll(List.of(travel1, travel2));
+
+        LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
+        Bookmark bookmark1 = createBookmark(travel1.getNumber(), createdAt);
+        Bookmark bookmark2 = createBookmark(travel2.getNumber(), createdAt);
+        Bookmark bookmark3 = createBookmark(travel2.getNumber(), createdAt);
+        bookmarkRepository.saveAll(List.of(bookmark1, bookmark2, bookmark3));
+
+        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+
+        // when
+        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5),  requestDate);
+
+        // then
+        assertThat(result.getContent()).hasSize(2)
+                .extracting("travelNumber", "title", "bookmarkCount",
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                .containsExactly(
+                        tuple(travel2.getNumber(), "여행2", 2,
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
+                        tuple(travel1.getNumber(), "여행1", 1,
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate)
+                );
+    }
+
+    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 같다면 제목 사전순 정렬으로 가져온다.")
+    @Test
+    void findAllByBookmarkNumberAndTitleWhenSameBookmarkNumber() {
+        // given
+        Users host = userRepository.save(createHostUser());
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 9);
+        Travel travel1 = createTravel(
+                host.getUserNumber(), location, "여행갸", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        Travel travel2 = createTravel(
+                host.getUserNumber(), location, "여행가", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        travelRepository.saveAll(List.of(travel1, travel2));
+
+        LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
+        Bookmark bookmark1 = createBookmark(travel1.getNumber(), createdAt);
+        Bookmark bookmark2 = createBookmark(travel2.getNumber(), createdAt);
+        bookmarkRepository.saveAll(List.of(bookmark1, bookmark2));
+
+        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+
+        // when
+        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5), requestDate);
+
+        // then
+        assertThat(result.getContent()).hasSize(2)
+                .extracting("travelNumber", "title", "bookmarkCount",
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                .containsExactly(
+                        tuple(travel2.getNumber(), "여행가", 1,
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
+                        tuple(travel1.getNumber(), "여행갸", 1,
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate)
+                );
+    }
+
+    @DisplayName("findAllByBookmarkNumberAndTitle: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
+    @Test
+    void findAllByBookmarkNumberAndTitleWithDate() {
+        // given
+        Users host = userRepository.save(createHostUser());
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+
+        LocalDate dueDate = LocalDate.of(2024, 11, 7);
+        Travel travel1 = createTravel(
+                host.getUserNumber(), location, "여행1", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+
+        LocalDate dueDate2 = LocalDate.of(2024, 11, 9);
+        Travel travel2 = createTravel(
+                host.getUserNumber(), location, "여행2", 0, 0, GenderType.MIXED,
+                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        travelRepository.saveAll(List.of(travel1, travel2));
+
+        LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
+        Bookmark bookmark1 = createBookmark(travel1.getNumber(), createdAt);
+        Bookmark bookmark2 = createBookmark(travel2.getNumber(), createdAt);
+        Bookmark bookmark3 = createBookmark(travel2.getNumber(), createdAt);
+        bookmarkRepository.saveAll(List.of(bookmark1, bookmark2, bookmark3));
+
+        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+
+        // when
+        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5),  requestDate);
+
+        // then
+        assertThat(result.getContent()).hasSize(1)
+                .extracting("travelNumber", "title", "bookmarkCount",
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                .containsExactly(
+                        tuple(travel2.getNumber(), "여행2", 2,
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate2)
                 );
     }
 
@@ -230,10 +340,9 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
-        assertThat(results.getTotalElements()).isEqualTo(1);
         assertThat(results.getContent()).hasSize(1)
                 .extracting("title")
                 .allMatch(title -> ((String) title).contains("키워드"));
@@ -260,10 +369,9 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
-        assertThat(results.getTotalElements()).isEqualTo(1);
         assertThat(results.getContent()).hasSize(1)
                 .extracting("location")
                 .allMatch(locationName -> ((String) locationName).contains("Seoul"));
@@ -289,7 +397,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(2);
@@ -317,7 +425,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(2)
@@ -349,7 +457,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(1)
@@ -381,7 +489,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -412,7 +520,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -447,7 +555,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> result = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> result = travelRepository.search(condition);
 
         // then
         assertThat(result.getContent()).hasSize(2)
@@ -481,7 +589,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> domesticResults = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> domesticResults = travelRepository.search(condition);
 
         // then
         assertThat(domesticResults.getContent()).hasSize(2)
@@ -514,7 +622,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> domesticResults = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> domesticResults = travelRepository.search(condition);
 
         // then
         assertThat(domesticResults.getContent()).hasSize(2)
@@ -544,7 +652,36 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
+
+        // then
+        assertThat(results.getContent()).hasSize(3)
+                .extracting("travelNumber")
+                .containsExactly(travel3.getNumber(), travel2.getNumber(), travel1.getNumber());
+    }
+
+    @DisplayName("search: 검색할 때 정렬 키워드가 주어지지 않았을 때, dueDate가 동일하면 최근 생성된 순서로 정렬된다.")
+    @Test
+    public void searchWithoutSortingType2() {
+        // given
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        LocalDate dueDate = LocalDate.of(2024, 11, 7);
+        Travel travel1 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+        Travel travel2 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+        Travel travel3 = travelRepository.save(createTravel(
+                1, location, "여행", 0, 0, GenderType.MIXED,
+                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
+
+        TravelSearchCondition condition = TravelSearchCondition.builder()
+                .pageRequest(PageRequest.of(0, 5))
+                .build();
+
+        // when
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)
@@ -581,7 +718,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)
@@ -618,7 +755,7 @@ class TravelCustomRepositoryImplTest {
                 .build();
 
         // when
-        Page<TravelSearchDto> results = travelRepository.search(condition, 1);
+        Page<TravelSearchDto> results = travelRepository.search(condition);
 
         // then
         assertThat(results.getContent()).hasSize(3)

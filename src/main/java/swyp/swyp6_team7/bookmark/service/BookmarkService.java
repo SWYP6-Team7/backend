@@ -19,7 +19,9 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static swyp.swyp6_team7.bookmark.dto.BookmarkResponse.*;
@@ -143,6 +145,17 @@ public class BookmarkService {
         return bookmarkRepository.findBookmarksByUserNumber(userNumber).stream()
                 .map(Bookmark::getTravelNumber)
                 .collect(Collectors.toList());
+    }
+
+    public Map<Integer, Boolean> getBookmarkExistenceByTravelNumbers(int userNumber, List<Integer> travelNumbers) {
+        List<Integer> bookmarkedTravels = bookmarkRepository.findExistingBookmarkedTravelNumbers(userNumber, travelNumbers);
+
+        HashMap<Integer, Boolean> resultMap = new HashMap<Integer, Boolean>();
+        for (Integer travelNumber : travelNumbers) {
+            resultMap.put(travelNumber, bookmarkedTravels.contains(travelNumber));
+        }
+
+        return resultMap;
     }
 
 }
