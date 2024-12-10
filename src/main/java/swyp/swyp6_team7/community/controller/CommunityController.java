@@ -62,7 +62,7 @@ public class CommunityController {
             @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
             Principal principal) {
 
-        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        int userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
         PageRequest pageRequest = PageRequest.of(page, size);
 
         Integer categoryNumber = null;
@@ -122,7 +122,7 @@ public class CommunityController {
     ) {
 
         //user number 가져오기
-        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        int userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
 
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
