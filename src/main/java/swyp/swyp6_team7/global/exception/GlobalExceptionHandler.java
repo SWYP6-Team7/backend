@@ -14,12 +14,10 @@ public class GlobalExceptionHandler {
 
     // 모든 예외 처리
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAllExceptions(Exception ex) {
-        // 로그 출력
-        System.out.println("예외 발생: " + ex.getMessage());
+    public ResponseEntity<String> handleAllExceptions(Exception e) {
+        log.error("Global exception caught: {}", e.getMessage());
 
-        // 클라이언트에게 서버 에러 메시지 전송
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 에러: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 에러: " + e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

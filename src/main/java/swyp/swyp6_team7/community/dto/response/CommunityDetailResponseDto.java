@@ -18,7 +18,7 @@ public class CommunityDetailResponseDto {
     private int userNumber;         //게시글 작성자 유저 번호
     private String postWriter;      //게시글 작성자명
 
-    private int categoryNumber;     //카테고리 번호
+    private Integer categoryNumber;     //카테고리 번호
     private String categoryName;    //카테고리명
 
     private String title;           //게시글 제목

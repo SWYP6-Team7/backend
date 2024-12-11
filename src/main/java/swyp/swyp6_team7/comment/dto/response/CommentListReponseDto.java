@@ -17,7 +17,7 @@ public class CommentListReponseDto {
 
 
     private int commentNumber;      //댓글 번호
-    private int userNumber;         //회원 번호
+    private Integer userNumber;         //회원 번호
     private String content;         //댓글 내용
     private int parentNumber;       //부모 댓글 번호
     private String regDate;         //등록 일시

@@ -23,8 +23,9 @@ import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.repository.UserRepository;
-
+import swyp.swyp6_team7.category.domain.Category;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -40,7 +41,7 @@ public class CommunityListService {
     private final ImageRepository imageRepository;
 
     @Transactional(readOnly = true)
-    public Page<CommunityListResponseDto> getCommunityList(PageRequest pageRequest, CommunitySearchCondition searchCondition, int userNumber) {
+    public Page<CommunityListResponseDto> getCommunityList(PageRequest pageRequest, CommunitySearchCondition searchCondition, Integer userNumber) {
         try {
             log.info("게시물 목록 조회 요청: searchCondition={}, userNumber={}", searchCondition, userNumber);
 
@@ -56,13 +57,17 @@ public class CommunityListService {
                                     .map(user -> user.getUserName())
                                     .orElse("알 수 없는 사용자");
 
-                            String categoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
-                                    .getCategoryName();
+                            Integer categoryNumber = community.getCategoryNumber(); // null 가능
+                            String categoryName = Optional.ofNullable(categoryNumber)
+                                    .flatMap(categoryRepository::findByCategoryNumber)
+                                    .map(Category::getCategoryName)
+                                    .orElse(null);
 
                             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", community.getPostNumber());
 
-                            LikeReadResponseDto likeStatus = LikeStatus.getLikeStatus(
-                                    likeRepository, "community", community.getPostNumber(), userNumber);
+                            LikeReadResponseDto likeStatus = (userNumber != null)
+                                    ? LikeStatus.getLikeStatus(likeRepository, "community", community.getPostNumber(), userNumber)
+                                    : new LikeReadResponseDto("community",community.getPostNumber(),false, 0);
                             long likeCount = likeStatus.getTotalLikes();
                             boolean liked = likeStatus.isLiked();
 
@@ -119,7 +124,8 @@ public class CommunityListService {
                                     .orElse("알 수 없는 사용자");
 
                             String categoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
-                                    .getCategoryName();
+                                    .map(Category::getCategoryName)
+                                    .orElse(null);;
 
                             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", community.getPostNumber());
 

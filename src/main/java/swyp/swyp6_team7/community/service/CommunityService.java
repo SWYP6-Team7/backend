@@ -20,7 +20,7 @@ import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-
+import swyp.swyp6_team7.category.domain.Category;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -47,9 +47,9 @@ public class CommunityService {
         try {
             log.info("커뮤니티 게시글 작성 요청: userNumber={}, request={}", userNumber, request);
             //카테고리 명으로 카테고리 번호 가져와서
-            int categoryNumber = Optional.ofNullable(categoryRepository.findByCategoryName(request.getCategoryName()))
-                    .orElseThrow(() -> new IllegalArgumentException("커뮤니티 카테고리를 찾을 수 없습니다: " + request.getCategoryName()))
-                    .getCategoryNumber();
+            int categoryNumber = categoryRepository.findByCategoryName(request.getCategoryName())
+                    .map(Category::getCategoryNumber)
+                    .orElse(null);
 
             //DB create 동작
             Community savedPost = communityRepository.save(request.toCommunityEntity(
@@ -72,7 +72,7 @@ public class CommunityService {
 
 
     //게시글 상세 조회
-    public CommunityDetailResponseDto getDetail(int postNumber, int userNumber) {
+    public CommunityDetailResponseDto getDetail(int postNumber, Integer userNumber) {
         //userNubmer : 조회 요청자의 회원 번호
         try {
             log.info("게시글 상세 조회 요청: postNumber={}, userNumber={}", postNumber, userNumber);
@@ -80,13 +80,18 @@ public class CommunityService {
             Community community = communityRepository.findByPostNumber(postNumber)
                     .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다." + postNumber));
             // 게시글 작성자 명 가져오기
-            Users PostWriter = userRepository.findByUserNumber(community.getUserNumber()).get();
+            Users PostWriter = userRepository.findByUserNumber(community.getUserNumber())
+                    .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. userNumber=" + community.getUserNumber()));
             String postWriter = PostWriter.getUserName();
-            String CategoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber()).getCategoryName();
+            String CategoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
+                    .map(Category::getCategoryName)
+                    .orElse(null);
             // 댓글 수 가져오기
             long commentCount = commentRepository.countByRelatedTypeAndRelatedNumber("community", postNumber);
-            //좋아요 상태 가져오기
-            LikeReadResponseDto likeStatus = LikeStatus.getLikeStatus(likeRepository, "community", postNumber, userNumber);
+            // 좋아요 상태 가져오기 (비회원인 경우 좋아요 여부는 false로 처리)
+            LikeReadResponseDto likeStatus = (userNumber != null)
+                    ? LikeStatus.getLikeStatus(likeRepository, "community", postNumber, userNumber)
+                    : new LikeReadResponseDto("community",postNumber,false, 0);
 
             // 게시글 작성자 프로필 이미지 url 가져오기
             String profileImageUrl = imageService.getImageDetail("profile", PostWriter.getUserNumber(), 0).getUrl();
@@ -118,14 +123,11 @@ public class CommunityService {
 
     //조회수를 올리면서 게시글 상세 조회를 동시에 처리하는 메소드
     @Transactional
-    public CommunityDetailResponseDto increaseView(int postNumber, int userNumber) {
-
+    public CommunityDetailResponseDto increaseView(int postNumber, Integer userNumber) {
         //조회수 +1
         communityCustomRepository.incrementViewCount(postNumber);
-
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto response = getDetail(postNumber, userNumber);
-
         return response;
     }
 
@@ -143,7 +145,10 @@ public class CommunityService {
                 throw new IllegalArgumentException("본인 게시물이 아닙니다.");
             }
 
-            int categoryNumber = categoryRepository.findByCategoryName(request.getCategoryName()).getCategoryNumber();
+            Integer categoryNumber = Optional.ofNullable(request.getCategoryName())
+                    .flatMap(categoryRepository::findByCategoryName)
+                    .map(Category::getCategoryNumber)
+                    .orElse(null);
 
             //DB update 동작
             community.update(categoryNumber, request.getTitle(), request.getContent());
