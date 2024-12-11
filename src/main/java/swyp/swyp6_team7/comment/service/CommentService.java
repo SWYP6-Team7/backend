@@ -116,7 +116,7 @@ public class CommentService {
 
     //댓글 목록 조회
     @Transactional
-    public List<CommentListReponseDto> getList(String relatedType, int relatedNumber, int userNumber) {
+    public List<CommentListReponseDto> getList(String relatedType, int relatedNumber, Integer userNumber) {
         //이때 userNumber는 댓글 조회 요청자
 
         if (relatedType.equals("travel")) {
@@ -223,7 +223,7 @@ public class CommentService {
 
     //댓글 목록 조회 (페이징)
     @Transactional
-    public Page<CommentListReponseDto> getListPage(PageRequest pageRequest, String relatedType, int relatedNumber, int userNumber) {
+    public Page<CommentListReponseDto> getListPage(PageRequest pageRequest, String relatedType, int relatedNumber, Integer userNumber) {
 
         //이때 userNumber는 댓글 조회 요청자
 
@@ -300,7 +300,7 @@ public class CommentService {
 
                 //게시글 작성자 조회
                 Optional<Community> postInfo = communityRepository.findByPostNumber(relatedNumber);
-                int communityWritreNumber = postInfo.get().getUserNumber();
+                Integer communityWritreNumber = postInfo.get().getUserNumber();
 
                 //답글 작성 여부 가져오기
                 Boolean commented = getCommented(comment, userNumber);

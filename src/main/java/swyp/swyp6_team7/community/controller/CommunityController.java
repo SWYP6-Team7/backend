@@ -45,7 +45,7 @@ public class CommunityController {
             @RequestBody CommunityCreateRequestDto request, Principal principal) {
 
         //user number 가져오기
-        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 게시물 등록 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
@@ -63,7 +63,7 @@ public class CommunityController {
             @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
             Principal principal) {
 
-        int userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
+        Integer userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
         if (principal == null) {
             log.info("비회원 커뮤니티 목록 조회 요청");
         } else {
@@ -127,7 +127,7 @@ public class CommunityController {
     ) {
 
         //user number 가져오기
-        int userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
+        Integer userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
 
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
@@ -141,7 +141,7 @@ public class CommunityController {
             @RequestBody CommunityUpdateRequestDto request, Principal principal, @PathVariable(name = "postNumber")  int postNumber) {
 
         //user number 가져오기
-        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
 
         // 게시물 수정 동작 후 상세 정보 가져오기
@@ -154,7 +154,7 @@ public class CommunityController {
     public ResponseEntity<Void> delete(@PathVariable(name = "postNumber") int postNumber, Principal principal){
 
         //user number 가져오기
-        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         try {
             communityService.delete(postNumber, userNumber);

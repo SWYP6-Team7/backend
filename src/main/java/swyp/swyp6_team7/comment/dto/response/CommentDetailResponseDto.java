@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class CommentDetailResponseDto {
 
     private int commentNumber;
-    private int userNumber;
+    private Integer userNumber;
     private String content;
     private int parentNumber;
     private long likes;
@@ -25,7 +25,7 @@ public class CommentDetailResponseDto {
 
     @Builder
     public CommentDetailResponseDto(
-            int commentNumber, int userNumber, String content, int parentNumber,
+            int commentNumber, Integer userNumber, String content, int parentNumber,
             long likes, LocalDateTime regDate, String relatedType, int relatedNumber
     ) {
         this.commentNumber = commentNumber;
