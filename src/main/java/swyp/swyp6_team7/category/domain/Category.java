@@ -16,7 +16,7 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "community_category_number", updatable = false, nullable = false)
-    private int categoryNumber;
+    private Integer categoryNumber;
 
     @Column(name = "community_category_name", updatable = false, nullable = false)
     private String categoryName;

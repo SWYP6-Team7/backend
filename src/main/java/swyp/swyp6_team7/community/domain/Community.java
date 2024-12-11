@@ -28,7 +28,7 @@ public class Community {
 
     //카테고리 식별자
     @Column(name = "community_category_number")
-    private int categoryNumber;
+    private Integer categoryNumber;
 
     @Column(name = "community_post_title", length= 20, nullable = false)
     @Size(max = 20)

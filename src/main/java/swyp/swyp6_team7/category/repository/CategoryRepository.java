@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     // 카테고리 번호로 카테고리 찾기
-    Optional<Category>  findByCategoryNumber(int categoryNumber);
+    Optional<Category>  findByCategoryNumber(Integer categoryNumber);
 
     //카테고리 명으로 카테고리  찾기
     Optional<Category>  findByCategoryName(String categoryName);

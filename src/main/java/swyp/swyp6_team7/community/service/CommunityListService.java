@@ -25,6 +25,7 @@ import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.category.domain.Category;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -56,7 +57,9 @@ public class CommunityListService {
                                     .map(user -> user.getUserName())
                                     .orElse("알 수 없는 사용자");
 
-                            String categoryName = categoryRepository.findByCategoryNumber(community.getUserNumber())
+                            Integer categoryNumber = community.getCategoryNumber(); // null 가능
+                            String categoryName = Optional.ofNullable(categoryNumber)
+                                    .flatMap(categoryRepository::findByCategoryNumber)
                                     .map(Category::getCategoryName)
                                     .orElse(null);
 

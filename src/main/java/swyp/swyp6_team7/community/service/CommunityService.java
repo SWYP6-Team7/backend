@@ -83,7 +83,7 @@ public class CommunityService {
             Users PostWriter = userRepository.findByUserNumber(community.getUserNumber())
                     .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. userNumber=" + community.getUserNumber()));
             String postWriter = PostWriter.getUserName();
-            String CategoryName = categoryRepository.findByCategoryNumber(community.getUserNumber())
+            String CategoryName = categoryRepository.findByCategoryNumber(community.getCategoryNumber())
                     .map(Category::getCategoryName)
                     .orElse(null);
             // 댓글 수 가져오기
@@ -145,8 +145,9 @@ public class CommunityService {
                 throw new IllegalArgumentException("본인 게시물이 아닙니다.");
             }
 
-            int categoryNumber = categoryRepository.findByCategoryName(request.getCategoryName())
-                    .map(Category::getCategoryNumber) // Category가 Optional로 감싸진 경우에만 사용 가능
+            Integer categoryNumber = Optional.ofNullable(request.getCategoryName())
+                    .flatMap(categoryRepository::findByCategoryName)
+                    .map(Category::getCategoryNumber)
                     .orElse(null);
 
             //DB update 동작
