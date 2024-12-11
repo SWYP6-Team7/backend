@@ -66,7 +66,7 @@ public class CommentController {
     @PutMapping("/api/comments/{commentNumber}")
     public ResponseEntity<CommentDetailResponseDto> update(
             @RequestBody CommentUpdateRequestDto request, Principal principal,
-            @PathVariable int commentNumber
+            @PathVariable(name = "commentNumber") int commentNumber
     ) {
         //user number 가져오기
         Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
@@ -80,7 +80,7 @@ public class CommentController {
     //Delete
     @DeleteMapping("/api/comments/{commentNumber}")
     public ResponseEntity<Void> delete(
-            @PathVariable int commentNumber,
+            @PathVariable(name = "commentNumber") int commentNumber,
             Principal principal
     ) {
         //user number 가져오기
