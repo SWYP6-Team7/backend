@@ -72,14 +72,13 @@ public class CommunityController {
         PageRequest pageRequest = PageRequest.of(page, size);
 
         Integer categoryNumber = null;
-        // categoryName이 null이 아닐 경우에만 카테고리 번호를 조회
-        if (categoryName != null) {
+        if (categoryName != null && !categoryName.equals("전체")) {
             categoryNumber = categoryRepository.findByCategoryName(categoryName)
                     .map(Category::getCategoryNumber)
-                    .orElse(null); // 카테고리가 없을 경우 null
+                    .orElse(null);
             if (categoryNumber == null) {
                 log.warn("유효하지 않은 카테고리 이름: {}", categoryName);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Page.empty(pageRequest)); // 빈 페이지 반환
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Page.empty(pageRequest)); //빈 페이지 반환
             }
             log.info("커뮤니티 목록 조회 - 카테고리 이름: {}, 카테고리 번호: {}", categoryName, categoryNumber);
         }
