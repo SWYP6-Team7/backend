@@ -45,7 +45,9 @@ public class CommunityListService {
         try {
             log.info("게시물 목록 조회 요청: searchCondition={}, userNumber={}", searchCondition, userNumber);
 
-            List<CommunitySearchDto> searchedCommunities = communityCustomRepository.search(searchCondition);
+            List<CommunitySearchDto> searchedCommunities = (searchCondition.getCategoryNumber() == null)
+                    ? communityCustomRepository.searchWithoutCategory(searchCondition) // 카테고리 제외 검색
+                    : communityCustomRepository.search(searchCondition); // 일반 검색
             log.info("검색된 게시물 수: {}", searchedCommunities.size());
 
             List<CommunityListResponseDto> responseDtos = searchedCommunities.stream()
