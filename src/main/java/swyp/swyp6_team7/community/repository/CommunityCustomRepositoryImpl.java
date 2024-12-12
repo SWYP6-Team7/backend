@@ -180,6 +180,35 @@ public class CommunityCustomRepositoryImpl implements CommunityCustomRepository 
                 .toList();
     }
 
+    public List<CommunitySearchDto> searchWithoutCategory(CommunitySearchCondition searchCondition) {
+        // 게시글과 관련된 정보 + 좋아요 수 집계 쿼리
+        List<Tuple> content = queryFactory
+                .select(
+                        community,
+                        categories.categoryName,
+                        like.count().coalesce(0L) // 좋아요 수 집계
+                )
+                .from(community)
+                .leftJoin(categories).on(community.categoryNumber.eq(categories.categoryNumber))
+                .leftJoin(like).on(community.postNumber.eq(like.relatedNumber)
+                        .and(like.relatedType.eq("community")))
+                .where(
+                        keywordContains(searchCondition.getKeyword()) // 키워드 조건만 적용
+                )
+                .groupBy(community.postNumber, categories.categoryName) // group by 적용
+                .orderBy(getOrderBy(searchCondition.getSortingType()).toArray(new OrderSpecifier[0])) // 가변인자로 변환
+                .fetch();
+
+        // 결과를 DTO로 변환
+        return content.stream()
+                .map(tuple -> new CommunitySearchDto(
+                        tuple.get(community),
+                        tuple.get(categories.categoryName),
+                        tuple.get(like.count().coalesce(0L)) // 좋아요 수 가져오기
+                ))
+                .toList();
+    }
+
     // 정렬 조건 설정 (좋아요 순 정렬 포함)
     private List<OrderSpecifier<?>> getOrderBy(CommunitySearchSortingType sortingType) {
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
