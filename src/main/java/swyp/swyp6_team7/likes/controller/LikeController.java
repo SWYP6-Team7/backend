@@ -12,6 +12,7 @@ import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.likes.service.LikeService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.security.Principal;
 import java.util.List;
@@ -32,7 +33,7 @@ public class LikeController {
             Principal principal) {
 
         // user number 가져오기
-        int userNumber = memberService.findByUserNumber(jwtProvider.getUserNumber(principal.getName())).getUserNumber();
+        int userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         Object result = likeService.toggleLike(relatedType, relatedNumber, userNumber);
         return ResponseEntity.status(HttpStatus.OK)

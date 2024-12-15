@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
@@ -27,8 +28,7 @@ public class ProfileController {
     public ResponseEntity<?> updateProfile(@RequestBody ProfileUpdateRequest request, HttpServletRequest httpServletRequest) {
         try {
             log.info("프로필 수정 요청 확인");
-            String token = httpServletRequest.getHeader("Authorization").replace("Bearer ", "");
-            Integer userNumber = jwtProvider.getUserNumber(token);
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
             profileService.updateProfile(userNumber, request);
 
@@ -49,9 +49,7 @@ public class ProfileController {
     public ResponseEntity<?> viewProfile(HttpServletRequest request) {
         try {
             log.info("프로필 조회 요청");
-            String token = request.getHeader("Authorization").replace("Bearer ", "");
-
-            Integer userNumber = jwtProvider.getUserNumber(token);
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
             Optional<Users> userOpt = profileService.getUserByUserNumber(userNumber);
 

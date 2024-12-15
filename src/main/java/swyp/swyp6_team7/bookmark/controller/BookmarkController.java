@@ -9,6 +9,7 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
 import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 import java.util.List;
 
@@ -40,9 +41,8 @@ public class BookmarkController {
     // 북마크 삭제
     @DeleteMapping("/{travelNumber}")
     public ResponseEntity<?> removeBookmark(@PathVariable("travelNumber") Integer travelNumber, @RequestHeader("Authorization") String token) {
-        // 토큰에서 userNumber 추출
-        String jwtToken = token.replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
+
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 여행 번호와 사용자 번호로 북마크 삭제
         bookmarkService.removeBookmark(travelNumber, userNumber);
@@ -57,12 +57,7 @@ public class BookmarkController {
             @RequestParam(value = "size", defaultValue = "5") int size
             ) {
         Pageable pageable = PageRequest.of(page, size);
-        String jwtToken = token.replace("Bearer ", "");
-
-        // JWT 토큰에서 사용자 ID 추출
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
-
-        // 사용자 ID로 북마크 조회
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
         Page<BookmarkResponse> bookmarkResponses = bookmarkService.getBookmarksByUser(userNumber, page, size);
         return ResponseEntity.ok(bookmarkResponses);
     }
@@ -70,11 +65,9 @@ public class BookmarkController {
     //북마크한 travelNumber만 조회
     @GetMapping("/travel-number")
     public ResponseEntity<List<Integer>> getBookmarkedTravelNumbers(@RequestHeader("Authorization") String token) {
-        // JWT 토큰에서 사용자 ID 추출
-        String jwtToken = token.replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
 
-        // 북마크된 여행 번호 목록 조회
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+
         List<Integer> travelNumbers = bookmarkService.getBookmarkedTravelNumbers(userNumber);
 
         return ResponseEntity.ok(travelNumbers);
