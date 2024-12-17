@@ -11,5 +11,6 @@ public interface CommunityRepository extends JpaRepository<Community, Integer> {
 
     //게시물 상세 조회
     Optional<Community> findByPostNumber(int postNumber);
+    boolean existsByPostNumber(Integer postNumber);
 
 }
