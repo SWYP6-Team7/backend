@@ -1,9 +1,11 @@
 package swyp.swyp6_team7.travel.controller;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -53,13 +55,23 @@ public class TravelListControllerTest {
     private final String AUTHORIZATION_HEADER = "Authorization";
     private final String BEARER_TOKEN = "Bearer test-token";
 
+    private MockedStatic<MemberAuthorizeUtil> mockedStaticMemberAuthorizeUtil;
+
+    @AfterEach
+    void tearDown() {
+        // Reset static mock after each test to avoid interference
+        if (mockedStaticMemberAuthorizeUtil != null) {
+            mockedStaticMemberAuthorizeUtil.close();
+        }
+    }
+
     @DisplayName("내가 만든 여행 게시글 목록 조회 테스트")
     @WithMockUser
     @Test
     void getMyCreatedTravels_ShouldReturnListOfCreatedTravels() throws Exception {
         // given
         String token = "Bearer test-token";
-        Integer userNumber = 1;
+        //Integer userNumber = 1;
         Pageable pageable = PageRequest.of(0, 5);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -80,10 +92,10 @@ public class TravelListControllerTest {
         Page<TravelListResponseDto> page = new PageImpl<>(Collections.singletonList(responseDto), pageable, 1);
 
         // when
-        mockStatic(MemberAuthorizeUtil.class);
-        when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(userNumber);
+        mockedStaticMemberAuthorizeUtil = mockStatic(MemberAuthorizeUtil.class);
+        when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(2);
 
-        when(travelListService.getTravelListByUser(userNumber, pageable)).thenReturn(page);
+        when(travelListService.getTravelListByUser(2, pageable)).thenReturn(page);
 
         // then
         mockMvc.perform(get("/api/my-travels")
