@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 
@@ -29,9 +30,8 @@ public class TravelAppliedController {
 
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        // JWT 토큰에서 사용자 ID 추출
-        String jwtToken = token.replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
+
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 여행 목록 조회
         Page<TravelListResponseDto> appliedTrips = travelAppliedService.getAppliedTripsByUser(userNumber, pageable);
@@ -42,9 +42,8 @@ public class TravelAppliedController {
     // 사용자가 특정 여행에 대한 참가 취소
     @DeleteMapping("/{travelNumber}/cancel")
     public ResponseEntity<Void> cancelTripApplication(@RequestHeader("Authorization") String token, @PathVariable("travelNumber") int travelNumber) {
-        // JWT 토큰에서 사용자 ID 추출
-        String jwtToken = token.replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
+
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 참가 취소 처리
         travelAppliedService.cancelApplication(userNumber, travelNumber);

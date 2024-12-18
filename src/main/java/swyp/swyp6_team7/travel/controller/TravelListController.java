@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.travel.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -8,21 +9,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelListService;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/my-travels")
 public class TravelListController {
     private final TravelListService travelListService;
     private final JwtProvider jwtProvider;
 
-    public TravelListController(TravelListService travelListService, JwtProvider jwtProvider) {
-        this.travelListService = travelListService;
-        this.jwtProvider = jwtProvider;
-    }
 
     @GetMapping("")
     public ResponseEntity<Page<TravelListResponseDto>> getMyCreatedTravels(
@@ -31,9 +30,8 @@ public class TravelListController {
             @RequestParam(value = "size", defaultValue = "5") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        // JWT 토큰에서 사용자 ID 추출
-        String jwtToken = token.replace("Bearer ", "");
-        Integer userNumber = jwtProvider.getUserNumber(jwtToken);
+
+        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 여행 목록 조회
         Page<TravelListResponseDto> travelList = travelListService.getTravelListByUser(userNumber, pageable);

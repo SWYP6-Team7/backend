@@ -16,6 +16,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,13 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "kakao.client-id=fake-client-id",
-        "kakao.client-secret=fake-client-secret",
-        "kakao.redirect-uri=http://localhost:8080/login/oauth2/code/kakao",
-        "kakao.token-url=https://kauth.kakao.com/oauth/token",
-        "kakao.user-info-url=https://kapi.kakao.com/v2/user/me"
-})
 public class TravelAppliedControllerTest {
 
     @Autowired
@@ -82,7 +77,9 @@ public class TravelAppliedControllerTest {
         Page<TravelListResponseDto> page = new PageImpl<>(Collections.singletonList(responseDto), pageable, 1);
 
         // when
-        when(jwtProvider.getUserNumber("test-token")).thenReturn(userNumber);
+        //mockStatic(MemberAuthorizeUtil.class);
+        when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(userNumber);
+
         when(travelAppliedService.getAppliedTripsByUser(userNumber, pageable)).thenReturn(page);
 
         // then

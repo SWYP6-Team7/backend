@@ -31,63 +31,91 @@ public class CommentController {
 
     //Create
     @PostMapping("/api/{relatedType}/{relatedNumber}/comments")
-    public ResponseEntity<CommentDetailResponseDto> create(
+    public ResponseEntity<?> create(
             @RequestBody CommentCreateRequestDto request,
             Principal principal,
             @PathVariable(name = "relatedType") String relatedType,
             @PathVariable(name = "relatedNumber") int relatedNumber
     ) {
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        try {
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+            Comment createdComment = commentService.create(request, userNumber, relatedType, relatedNumber);
+            log.info("댓글 생성 성공 - 댓글 번호: {}, 사용자 번호: {}", createdComment.getCommentNumber(), userNumber);
 
-        Comment createdComment = commentService.create(request, userNumber, relatedType, relatedNumber);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(commentService.getCommentByNumber(createdComment.getCommentNumber()));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(commentService.getCommentByNumber(createdComment.getCommentNumber()));
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 데이터 - 타입: {}, 게시물 번호: {}, 오류: {}", relatedType, relatedNumber, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 요청 데이터입니다.");
+        } catch (Exception e) {
+            log.error("댓글 생성 중 예외 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 
     // List Read
     @GetMapping("/api/{relatedType}/{relatedNumber}/comments")
-    public ResponseEntity<Page<CommentListReponseDto>> getComments(
+    public ResponseEntity<?> getComments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
             Principal principal,
             @PathVariable(name = "relatedType") String relatedType,
             @PathVariable(name = "relatedNumber") int relatedNumber) {
 
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
-
-
-        Page<CommentListReponseDto> comments = commentService.getListPage(PageRequest.of(page, size), relatedType, relatedNumber, userNumber);
-        return ResponseEntity.ok(comments);
+        try {
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+            Page<CommentListReponseDto> comments = commentService.getListPage(PageRequest.of(page, size), relatedType, relatedNumber, userNumber);
+            log.info("댓글 목록 조회 성공 - 총 댓글 수: {}", comments.getTotalElements());
+            return ResponseEntity.ok(comments);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 데이터 - 페이지: {}, 크기: {}, 타입: {}, 게시물 번호: {}, 오류: {}", page, size, relatedType, relatedNumber, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 데이터가 잘못되었습니다.");
+        } catch (Exception e) {
+            log.error("댓글 목록 조회 중 예외 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 
     //Update
     @PutMapping("/api/comments/{commentNumber}")
-    public ResponseEntity<CommentDetailResponseDto> update(
+    public ResponseEntity<?> update(
             @RequestBody CommentUpdateRequestDto request, Principal principal,
             @PathVariable(name = "commentNumber") int commentNumber
     ) {
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        try {
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+            CommentDetailResponseDto updateResponse = commentService.update(request, userNumber, commentNumber);
 
-        CommentDetailResponseDto updateResponse = commentService.update(request, userNumber, commentNumber);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(updateResponse);
+            log.info("댓글 수정 성공 - 댓글 번호: {}, 사용자 번호: {}", commentNumber, userNumber);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(updateResponse);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 데이터 - 댓글 번호: {}, 오류: {}", commentNumber, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 데이터가 잘못되었습니다.");
+        } catch (Exception e) {
+            log.error("댓글 수정 중 예외 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 
     //Delete
     @DeleteMapping("/api/comments/{commentNumber}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<?> delete(
             @PathVariable(name = "commentNumber") int commentNumber,
             Principal principal
     ) {
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        try {
+            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+            commentService.delete(commentNumber, userNumber);
 
-        commentService.delete(commentNumber, userNumber);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            log.info("댓글 삭제 성공 - 댓글 번호: {}, 사용자 번호: {}", commentNumber, userNumber);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 요청 데이터 - 댓글 번호: {}, 오류: {}", commentNumber, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 데이터가 잘못되었습니다.");
+        } catch (Exception e) {
+            log.error("댓글 삭제 중 예외 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 }
-
