@@ -2,6 +2,7 @@ package swyp.swyp6_team7.travel.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -76,26 +77,26 @@ public class TravelAppliedControllerTest {
                 .build();
         Page<TravelListResponseDto> page = new PageImpl<>(Collections.singletonList(responseDto), pageable, 1);
 
-        // when
-        //mockStatic(MemberAuthorizeUtil.class);
-        when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(userNumber);
+        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
+            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
 
-        when(travelAppliedService.getAppliedTripsByUser(userNumber, pageable)).thenReturn(page);
+            when(travelAppliedService.getAppliedTripsByUser(userNumber, pageable)).thenReturn(page);
 
-        // then
-        mockMvc.perform(get("/api/my-applied-travels")
-                        .header(HttpHeaders.AUTHORIZATION, token)
-                        .param("page", "0")
-                        .param("size", "5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].travelNumber").value(25))
-                .andExpect(jsonPath("$.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
-                .andExpect(jsonPath("$.content[0].userName").value("김모잉"))
-                .andExpect(jsonPath("$.content[0].tags[0]").value("즉흥"))
-                .andExpect(jsonPath("$.page.size").value(5))
-                .andExpect(jsonPath("$.page.number").value(0))
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$.page.totalPages").value(1));
+            // then
+            mockMvc.perform(get("/api/my-applied-travels")
+                            .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN)
+                            .param("page", "0")
+                            .param("size", "5"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].travelNumber").value(25))
+                    .andExpect(jsonPath("$.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
+                    .andExpect(jsonPath("$.content[0].userName").value("김모잉"))
+                    .andExpect(jsonPath("$.content[0].tags[0]").value("즉흥"))
+                    .andExpect(jsonPath("$.page.size").value(5))
+                    .andExpect(jsonPath("$.page.number").value(0))
+                    .andExpect(jsonPath("$.page.totalElements").value(1))
+                    .andExpect(jsonPath("$.page.totalPages").value(1));
+        }
 
     }
 
@@ -107,15 +108,16 @@ public class TravelAppliedControllerTest {
         int userNumber = 1;
         int travelNumber = 2;
 
-        // Mock the JwtProvider to return the userNumber from the token
-        when(jwtProvider.getUserNumber("test-token")).thenReturn(userNumber);
+        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
+            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
 
-        // Do nothing when canceling the application
-        Mockito.doNothing().when(travelAppliedService).cancelApplication(userNumber, travelNumber);
+            // Do nothing when canceling the application
+            Mockito.doNothing().when(travelAppliedService).cancelApplication(userNumber, travelNumber);
 
-        // when & then
-        mockMvc.perform(delete("/api/my-applied-travels/{travelNumber}/cancel", travelNumber)
-                        .header(AUTHORIZATION_HEADER, BEARER_TOKEN))
-                .andExpect(status().isNoContent());
+            // when & then
+            mockMvc.perform(delete("/api/my-applied-travels/{travelNumber}/cancel", travelNumber)
+                            .header(AUTHORIZATION_HEADER, BEARER_TOKEN))
+                    .andExpect(status().isNoContent());
+        }
     }
 }

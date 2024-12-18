@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,7 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.entity.Gender;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
 import swyp.swyp6_team7.profile.service.ProfileService;
 
@@ -53,14 +55,7 @@ class ProfileControllerTest {
 
     @BeforeEach
     void setUp() {
-        validToken = "validToken";
         userNumber = 1;
-
-        user = new Users();
-        user.setUserEmail("test@example.com");
-        user.setUserNumber(userNumber);
-        // Mock JWT Provider
-        when(jwtProvider.getUserNumber(validToken)).thenReturn(userNumber);
     }
 
     @Test
@@ -71,14 +66,17 @@ class ProfileControllerTest {
         request.setName("Test Name");
         request.setPreferredTags(new String[]{"Tag1", "Tag2"});
 
-        mockMvc.perform(put("/api/profile/update")
-                        .header("Authorization", "Bearer " + validToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("프로필 업데이트 완료"));
+        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
+            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
 
-        verify(profileService).updateProfile(eq(userNumber), any(ProfileUpdateRequest.class));
+            mockMvc.perform(put("/api/profile/update")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("프로필 업데이트 완료"));
+
+            verify(profileService).updateProfile(eq(userNumber), any(ProfileUpdateRequest.class));
+        }
     }
 
     @Test
@@ -93,9 +91,12 @@ class ProfileControllerTest {
 
         when(profileService.getUserByUserNumber(anyInt())).thenReturn(Optional.of(mockUser));
 
-        mockMvc.perform(get("/api/profile/me")
-                        .header("Authorization", "Bearer validToken"))
-                .andExpect(status().isOk());
+        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
+            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
+
+            mockMvc.perform(get("/api/profile/me"))
+                    .andExpect(status().isOk());
+        }
     }
 
     @Test
@@ -104,10 +105,13 @@ class ProfileControllerTest {
     void testViewProfile_UserNotFound() throws Exception {
         when(profileService.getUserByUserNumber(userNumber)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/profile/me")
-                        .header("Authorization", "Bearer " + validToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("사용자를 찾을 수 없음"));
+        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
+            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
+
+            mockMvc.perform(get("/api/profile/me"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().string("사용자를 찾을 수 없음"));
+        }
     }
 
 }
