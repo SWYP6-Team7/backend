@@ -2,6 +2,7 @@ package swyp.swyp6_team7.comment.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,10 @@ public class CommentController {
         } catch (IllegalArgumentException e) {
             log.error("잘못된 요청 데이터 - 페이지: {}, 크기: {}, 타입: {}, 게시물 번호: {}, 오류: {}", page, size, relatedType, relatedNumber, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 데이터가 잘못되었습니다.");
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.error("댓글 목록 조회 중 예외 발생: relatedType={}, relatedNumber={}, Exception={}",
+                    relatedType, relatedNumber, e.getMessage(), e);
+            throw new RuntimeException("댓글 목록 조회에 실패했습니다.", e);
         } catch (Exception e) {
             log.error("댓글 목록 조회 중 예외 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");

@@ -59,7 +59,7 @@ public class CommunityController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
             @RequestParam(name = "keyword",required = false) String keyword,
-            @RequestParam(name = "categoryName", required = false) String categoryName,
+            @RequestParam(name = "categoryName", defaultValue = "전체") String categoryName,
             @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
             Principal principal) {
 
