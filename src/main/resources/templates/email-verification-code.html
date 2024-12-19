@@ -1,0 +1,52 @@
+<tr>
+    <td
+            style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%">
+        <h5 style="font-size: 24px; color: rgb(51, 61, 75); margin-block: 2px; line-height: 160%;"
+            th:text="${maintext}">
+            계정 인증번호</h5>
+    </td>
+</tr>
+<tr>
+    <td
+            style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%">
+        <div style="height: 5px;"></div>
+    </td>
+</tr>
+<tr>
+    <td
+            colspan="2"
+            style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%">
+        <p
+                th:utext="${description}"
+                style="-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: rgb(78,89, 104); margin-block: 2px;">
+            계정 인증을 위한 인증번호입니다.
+        </p>
+    </td>
+</tr>
+<tr>
+    <td
+            style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%">
+        <div style="height: 20px;"></div>
+    </td>
+</tr>
+<tr>
+    <td style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background-color: #f2f2f2; border-radius: 10px; padding: 10px;">
+        <div style="display: flex; margin-block: 15px;">
+            <div style="width: 100px;">
+                <p style="-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: rgb(78,89, 104); margin-block: 2px; padding-left: 10px;">
+                    인증번호</p>
+            </div>
+            <div>
+                <p th:text="${verificationCode}"
+                   style="-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: rgb(78,89, 104); margin-block: 2px; font-weight: 700;">
+                    000000</p>
+            </div>
+        </div>
+    </td>
+</tr>
+<tr>
+    <td
+            style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%">
+        <div style="height: 5px;"></div>
+    </td>
+</tr>
