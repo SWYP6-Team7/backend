@@ -112,7 +112,13 @@ public class CommentService {
 
         validateRelatedPostExists(relatedType, relatedNumber);
 
+        //List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
+        if (comments.isEmpty()) {
+            log.info("댓글이 없습니다: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
+            return Collections.emptyList();
+        }
+        log.info("댓글 목록 조회: 댓글 개수={}", comments.size());
         List<Comment> sortedComments = sortComments(comments);
 
         return convertToResponseDtos(sortedComments, userNumber);
@@ -124,7 +130,13 @@ public class CommentService {
 
         validateRelatedPostExists(relatedType, relatedNumber);
 
+        //List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
+        if (comments.isEmpty()) {
+            log.info("댓글이 없습니다: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
+            return Page.empty();
+        }
+        log.info("댓글 목록 조회: 댓글 개수={}", comments.size());
         List<Comment> sortedComments = sortComments(comments);
 
         List<CommentListReponseDto> responseDtos = convertToResponseDtos(sortedComments, userNumber);
