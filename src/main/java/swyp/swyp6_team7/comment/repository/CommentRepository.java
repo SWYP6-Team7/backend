@@ -1,6 +1,8 @@
 package swyp.swyp6_team7.comment.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import swyp.swyp6_team7.comment.domain.Comment;
 
@@ -12,7 +14,8 @@ import java.util.Optional;
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     //댓글 조회 (댓글, 답글 전부 조회)
-    List<Comment> findByRelatedTypeAndRelatedNumber(String relatedType, int relatedNumber);
+    @Query("SELECT DISTINCT c FROM Comment c WHERE c.relatedType = :relatedType AND c.relatedNumber = :relatedNumber")
+    List<Comment> findByRelatedTypeAndRelatedNumber(@Param("relatedType") String relatedType, @Param("relatedNumber") int relatedNumber);
 
     boolean existsByCommentNumber(Integer commentNumber);
 
