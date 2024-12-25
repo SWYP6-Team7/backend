@@ -108,6 +108,11 @@ public class CommunityController {
 
         try {
             Page<CommunityListResponseDto> result = communityListService.getCommunityList(pageRequest, condition, userNumber);
+            if (result == null) {
+                log.error("커뮤니티 목록 조회 결과가 null입니다.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
+            }
             log.info("조회 성공: 총 데이터 수 = {}", result.getTotalElements());
             return ResponseEntity.ok(result);
         } catch (DataAccessException e) {
