@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -78,7 +77,7 @@ public class CommunityService {
             log.info("게시글 상세 조회 요청: postNumber={}, userNumber={}", postNumber, userNumber);
             //존재하는 게시글인지 확인
             Community community = communityRepository.findByPostNumber(postNumber)
-                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다." + postNumber));
+                    .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. postNumber=" + postNumber));
             // 게시글 작성자 명 가져오기
             Users PostWriter = userRepository.findByUserNumber(community.getUserNumber())
                     .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다. userNumber=" + community.getUserNumber()));
@@ -115,8 +114,14 @@ public class CommunityService {
 
             log.info("게시글 상세 조회 완료: postNumber={}, userNumber={}", postNumber, userNumber);
             return detailResponse;
+        } catch (IllegalArgumentException e) {
+            log.error("게시글 상세 조회 중 IllegalArgumentException 발생: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("[커뮤니티] 게시글 상세 조회 중 오류 발생: postNumber={}, userNumber={}", postNumber, userNumber, e);
+            if (e instanceof IllegalArgumentException) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
             throw new RuntimeException("게시글 상세 조회에 실패했습니다.", e);
         }
     }
@@ -126,8 +131,15 @@ public class CommunityService {
     public CommunityDetailResponseDto increaseView(int postNumber, Integer userNumber) {
         //조회수 +1
         communityCustomRepository.incrementViewCount(postNumber);
+
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto response = getDetail(postNumber, userNumber);
+        if (response == null) {
+            log.error("조회수 증가 후 상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
+            throw new RuntimeException("게시글을 찾을 수 없습니다.");
+        } else{
+            log.info("increaseView 메서드 결과: {}", response);
+        }
         return response;
     }
 
@@ -151,8 +163,11 @@ public class CommunityService {
                     .orElse(null);
 
             //DB update 동작
-            community.update(categoryNumber, request.getTitle(), request.getContent());
-
+            community.update(
+                    categoryNumber != null ? categoryNumber : community.getCategoryNumber(),
+                    request.getTitle() != null ? request.getTitle() : community.getTitle(),
+                    request.getContent() != null ? request.getContent() : community.getContent()
+            );
             //게시물 상세보기 데이터 가져오기
             CommunityDetailResponseDto response = getDetail(postNumber, userNumber);
             log.info("게시글 수정 완료: postNumber={}, userNumber={}", postNumber, userNumber);
