@@ -44,6 +44,10 @@ public class Community {
     @Column(name = "community_post_view_count", nullable = false)
     private int viewCount;
 
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
+    }
+
     //C
     @Builder
     public Community (int userNumber, int categoryNumber, String title, String content, LocalDateTime regDate, int viewCount) {
@@ -53,7 +57,6 @@ public class Community {
         this.content = content;
         this.regDate = regDate;
         this.viewCount = viewCount;
-
     }
 
     //U
@@ -70,6 +73,15 @@ public class Community {
         return this;
     }
 
-
+    @Builder
+    public Community (int postNumber, int userNumber, int categoryNumber, String title, String content, LocalDateTime regDate, int viewCount) {
+        this.postNumber = postNumber;
+        this.userNumber = userNumber;
+        this.categoryNumber = categoryNumber;
+        this.title = title;
+        this.content = content;
+        this.regDate = regDate;
+        this.viewCount = viewCount;
+    }
 
 }
