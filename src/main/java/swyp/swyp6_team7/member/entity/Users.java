@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Data
 @Builder
 @Getter
-@Setter
+//@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "Users")
@@ -40,11 +40,9 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private Gender userGender;
 
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private AgeGroup userAgeGroup;
-
 
     @Builder.Default
     @Column(nullable = false)
@@ -54,7 +52,6 @@ public class Users {
     private LocalDateTime userLogoutDate;
 
 
-
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
@@ -62,8 +59,6 @@ public class Users {
     @Builder.Default
     @Column(nullable = false)
     private Boolean userSocialTF = false;
-
-
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -85,7 +80,17 @@ public class Users {
     private Set<UserTagPreference> tagPreferences;  // user_tagpreferences 참조
 
     @Builder
-    public Users(String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
+    public Users(Integer userNumber, String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
+        this.userNumber = userNumber;
+        this.userEmail = userEmail;
+        this.userPw = userPw;
+        this.userName = userName;
+        this.userGender = userGender;
+        this.userAgeGroup = userAgeGroup;
+        this.preferredTags = (preferredTags != null) ? preferredTags : Set.of(); // 태그가 없으면 빈 리스트
+    }
+    @Builder
+    public Users( String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
         this.userEmail = userEmail;
         this.userPw = userPw;
         this.userName = userName;
@@ -99,15 +104,8 @@ public class Users {
         this.preferredTags = preferredTags;
     }
 
-    // Setters and Getters
     public void setPassword(String password) {
         this.userPw = password;
-    }
-    public String getEmail() {
-        return this.userEmail;
-    }
-    public Integer getId() {
-        return this.userNumber;
     }
 
     public boolean isAccountNonExpired() {
