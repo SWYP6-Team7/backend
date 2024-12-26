@@ -2,8 +2,10 @@ package swyp.swyp6_team7.verify.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.verify.service.EmailVerifyService;
 
 @RestController
@@ -19,12 +21,8 @@ public class EmailVerifyController {
 
     @PostMapping("/send")
     public ResponseEntity<?> sendEmailVerificationCode(
-            @RequestHeader("Authorization") String token,
             @RequestParam String email
     ) {
-        // 토큰에서 userNumber 추출
-
-        // userNumber를 요청에 추가
         emailVerifyService.sendVerifyEmail(email);
         return ResponseEntity.ok().build();
     }

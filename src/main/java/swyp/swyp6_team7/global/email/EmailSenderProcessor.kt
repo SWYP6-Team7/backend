@@ -31,7 +31,7 @@ class EmailSenderProcessor(
         val sendMessage = messageTemp.build()
 
         runCatching {
-            val response = mailgunMessagesApi.sendMessage("moing.shop", sendMessage)
+            val response = mailgunMessagesApi.sendMessage("moing.io", sendMessage)
             log.info("Send email to ${message.email}. response: ${response.message}")
         }.onFailure {
             log.error("메일 발송에 실패했습니다. ${message.email}, error: ${it.message}")

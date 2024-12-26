@@ -8,7 +8,7 @@ interface EmailMessage {
     val recipients: List<String>
 
     companion object {
-        const val FROM_EMAIL = "noreply@moing.shop"
+        const val FROM_EMAIL = "noreply@moing.io"
         const val FROM_NAME = "모잉"
         val TITLE_PREFIX
             get() = "[모잉]"
