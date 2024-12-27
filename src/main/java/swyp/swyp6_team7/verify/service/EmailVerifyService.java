@@ -26,6 +26,7 @@ public class EmailVerifyService {
     public void sendVerifyEmail(String email) {
         // TODO: Redis 기반으로 변경
         final String code = RandomStringUtils.randomNumeric(6); // 6자리 인증번호
+        log.info("Email code: {}", code);
 
         EmailVerificationCodeMessage message = new EmailVerificationCodeMessage(
                 email,
@@ -34,6 +35,7 @@ public class EmailVerifyService {
                 "회원 이메일 인증을 위한 인증번호입니다"
         );
         emailSenderProcessor.process(message);
+        log.info("Email sent: {}", message);
 
         jsonRedisTemplate.opsForValue().set(emailVerifyKey.concat(email), code, Duration.ofMinutes(20));
 

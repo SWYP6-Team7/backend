@@ -36,6 +36,8 @@ class EmailSenderProcessor(
         }.onFailure {
             log.error("메일 발송에 실패했습니다. ${message.email}, error: ${it.message}")
             throw it
+        }.onSuccess {
+            log.info("메일 발송에 성공했습니다. ${message.email}")
         }
     }
 }
