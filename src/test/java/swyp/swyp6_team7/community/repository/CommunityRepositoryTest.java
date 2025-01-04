@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.community.repository;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +19,24 @@ public class CommunityRepositoryTest {
     @Autowired
     private CommunityRepository communityRepository;
 
+    @BeforeEach
+    void setup() {
+        communityRepository.deleteAll();
+    }
+
     @Test
     @DisplayName("게시글 저장 및 조회 테스트")
     void testSaveAndFindByPostNumber() {
         // Given: 게시글 저장
         Community community = new Community(1, 1, "Test Title", "Test Content", LocalDateTime.now(), 0);
-        communityRepository.saveAndFlush(community);
+        Community savedCommunity = communityRepository.saveAndFlush(community);
 
         // When: postNumber로 조회
-        Optional<Community> retrievedCommunity = communityRepository.findByPostNumber(1);
+        Optional<Community> retrievedCommunity = communityRepository.findByPostNumber(savedCommunity.getPostNumber());
 
         // Then: 조회 결과 검증
         assertThat(retrievedCommunity).isPresent();
-        assertThat(retrievedCommunity.get().getPostNumber()).isEqualTo(1);
+        assertThat(retrievedCommunity.get().getPostNumber()).isEqualTo(savedCommunity.getPostNumber());
         assertThat(retrievedCommunity.get().getTitle()).isEqualTo("Test Title");
     }
 
