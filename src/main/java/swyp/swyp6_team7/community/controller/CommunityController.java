@@ -46,9 +46,11 @@ public class CommunityController {
 
         //user number 가져오기
         Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        log.info("UserNumber: {}",userNumber);
 
         // 게시물 등록 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
+        log.info("Response from Service: {}", detailResponse);
 
         return ResponseEntity.ok(detailResponse);
     }

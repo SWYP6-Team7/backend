@@ -1,95 +1,114 @@
 package swyp.swyp6_team7.community.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.category.domain.Category;
-import swyp.swyp6_team7.category.repository.CategoryRepository;
-import swyp.swyp6_team7.community.domain.Community;
+import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
+import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
-import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
-import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
-import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
-import swyp.swyp6_team7.community.repository.CommunityRepository;
-import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
-import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
-import swyp.swyp6_team7.image.service.ImageService;
-import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
-import swyp.swyp6_team7.likes.repository.LikeRepository;
-import swyp.swyp6_team7.member.entity.AgeGroup;
-import swyp.swyp6_team7.member.entity.Gender;
-import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.community.service.CommunityListService;
+import swyp.swyp6_team7.category.repository.CategoryRepository;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.mock.WithMockCustomUser;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class CommunityControllerTest {
+@ExtendWith(MockitoExtension.class)
+public class CommunityControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private CommunityService communityService;
-
     @MockBean
     private CommunityListService communityListService;
-
-    @MockBean
-    private CommunityRepository communityRepository;
-
-    @MockBean
-    private UserRepository userRepository;
-
     @MockBean
     private CategoryRepository categoryRepository;
-
     @MockBean
-    private LikeRepository likeRepository;
+    private JwtProvider jwtProvider;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @MockBean
-    private ImageService imageService;
-
-    @MockBean
-    private CommunityCustomRepository communityCustomRepository;
 
     @Test
-    @DisplayName("게시글 생성 - 성공적으로 게시글을 생성하고 상세 정보를 반환")
-    void testCreatePost() throws Exception {
-        Mockito.mockStatic(MemberAuthorizeUtil.class);
-        Mockito.when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(100);
-
-        CommunityCreateRequestDto requestDto = CommunityCreateRequestDto.builder()
+    @WithMockCustomUser(userNumber = 100)
+    @DisplayName("게시글 생성 성공")
+    void createCommunityPost_Success() throws Exception {
+        // Given
+        CommunityCreateRequestDto request = CommunityCreateRequestDto.builder()
                 .title("Test Title")
                 .content("Test Content")
+                .categoryName("잡담")
+                .build();
+        CommunityDetailResponseDto response = CommunityDetailResponseDto.builder()
+                .postNumber(1)
+                .userNumber(100)
+                .postWriter("Test User")
+                .categoryNumber(2)
+                .categoryName("잡담")
+                .title("Test Title")
+                .content("Test Content")
+                .regDate(LocalDateTime.now())
+                .commentCount(5)
+                .viewCount(100)
+                .likeCount(10)
+                .liked(true)
+                .profileImageUrl("http://example.com/profile.jpg")
                 .build();
 
-        String formattedDate = CommunityDetailResponseDto.formatDate(LocalDateTime.now());
-        CommunityDetailResponseDto responseDto = CommunityDetailResponseDto.builder()
+
+        given(communityService.create(any(CommunityCreateRequestDto.class), eq(100)))
+                .willReturn(response);
+
+        ResultActions resultActions = mockMvc.perform(post("/api/community/posts")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // When & Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.postNumber").value(1))
+                .andExpect(jsonPath("$.title").value("Test Title"))
+                .andExpect(jsonPath("$.content").value("Test Content"))
+                .andExpect(jsonPath("$.categoryName").value("잡담"))
+                .andExpect(jsonPath("$.likeCount").value(10));
+        then(communityService).should().create(any(CommunityCreateRequestDto.class), eq(100));
+
+    }
+
+    @Test
+    @WithMockCustomUser(userNumber = 100)
+    @DisplayName("게시글 상세 조회 성공")
+    void getCommunityDetail_Success() throws Exception {
+        // Given
+        CommunityDetailResponseDto response = CommunityDetailResponseDto.builder()
                 .postNumber(1)
                 .userNumber(100)
                 .postWriter("Test User")
@@ -104,163 +123,100 @@ class CommunityControllerTest {
                 .liked(true)
                 .profileImageUrl("http://example.com/profile.jpg")
                 .build();
+        given(communityService.increaseView(eq(1), any()))
+                .willReturn(response);
 
-        Mockito.when(communityService.create(any(CommunityCreateRequestDto.class), anyInt()))
-                .thenReturn(responseDto);
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/community/posts/1")
+                .principal(() -> "user1"));
 
-        mockMvc.perform(post("/api/community/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\": \"Test Title\", \"content\": \"Test Content\"}"))
-                .andExpect(status().isOk())
+        // Then
+        resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.postNumber").value(1))
                 .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.regDate").exists())
-                .andExpect(jsonPath("$.regDate").value(formattedDate));
+                .andExpect(jsonPath("$.content").value("Test Content"))
+                .andDo(print());
 
-        Mockito.clearAllCaches();
-
+        then(communityService).should().increaseView(eq(1), any());
     }
 
     @Test
-    @DisplayName("게시글 조회수 증가 및 상세 조회")
-    void testIncreaseView() throws Exception {
-        Mockito.mockStatic(MemberAuthorizeUtil.class);
-        Mockito.when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(100);
-
-        // Mock 조회수 증가
-        Mockito.doNothing().when(communityCustomRepository).incrementViewCount(Mockito.eq(1));
-
-        CommunityDetailResponseDto mockResponse = CommunityDetailResponseDto.builder()
+    @DisplayName("게시글 수정 성공")
+    @WithMockCustomUser(userNumber = 100)
+    void updateCommunityPost_Success() throws Exception {
+        // Given
+        CommunityUpdateRequestDto request = new CommunityUpdateRequestDto(
+                "Updated Category", // categoryName
+                "Updated Title",    // title
+                "Updated Content"   // content
+        );
+        CommunityDetailResponseDto response = CommunityDetailResponseDto.builder()
                 .postNumber(1)
                 .userNumber(100)
                 .postWriter("Test User")
                 .categoryNumber(1)
-                .categoryName("Test Category")
-                .title("Test Title")
-                .content("Test Content")
+                .categoryName("Updated Category")
+                .title("Updated Title")
+                .content("Updated Content")
                 .regDate(LocalDateTime.now())
-                .commentCount(10)
-                .viewCount(50)
-                .likeCount(20)
+                .commentCount(5)
+                .viewCount(100)
+                .likeCount(10)
                 .liked(true)
-                .profileImageUrl("http://example.com/image.jpg")
+                .profileImageUrl("http://example.com/profile.jpg")
                 .build();
 
-        // Mock 상세 조회
-        Mockito.when(communityService.increaseView(Mockito.eq(1), Mockito.eq(100)))
-                .thenReturn(mockResponse);
+        given(communityService.update(any(CommunityUpdateRequestDto.class), eq(1), eq(100)))
+                .willReturn(response);
 
-        // API 호출
-        mockMvc.perform(get("/api/community/posts/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postNumber").value(1));
+        // When
+        ResultActions resultActions = mockMvc.perform(put("/api/community/posts/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
 
-        Mockito.clearAllCaches();
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.postNumber").value(1))
+                .andExpect(jsonPath("$.title").value("Updated Title"))
+                .andExpect(jsonPath("$.content").value("Updated Content"))
+                .andExpect(jsonPath("$.categoryName").value("Updated Category"))
+                .andDo(print());
+
+        then(communityService).should().update(any(CommunityUpdateRequestDto.class), eq(1), eq(100));
     }
-
-
-//    @Test
-//    @DisplayName("게시글 상세 조회 - 특정 게시글의 상세 정보를 반환")
-//    void testGetDetail() throws Exception {
-//        Mockito.mockStatic(MemberAuthorizeUtil.class);
-//        Mockito.when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(100);
-//
-//        String formattedDate = CommunityDetailResponseDto.formatDate(LocalDateTime.now());
-//
-//        CommunityDetailResponseDto mockResponse = CommunityDetailResponseDto.builder()
-//                .postNumber(1)
-//                .userNumber(100)
-//                .postWriter("Test User")
-//                .categoryNumber(1)
-//                .categoryName("Test Category")
-//                .title("Test Title")
-//                .content("Test Content")
-//                .regDate(LocalDateTime.now())
-//                .commentCount(10)
-//                .viewCount(50)
-//                .likeCount(20)
-//                .liked(true)
-//                .profileImageUrl("http://example.com/image.jpg")
-//                .build();
-//
-//        Mockito.when(communityService.getDetail(1, 123)).thenReturn(mockResponse);
-//
-//        mockMvc.perform(get("/api/community/posts/1"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.postNumber").value(1))
-//                .andExpect(jsonPath("$.userNumber").value(100))
-//                .andExpect(jsonPath("$.postWriter").value("Test User"))
-//                .andExpect(jsonPath("$.title").value("Test Title"))
-//                .andExpect(jsonPath("$.regDate").exists())
-//                .andExpect(jsonPath("$.regDate").value(formattedDate));
-//
-//        Mockito.when(communityService.getDetail(Mockito.eq(1), Mockito.any())).thenReturn(mockResponse);
-//
-//        Mockito.clearAllCaches();
-//    }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 특정 게시글의 상세 정보를 반환")
-    void testGetDetail() throws Exception {
-        Mockito.mockStatic(MemberAuthorizeUtil.class);
-        Mockito.when(MemberAuthorizeUtil.getLoginUserNumber()).thenReturn(100);
+    @WithMockCustomUser(userNumber = 100)
+    @DisplayName("게시글 삭제 성공")
+    void deleteCommunityPost_Success() throws Exception {
+        // Given
+        doNothing().when(communityService).delete(eq(1), eq(100));
 
-        String formattedDate = CommunityDetailResponseDto.formatDate(LocalDateTime.now());
+        // When
+        ResultActions resultActions = mockMvc.perform(delete("/api/community/posts/1"));
 
-        Community mockCommunity = new Community(100, 1, "Test Title", "Test Content",  LocalDateTime.now(), 50);
-        Users mockUser = new Users( 100,"test@example.com","testPW", "Test User", Gender.F,AgeGroup.TWENTY,null);
-        Category mockCategory = new Category("전체");
-        LikeReadResponseDto mockLikeStatus = new LikeReadResponseDto("community", 1, true, 20);
-        ImageDetailResponseDto mockImageDetail = ImageDetailResponseDto.builder()
-                .imageNumber(1L)
-                .relatedType("profile")
-                .relatedNumber(100)
-                .key("profile_image_key")
-                .url("http://example.com/image.jpg")
-                .uploadDate(LocalDateTime.now())
-                .build();
+        // Then
+        resultActions.andExpect(status().isNoContent())
+                .andDo(print());
 
-        // Mock repository and service calls
-        Mockito.when(communityRepository.findByPostNumber(1)).thenReturn(Optional.of(mockCommunity));
-        Mockito.when(userRepository.findByUserNumber(100)).thenReturn(Optional.of(mockUser));
-        Mockito.when(categoryRepository.findByCategoryNumber(1)).thenReturn(Optional.of(mockCategory));
-        Mockito.when(likeRepository.countByRelatedTypeAndRelatedNumber(Mockito.eq("community"), Mockito.eq(1)))
-                .thenReturn(10L);
-        Mockito.when(likeRepository.existsByRelatedTypeAndRelatedNumberAndUserNumber(Mockito.eq("community"), Mockito.eq(1), Mockito.eq(100)))
-                .thenReturn(true);
-        Mockito.when(imageService.getImageDetail(Mockito.eq("profile"), Mockito.eq(100), Mockito.eq(0)))
-                .thenReturn(mockImageDetail);
-
-        CommunityDetailResponseDto mockResponse = CommunityDetailResponseDto.builder()
-                .postNumber(1)
-                .userNumber(100)
-                .postWriter("Test User")
-                .categoryNumber(1)
-                .categoryName("Test Category")
-                .title("Test Title")
-                .content("Test Content")
-                .regDate(mockCommunity.getRegDate())
-                .commentCount(10)
-                .viewCount(50)
-                .likeCount(20)
-                .liked(true)
-                .profileImageUrl("http://example.com/image.jpg")
-                .build();
-
-        Mockito.when(communityService.getDetail(1, 100)).thenReturn(mockResponse);
-
-        mockMvc.perform(get("/api/community/posts/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postNumber").value(1))
-                .andExpect(jsonPath("$.userNumber").value(100))
-                .andExpect(jsonPath("$.postWriter").value("Test User"))
-                .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.regDate").exists())
-                .andExpect(jsonPath("$.regDate").value(formattedDate));
-
-        Mockito.verify(communityService, Mockito.times(1)).getDetail(Mockito.eq(1), Mockito.any());
-
-        Mockito.clearAllCaches();
+        then(communityService).should().delete(eq(1), eq(100));
     }
 
+    @Test
+    @DisplayName("게시글 목록 조회 성공")
+    void getCommunityList_Success() throws Exception {
+        given(communityListService.getCommunityList(any(), any(), any()))
+                .willReturn(Page.empty());
+
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/community/posts")
+                .param("page", "0")
+                .param("size", "10"));
+
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andDo(print());
+
+        then(communityListService).should().getCommunityList(any(), any(), any());
+    }
 }
