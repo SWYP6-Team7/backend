@@ -318,7 +318,11 @@ public class CommentService {
     }
 
     //답글 작성 여부 가져오기
-    private Boolean getCommented(Comment comment, int userNumber) {
+    private Boolean getCommented(Comment comment, Integer userNumber) {
+
+        if(userNumber == null){
+            return false;
+        }
 
         //나의 자식 댓글들 조회
         List<Comment> childComments = commentRepository.findByRelatedTypeAndRelatedNumberAndParentNumber(

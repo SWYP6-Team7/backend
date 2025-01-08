@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.member.service;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -17,19 +18,12 @@ import org.slf4j.LoggerFactory;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MemberDeletedService {
 
     private final DeletedUsersRepository deletedUsersRepository;
     private final TravelRepository travelRepository;
     private final UserRepository userRepository;
-
-    public MemberDeletedService(DeletedUsersRepository deletedUsersRepository,
-                                TravelRepository travelRepository,
-                                UserRepository userRepository) {
-        this.deletedUsersRepository = deletedUsersRepository;
-        this.travelRepository = travelRepository;
-        this.userRepository = userRepository;
-    }
 
     @Transactional
     public void deleteUserData(Users user, SocialUsers socialUser) {
@@ -90,7 +84,7 @@ public class MemberDeletedService {
 
         DeletedUsers deletedUser = new DeletedUsers();
         deletedUser.setUserNumber(user.getUserNumber());
-        deletedUser.setDeletedUserEmail(user.getEmail());
+        deletedUser.setDeletedUserEmail(user.getUserEmail());
         deletedUser.setDeletedUserLoginDate(user.getUserLoginDate());
         deletedUser.setDeletedUserDeleteDate(LocalDate.now()); // 현재 탈퇴 시간
         deletedUser.setFinalDeletionDate(calculateFinalDeletionDate(LocalDate.now())); // 3개월 뒤 삭제

@@ -12,5 +12,5 @@ public interface CommunityCustomRepository {
 
     List<CommunitySearchDto> search(CommunitySearchCondition searchCondition);
     List<CommunitySearchDto> getMyList(CommunitySearchSortingType sortingType, int userNumber);
-    List<CommunitySearchDto> searchWithoutCategory(CommunitySearchCondition searchCondition);
+    
 }

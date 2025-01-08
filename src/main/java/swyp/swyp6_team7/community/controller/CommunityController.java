@@ -46,9 +46,11 @@ public class CommunityController {
 
         //user number 가져오기
         Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+        log.info("UserNumber: {}",userNumber);
 
         // 게시물 등록 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
+        log.info("Response from Service: {}", detailResponse);
 
         return ResponseEntity.ok(detailResponse);
     }
@@ -108,6 +110,11 @@ public class CommunityController {
 
         try {
             Page<CommunityListResponseDto> result = communityListService.getCommunityList(pageRequest, condition, userNumber);
+            if (result == null) {
+                log.error("커뮤니티 목록 조회 결과가 null입니다.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
+            }
             log.info("조회 성공: 총 데이터 수 = {}", result.getTotalElements());
             return ResponseEntity.ok(result);
         } catch (DataAccessException e) {
