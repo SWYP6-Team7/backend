@@ -76,4 +76,16 @@ public class Comment {
         return this;
     }
 
+    //테스트용
+    @Builder
+    public Comment (int commentNumber, int userNumber, String content, int parentNumber, LocalDateTime regDate, String relatedType, int relatedNumber) {
+        this.commentNumber = commentNumber;
+        this.userNumber = userNumber;
+        this.content = content;
+        this.parentNumber = parentNumber;
+        this.regDate = regDate;
+        this.relatedType = relatedType;
+        this.relatedNumber = relatedNumber;
+    }
+
 }
