@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
@@ -26,7 +25,6 @@ public class S3Uploader {
     private final S3Component s3Component;
     private final S3KeyHandler s3KeyHandler; // s3KeyHandler 추가 - FileFolderHandler
     private final StorageNameHandler storageNameHandler; // storageNameHandler 추가 - FileNameHandler
-    private final ImageRepository imageRepository;
 
 
     //S3에 파일 업로드 하는 메소드

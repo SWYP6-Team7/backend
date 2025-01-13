@@ -2,7 +2,7 @@
 cloud:
   aws:
     s3:
-      bucket: moing-hosted-contents
+      bucket: moing-hosted-content
       base-folder: images/
     region:
       static: ap-northeast-2
