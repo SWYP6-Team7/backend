@@ -50,6 +50,8 @@ class ImageProfileServiceTest {
         // given
         int userNumber = 1;
 
+        given(s3KeyHandler.getDefaultProfileImageUrl(anyString()))
+                .willReturn("https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
         given(s3KeyHandler.getKeyByUrl(anyString()))
                 .willReturn("images/profile/default/defaultProfile.png");
 
@@ -60,12 +62,12 @@ class ImageProfileServiceTest {
         assertThat(imageRepository.findAll()).hasSize(1)
                 .extracting("originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
                 .contains(
-                        tuple(null, null, 0L, null, "profile", 1, 0, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
+                        tuple(null, null, 0L, null, "profile", 1, 0, "images/profile/default/defaultProfile.png", "https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
                 );
 
         assertThat(detailResponseDto)
                 .extracting("relatedType", "relatedNumber", "key", "url")
-                .contains("profile", 1, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
+                .contains("profile", 1, "images/profile/default/defaultProfile.png", "https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
     }
 
     @DisplayName("updateProfileByDefaultUrl: 번호가 주어질 때, 사용자 프로필 이미지를 디폴트 프로필 이미지로 변경한다.")
@@ -78,6 +80,8 @@ class ImageProfileServiceTest {
         given(s3KeyHandler.isFileUploadProfileImage(anyString(), anyInt()))
                 .willReturn(true);
         doNothing().when(s3Uploader).deleteFile(anyString());
+        given(s3KeyHandler.getDefaultProfileImageUrl(anyString()))
+                .willReturn("https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png");
         given(s3KeyHandler.getKeyByUrl(anyString()))
                 .willReturn("images/profile/default/defaultProfile4.png");
 
@@ -88,12 +92,12 @@ class ImageProfileServiceTest {
         assertThat(imageRepository.findAll()).hasSize(1)
                 .extracting("originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
                 .contains(
-                        tuple(null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile4.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png")
+                        tuple(null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile4.png", "https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png")
                 );
 
         assertThat(updatedProfileImage)
                 .extracting("imageNumber", "relatedType", "relatedNumber", "key", "url")
-                .contains(userProfileImage.getImageNumber(), "profile", 2, "images/profile/default/defaultProfile4.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png");
+                .contains(userProfileImage.getImageNumber(), "profile", 2, "images/profile/default/defaultProfile4.png", "https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png");
     }
 
     @DisplayName("uploadProfileImage: 임시 저장 이미지의 URL이 주어질 때, 해당 이미지로 프로필 이미지를 변경한다.")
@@ -144,6 +148,8 @@ class ImageProfileServiceTest {
         given(s3KeyHandler.isFileUploadProfileImage(anyString(), anyInt()))
                 .willReturn(true);
         doNothing().when(s3Uploader).deleteFile(anyString());
+        given(s3KeyHandler.getDefaultProfileImageUrl(anyString()))
+                .willReturn("https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png");
         given(s3KeyHandler.getKeyByUrl(anyString()))
                 .willReturn("images/profile/default/defaultProfile.png");
 
@@ -154,7 +160,7 @@ class ImageProfileServiceTest {
         assertThat(imageRepository.findAll()).hasSize(1)
                 .extracting("imageNumber", "originalName", "storageName", "size", "format", "relatedType", "relatedNumber", "order", "key", "url")
                 .contains(
-                        tuple(image.getImageNumber(), null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile.png", "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
+                        tuple(image.getImageNumber(), null, null, null, null, "profile", 2, 0, "images/profile/default/defaultProfile.png", "https://bucketName.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
                 );
     }
 
