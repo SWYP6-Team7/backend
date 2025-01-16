@@ -26,7 +26,7 @@ class EmailSenderProcessor(
             .from(EmailUtil.nameWithEmail(EmailMessage.FROM_NAME, EmailMessage.FROM_EMAIL))
             .to(message.recipients)
             .subject("${EmailMessage.TITLE_PREFIX} ${message.title}")
-            .html((EmailMessage.HTML_HEADER + body + EmailMessage.HTML_FOOTER).trimIndent())
+            .html((body).trimIndent())
 
         val sendMessage = messageTemp.build()
 
