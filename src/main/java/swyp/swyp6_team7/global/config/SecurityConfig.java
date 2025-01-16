@@ -90,7 +90,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        List<String> allowedOrigins = List.of("https://release-back.vercel.app", "https://www.moing.shop");
+        List<String> allowedOrigins = List.of(
+                "https://release-back.vercel.app",
+                "https://www.moing.shop",
+                "https://www.moing.io",
+                "https://www.dev.moing.io"
+                );
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
