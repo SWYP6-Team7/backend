@@ -56,10 +56,6 @@ public class SecurityConfig {
                                 "/api/{relatedType}/{relatedNumber}/comments"
                         ).permitAll()
 
-                        .requestMatchers(
-                                "/api/verify/email/**"
-                        ).permitAll()
-
                         // 기타 경로
                         .requestMatchers(
                                 "/api/admins/new",
