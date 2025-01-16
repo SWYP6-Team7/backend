@@ -1,0 +1,24 @@
+#name: PR_test.yml
+#
+#on:
+#  pull_request:
+#    branches:
+#      - develop
+#
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Get Github Repository
+#        uses: actions/checkout@v4
+#
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '21'
+#
+#      - name: Run Test
+#        run: |
+#          chmod +x ./gradlew
+#          ./gradlew clean test

@@ -1,4 +1,4 @@
-name: Deploy to Ec2
+name: Deploy to Ec2 Develop
 
 on:
   push:
