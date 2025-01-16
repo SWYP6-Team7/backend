@@ -18,6 +18,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Create application-credentials.yml for test
+        run: echo "${{ secrets.APPLICATION_TEST_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml
+
       - name: Run Test
         run: |
           chmod +x ./gradlew
