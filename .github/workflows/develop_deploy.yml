@@ -1,0 +1,64 @@
+name: Deploy to Ec2
+
+on:
+  pull_request:
+    branches:
+      - develop
+#  push:
+#    branches:
+#      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Github Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Create application-dev.yml
+        run: echo "${{ secrets.APPLICATION_PROD_PROPERTIES }}" > ./src/main/resources/application-dev.yml
+
+      - name: Create application-credentials.yml
+        run: echo "${{ secrets.APPLICATION_CREDENTIALS }}" > ./src/main/resources/application-credentials.yml
+
+      - name: Create application-credentials.yml for test
+        run: echo "${{ secrets.APPLICATION_TEST_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml
+
+      - name: Test and Build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build
+
+      - name: Change build result file name
+        run: mv ./build/libs/*SNAPSHOT.jar ./project.jar
+
+      - name: Copy file via ssh password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_DEV_PRIVATE_KEY }}
+          source: project.jar
+          target: /home/ubuntu/backend/tobe
+
+      - name: Executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.EC2_DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_DEV_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            rm -rf /home/ubuntu/backend/current
+            mkdir /home/ubuntu/backend/current
+            mv /home/ubuntu/backend/tobe/project.jar /home/ubuntu/backend/current/project.jar
+            cd /home/ubuntu
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -jar /home/ubuntu/backend/current/project.jar --spring.profiles.active=dev > ./output.log 2>&1 &
+            rm -rf /home/ubuntu/backend/tobe
