@@ -1,9 +1,6 @@
 name: Deploy to Ec2
 
 on:
-  pull_request:
-    branches:
-      - develop
   push:
     branches:
       - develop
