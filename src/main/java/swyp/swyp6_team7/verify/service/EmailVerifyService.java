@@ -24,7 +24,6 @@ public class EmailVerifyService {
 
     @Transactional
     public void sendVerifyEmail(String email) {
-        // TODO: Redis 기반으로 변경
         final String code = RandomStringUtils.randomNumeric(6); // 6자리 인증번호
         log.info("Email code: {}", code);
 
