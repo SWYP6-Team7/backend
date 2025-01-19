@@ -74,10 +74,13 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
+                                "/api/verify/email/**"
+                        ).permitAll() // 이메일 인증
+
+                        .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-
 
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
@@ -90,7 +93,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        List<String> allowedOrigins = List.of("https://release-back.vercel.app", "https://www.moing.shop");
+        List<String> allowedOrigins = List.of(
+                "https://release-back.vercel.app",
+                "https://www.moing.shop",
+                "https://www.moing.io",
+                "https://www.dev.moing.io"
+                );
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
