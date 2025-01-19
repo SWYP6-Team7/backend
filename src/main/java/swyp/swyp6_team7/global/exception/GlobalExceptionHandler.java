@@ -5,8 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.global.utils.api.ErrorMessage;
+import swyp.swyp6_team7.global.utils.api.ResultType;
 
 @Slf4j
 @RestControllerAdvice
@@ -30,4 +34,16 @@ public class GlobalExceptionHandler {
                 .body(errorMessage);
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(MoingApplicationException.class)
+    @ResponseBody
+    public ApiResponse<String> handleApplicationException(MoingApplicationException e) {
+        log.error("Moing Application Exception: {}", e.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                e.getMessage(),
+                "처리 중 에러가 발생했습니다."
+        );
+
+        return ApiResponse.error(ResultType.SUCCESS, message);
+    }
 }
