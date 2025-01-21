@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.global.email.EmailSenderProcessor;
 import swyp.swyp6_team7.global.email.template.EmailVerificationCodeMessage;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.verify.dto.EmailVerifySession;
 
 import java.time.Duration;
@@ -22,6 +23,7 @@ public class EmailVerifyService {
 
     private final RedisTemplate<String, Object> jsonRedisTemplate;
     private final EmailSenderProcessor emailSenderProcessor;
+    private final UserRepository userRepository;
 
     @Autowired
     private final ObjectMapper objectMapper;
@@ -34,6 +36,11 @@ public class EmailVerifyService {
     }
 
     public String sendEmailVerification(String email) {
+        // 이메일 중복 체크
+        if (userRepository.findByUserEmail(email).isPresent()) {
+            throw new MoingApplicationException("이미 사용 중인 이메일입니다.");
+        }
+
         // 1. 1분 내에 같은 Email 로 중복발송 방지
         final boolean alreadySent = jsonRedisTemplate.opsForValue().get(emailVerifyKey.concat(email)) != null;
         if (alreadySent) {
@@ -95,7 +102,7 @@ public class EmailVerifyService {
 
         if (sessionObject == null) {
             log.info("Email Verify not found. {}", email);
-            throw new MoingApplicationException("이메일 인증된 내역이 없습니다.");
+            throw new MoingApplicationException("이메일 인증이 완료되지 않았습니다.");
         }
 
         try {
