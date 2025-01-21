@@ -61,6 +61,7 @@ public class SecurityConfig {
                                 "/api/admins/new",
                                 "/api/login",
                                 "/api/users/new",
+                                "/api/users/sign-up",
                                 "/api/token/refresh",
                                 "/api/social/login",
                                 "/api/social/kakao/complete-signup",
@@ -103,7 +104,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
