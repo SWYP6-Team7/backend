@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.global.email.EmailSenderProcessor;
 import swyp.swyp6_team7.global.email.template.EmailVerificationCodeMessage;
