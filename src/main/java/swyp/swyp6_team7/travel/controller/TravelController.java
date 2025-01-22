@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.travel.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.global.utils.ClientIpAddressUtil;
 import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
@@ -17,6 +19,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelCreateResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelUpdateResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
+import swyp.swyp6_team7.travel.service.TravelViewCountService;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class TravelController {
 
     private static final Logger logger = LoggerFactory.getLogger(TravelController.class);
     private final TravelService travelService;
+    private final TravelViewCountService travelViewCountService;
 
     @PostMapping("/api/travel")
     public ResponseEntity<TravelCreateResponse> create(@RequestBody @Validated TravelCreateRequest request) {
@@ -39,11 +43,13 @@ public class TravelController {
     }
 
     @GetMapping("/api/travel/detail/{travelNumber}")
-    public ResponseEntity<TravelDetailResponse> getDetailsByNumber(@PathVariable("travelNumber") int travelNumber) {
+    public ResponseEntity<TravelDetailResponse> getDetailsByNumber(
+            @PathVariable("travelNumber") int travelNumber,
+            HttpServletRequest request
+    ) {
 
         // 여행 상세 정보
         TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber);
-        travelService.addViewCount(travelNumber); //조회수 update
 
         // 로그인 사용자 추가 정보
         Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
@@ -52,6 +58,18 @@ public class TravelController {
                     .getTravelDetailMemberRelatedInfo(loginUserNumber, travelDetails.getTravelNumber(), travelDetails.getUserNumber(), travelDetails.getPostStatus());
             travelDetails.updateLoginMemberRelatedInfo(loginMemberRelatedInfo);
         }
+
+        // 조회수 update
+        // userIdentifier: userNumber(로그인) / IP address + User agent(비로그인)
+        String userIdentifier;
+        if (loginUserNumber != null) {
+            userIdentifier = loginUserNumber.toString();
+        } else {
+            String ipAddress = ClientIpAddressUtil.getClientIp(request);
+            String userBrowser = request.getHeader("User-Agent");
+            userIdentifier = ipAddress + userBrowser;
+        }
+        travelViewCountService.updateViewCount(travelNumber, userIdentifier);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(travelDetails);
