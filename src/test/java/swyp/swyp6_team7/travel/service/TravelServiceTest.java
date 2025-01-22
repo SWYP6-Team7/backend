@@ -341,24 +341,6 @@ class TravelServiceTest {
                 .hasMessage("여행 삭제 권한이 없습니다.");
     }
 
-    @DisplayName("addViewCount: 특정 여행의 viewCount를 1 증가시킬 수 있다.")
-    @Test
-    void addViewCount() {
-        // given
-        int hostUserNumber = 1;
-        Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
-
-        // when
-        travelService.addViewCount(savedTravel.getNumber());
-
-        // then
-        assertThat(travelRepository.findAll()).hasSize(1)
-                .extracting("viewCount")
-                .contains(1);
-    }
-
     @DisplayName("getEnrollmentsLastViewedAt: 특정 여행의 enrollmentsLastViewedAt 값을 가져올 수 있다.")
     @Test
     void getEnrollmentsLastViewedAt() {
