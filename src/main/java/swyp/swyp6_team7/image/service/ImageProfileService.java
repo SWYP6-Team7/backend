@@ -30,7 +30,9 @@ public class ImageProfileService {
     // 프로필 생성 시 이미지 처리
     @Transactional
     public ImageDetailResponseDto initializeDefaultProfileImage(int userNumber) {
-        // TODO: 이미 저장된 프로필 이미지가 있는지 확인 로직 추가
+        if (imageRepository.existsProfileImageByUserNumber(userNumber)) {
+            throw new IllegalArgumentException("이미 프로필 이미지가 존재합니다.");
+        }
 
         String defaultImageUrl = s3KeyHandler.getDefaultProfileImageUrl(DefaultProfileImage.DEFAULT_PROFILE_1.getImageName());
         String defaultImageKey = s3KeyHandler.getKeyByUrl(defaultImageUrl);
