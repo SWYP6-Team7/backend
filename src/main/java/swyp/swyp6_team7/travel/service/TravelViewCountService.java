@@ -70,7 +70,7 @@ public class TravelViewCountService {
     }
 
     // 조회 사용자 기록 삭제 작업 (매일 새벽 4시 실행)
-    @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
     public void deleteViewInfo() {
         log.info("SCHEDULER::DAILY: Redis 사용자 조회 기록 삭제 작업 시작");
 
@@ -84,7 +84,7 @@ public class TravelViewCountService {
     }
 
     // 조회수 DB 동기화 작업 (10분 주기 실행)
-    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 0/10 * * * *")
     @Transactional
     public void combineViewCountToDatabase() {
         log.info("SCHEDULER::10MIN: Redis-DB 조회수 동기화 작업 시작");
