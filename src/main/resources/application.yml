@@ -3,7 +3,6 @@ spring:
     active: local-db
     include:
       - credentials
-      - s3
   servlet:
     multipart:
       max-file-size: 100MB   # 업로드 가능한 개별 파일의 최대 크기

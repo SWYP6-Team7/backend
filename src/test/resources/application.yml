@@ -112,3 +112,13 @@ google:
   scope: openid, profile, email
   client-name: Google
   provider: Google
+
+cloud:
+  aws:
+    s3:
+      bucket: bucket-name
+      base-folder: images/
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

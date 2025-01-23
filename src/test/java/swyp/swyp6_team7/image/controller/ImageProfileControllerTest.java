@@ -59,7 +59,7 @@ class ImageProfileControllerTest {
                 .relatedType("profile")
                 .relatedNumber(2)
                 .key("images/profile/default/defaultProfile.png")
-                .url("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png")
+                .url("https://bucketName.s3.region.amazonaws.com/images/profile/default/defaultProfile.png")
                 .uploadDate(LocalDateTime.of(2024, 11, 24, 10, 0, 0))
                 .build();
 
@@ -75,7 +75,7 @@ class ImageProfileControllerTest {
                 .andExpect(jsonPath("$.relatedType").value("profile"))
                 .andExpect(jsonPath("$.relatedNumber").value(2))
                 .andExpect(jsonPath("$.key").value("images/profile/default/defaultProfile.png"))
-                .andExpect(jsonPath("$.url").value("https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png"))
+                .andExpect(jsonPath("$.url").value("https://bucketName.s3.region.amazonaws.com/images/profile/default/defaultProfile.png"))
                 .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
         then(imageProfileService).should(times(1))
                 .initializeDefaultProfileImage(eq(2));
