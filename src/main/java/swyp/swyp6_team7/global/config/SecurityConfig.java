@@ -47,13 +47,14 @@ public class SecurityConfig {
 
                         // 비회원(비로그인) 관련 권한 설정
                         .requestMatchers(
-                                "/api/travel/detail/**",
+                                "/api/travel/**",
                                 "/api/travels/recent",
                                 "/api/travels/recommend",
                                 "/api/travels/search",
                                 "/api/community/posts",
                                 "/api/community/posts/{postNumber}",
-                                "/api/{relatedType}/{relatedNumber}/comments"
+                                "/api/{relatedType}/{relatedNumber}/comments",
+                                "/api/autocomplete"
                         ).permitAll()
 
                         // 기타 경로
@@ -61,6 +62,7 @@ public class SecurityConfig {
                                 "/api/admins/new",
                                 "/api/login",
                                 "/api/users/new",
+                                "/api/users/sign-up",
                                 "/api/token/refresh",
                                 "/api/social/login",
                                 "/api/social/kakao/complete-signup",
@@ -97,13 +99,14 @@ public class SecurityConfig {
                 "https://release-back.vercel.app",
                 "https://www.moing.shop",
                 "https://www.moing.io",
-                "https://www.dev.moing.io"
+                "https://www.alpha.moing.io"
                 );
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

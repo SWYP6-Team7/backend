@@ -1,11 +1,11 @@
 package swyp.swyp6_team7.verify.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.verify.dto.request.EmailVerifyCheckRequest;
+import swyp.swyp6_team7.verify.dto.request.EmailVerifySendRequest;
+import swyp.swyp6_team7.verify.dto.response.EmailVerifySendResponse;
 import swyp.swyp6_team7.verify.service.EmailVerifyService;
 
 @RestController
@@ -20,19 +20,21 @@ public class EmailVerifyController {
     }
 
     @PostMapping("/send")
-    public ApiResponse<Boolean> sendEmailVerificationCode(
-            @RequestParam String email
+    public ApiResponse<EmailVerifySendResponse> sendEmailVerificationCode(
+            @RequestBody EmailVerifySendRequest request
     ) {
-        emailVerifyService.sendVerifyEmail(email);
-        return ApiResponse.success(true);
+        String sessionToken = emailVerifyService.sendEmailVerification(request.getEmail());
+        EmailVerifySendResponse response = new EmailVerifySendResponse(sessionToken, request.getEmail());
+        return ApiResponse.success(response);
     }
 
-    @PostMapping("/verify")
+    @PostMapping("")
     public ApiResponse<Boolean> verifyEmail(
-            @RequestParam String email,
-            @RequestParam String code
+            @RequestBody EmailVerifyCheckRequest request
     ) {
-        final boolean result = emailVerifyService.verifyEmailCode(email, code);
+        final String code = request.getVerifyCode();
+        final String sessionToken = request.getSessionToken();
+        final boolean result = emailVerifyService.verifyEmailCode(sessionToken, code);
         return ApiResponse.success(result);
     }
 }

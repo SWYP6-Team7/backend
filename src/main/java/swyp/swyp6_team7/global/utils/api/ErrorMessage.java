@@ -5,6 +5,11 @@ public class ErrorMessage {
     private String reason;
     private String title;
 
+    public ErrorMessage(String reason, String title) {
+        this.reason = reason;
+        this.title = title;
+    }
+
     private ErrorMessage(String reason) {
         this.reason = reason;
     }

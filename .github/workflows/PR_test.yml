@@ -6,7 +6,7 @@ on:
       - develop
 
 jobs:
-  deploy:
+  gradle-test:
     runs-on: ubuntu-latest
     steps:
       - name: Get Github Repository

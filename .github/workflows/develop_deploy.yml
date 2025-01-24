@@ -19,10 +19,7 @@ jobs:
           java-version: '21'
 
       - name: Create application-dev.yml
-        run: echo "${{ secrets.APPLICATION_PROD_PROPERTIES }}" > ./src/main/resources/application-dev.yml
-
-      - name: Create application-credentials.yml
-        run: echo "${{ secrets.APPLICATION_CREDENTIALS }}" > ./src/main/resources/application-credentials.yml
+        run: echo "${{ secrets.APPLICATION_DEV_PROPERTIES }}" > ./src/main/resources/application-dev.yml
 
       - name: Create application-credentials.yml for test
         run: echo "${{ secrets.APPLICATION_TEST_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml

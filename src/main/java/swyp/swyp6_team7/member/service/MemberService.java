@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.member.dto.UserCreateResponse;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.UserRepository;
@@ -52,6 +55,81 @@ public class MemberService {
                     log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
                     return new IllegalArgumentException("존재하지 않는 사용자입니다.");
                 });
+    }
+
+    private AgeGroup getUserAgeGroup(String ageGroup) {
+        AgeGroup ageGroupValue;
+        try {
+            ageGroupValue = AgeGroup.fromValue(ageGroup);
+
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 연령대 값 제공: ageGroup={}", ageGroup, e);
+            throw new IllegalArgumentException("Invalid age group provided.");
+        }
+
+        return ageGroupValue;
+    }
+
+    private Users createNewUser(UserRequestDto userRequestDto) {
+        // Argon2로 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(userRequestDto.getPassword());
+
+        // 성별 ENUM 변환
+        Gender gender = Gender.valueOf(userRequestDto.getGender().toUpperCase());
+
+        // 연령대 ENUM 변환 및 검증
+        AgeGroup ageGroup = getUserAgeGroup(userRequestDto.getAgegroup());
+
+        // Users 객체에 암호화된 비밀번호 설정
+        Users newUser = Users.builder()
+                .userEmail(userRequestDto.getEmail())
+                .userPw(encodedPassword)
+                .userName(userRequestDto.getName())
+                .userGender(gender)
+                .userAgeGroup(ageGroup)
+                .role(UserRole.USER)
+                .userStatus(UserStatus.ABLE)
+                .preferredTags(tagService.createTags(userRequestDto.getPreferredTags())) // 태그 처리
+                .build();
+        userRepository.save(newUser);
+
+        return newUser;
+    }
+
+    @Transactional
+    public UserCreateResponse signUpV2(UserRequestDto request) {
+        log.info("회원가입 요청 V2: email={}", request.getEmail());
+
+        // 이메일 중복 체크
+        if (userRepository.findByUserEmail(request.getEmail()).isPresent()) {
+            throw new MoingApplicationException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 태그 개수 검증 - 최대 5개까지 허용
+        if (request.getPreferredTags().size() > 5) {
+            throw new MoingApplicationException("태그는 최대 5개까지만 선택할 수 있습니다.");
+        }
+
+        Users newUser = createNewUser(request);
+
+        // 선호 태그 연결 로직
+        if (request.getPreferredTags() != null && !request.getPreferredTags().isEmpty()) {
+            List<UserTagPreference> tagPreferences = request.getPreferredTags().stream().map(tagName -> {
+                Tag tag = tagService.findByName(tagName); // 태그가 없으면 생성
+                UserTagPreference userTagPreference = new UserTagPreference();
+                userTagPreference.setUser(newUser);
+                userTagPreference.setTag(tag);
+                return userTagPreference;
+            }).collect(Collectors.toList());
+
+            // 선호 태그 저장
+            userTagPreferenceRepository.saveAll(tagPreferences);
+        }
+
+        // JWT 발급
+        String token = jwtProvider.createToken(newUser.getUserNumber(), List.of(newUser.getRole().name()), 3600000);
+
+        return new UserCreateResponse(newUser.getUserNumber(), newUser.getUserEmail(), token);
     }
 
     public Map<String, Object> signUp(UserRequestDto userRequestDto) {
@@ -96,7 +174,6 @@ public class MemberService {
                     .build();
             userRepository.save(newUser);
             log.info("회원가입 성공: userNumber={}", newUser.getUserNumber());
-
 
             // 선호 태그 연결 로직
             if (userRequestDto.getPreferredTags() != null && !userRequestDto.getPreferredTags().isEmpty()) {
@@ -191,7 +268,7 @@ public class MemberService {
 
     }
 
-    public void validateEmail(String email){
+    public void validateEmail(String email) {
         memberDeletedService.validateReRegistration(email);
         if (userRepository.findByUserEmail(email).isPresent()) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
