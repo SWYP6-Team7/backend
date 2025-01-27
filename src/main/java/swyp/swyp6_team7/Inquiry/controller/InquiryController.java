@@ -1,5 +1,7 @@
 package swyp.swyp6_team7.Inquiry.controller;
 
+import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,7 @@ public class InquiryController {
     private final InquiryService inquiryService;
 
     @PostMapping("/submit")
-    public ResponseEntity<?> submitInquiry(@RequestBody InquiryRequestDto inquiryRequestDto){
+    public ResponseEntity<?> submitInquiry(@Valid @RequestBody InquiryRequestDto inquiryRequestDto) {
         log.info("1:1 문의 접수 요청");
 
         inquiryService.sendInquiryEmail(inquiryRequestDto);
@@ -27,5 +29,6 @@ public class InquiryController {
         log.info("1:1 문의 접수 완료 - 문의 제목: {}, 이메일: {}", inquiryRequestDto.getTitle(), inquiryRequestDto.getEmail());
 
         return ResponseEntity.ok(ApiResponse.success("문의 접수 완료"));
+
     }
 }
