@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityMyListResponseDto;
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.security.Principal;
 

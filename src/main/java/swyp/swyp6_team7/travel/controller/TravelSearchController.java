@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
 import swyp.swyp6_team7.travel.service.TravelSearchService;

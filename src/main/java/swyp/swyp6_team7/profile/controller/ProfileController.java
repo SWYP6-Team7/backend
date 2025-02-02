@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;

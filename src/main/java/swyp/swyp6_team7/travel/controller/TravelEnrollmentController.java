@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.request.TravelEnrollmentLastViewedRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelEnrollmentLastViewedResponse;
 import swyp.swyp6_team7.travel.dto.response.TravelEnrollmentsResponse;

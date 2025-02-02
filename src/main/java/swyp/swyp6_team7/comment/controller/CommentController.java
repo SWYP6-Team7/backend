@@ -17,7 +17,7 @@ import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.service.CommentService;
 
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.security.Principal;
 

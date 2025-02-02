@@ -10,7 +10,7 @@ import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
 import swyp.swyp6_team7.image.dto.request.CommunityImageUpdateRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.util.List;
 

@@ -8,14 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.likes.service.LikeService;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.security.Principal;
-import java.util.List;
 
 @Slf4j
 @RestController

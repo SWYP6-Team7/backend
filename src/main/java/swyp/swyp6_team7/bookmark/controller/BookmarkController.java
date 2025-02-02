@@ -9,7 +9,7 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
 import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.util.List;
 

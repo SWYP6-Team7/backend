@@ -11,7 +11,7 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
 
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.time.LocalDate;
 

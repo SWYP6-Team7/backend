@@ -1,8 +1,11 @@
 package swyp.swyp6_team7.global.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -15,5 +18,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowCredentials(true);  // 쿠키나 인증 정보 허용
     }
 
+    private final UserNumberArgumentResolver userNumberArgumentResolver;
 
+    public WebMvcConfig(UserNumberArgumentResolver userNumberArgumentResolver) {
+        this.userNumberArgumentResolver = userNumberArgumentResolver;
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(userNumberArgumentResolver);
+    }
 }

@@ -7,11 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/my-applied-travels")

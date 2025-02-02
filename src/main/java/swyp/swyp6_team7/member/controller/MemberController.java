@@ -56,7 +56,6 @@ public class MemberController {
         }
     }
 
-
     @Operation(summary = "회원가입 V2")
     @PostMapping("/users/sign-up")
     public ApiResponse<UserCreateResponse> signUpV2(
@@ -87,6 +86,7 @@ public class MemberController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     // 관리자 회원 가입
     @PostMapping("/admins/new")
     public ResponseEntity<?> createAdmin(@RequestBody UserRequestDto userRequestDto){
@@ -95,6 +95,7 @@ public class MemberController {
         log.info("관리자 회원 가입 성공: {}", userRequestDto.getEmail());
         return new ResponseEntity<>("Admin successfully registered", HttpStatus.CREATED);
     }
+
     // 회원 탈퇴
     @DeleteMapping("/user/delete")
     public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {

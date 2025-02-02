@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
 import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
@@ -13,7 +14,7 @@ import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.service.ImageProfileService;
 import swyp.swyp6_team7.image.service.ImageService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -77,11 +78,12 @@ public class ImageProfileController {
 
     //프로필 이미지 조회
     @GetMapping("")
-    public ResponseEntity<ImageDetailResponseDto> getProfileImage() {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public ResponseEntity<ImageDetailResponseDto> getProfileImage(
+            @RequireUserNumber Integer loginUserNumber
+    ) {
+        log.info("loginUserNumber: {}", loginUserNumber);
         ImageDetailResponseDto response = imageService.getImageDetail("profile", loginUserNumber, 0);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
-
 }

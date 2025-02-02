@@ -16,14 +16,13 @@ import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
-import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
 import swyp.swyp6_team7.category.domain.Category;
 
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.community.util.CommunitySearchSortingType;
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.security.Principal;
 

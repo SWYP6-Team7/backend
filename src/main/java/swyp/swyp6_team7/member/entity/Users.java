@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 //@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "Users")
+@Table(name = "users")
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,6 +58,7 @@ public class Users {
 
     @Builder.Default
     @Column(nullable = false)
+    //    @Column(name = "user_social_TF", nullable = false)
     private Boolean userSocialTF = false;
 
     @Builder.Default
@@ -126,7 +127,5 @@ public class Users {
     public boolean isEnabled() {
         return true;
     }
-
-
 
 }

@@ -15,13 +15,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
 import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
