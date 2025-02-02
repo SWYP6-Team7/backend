@@ -1,10 +1,8 @@
 package swyp.swyp6_team7.member.entity;
-import lombok.*;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 
@@ -12,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -57,18 +54,13 @@ public class Users {
     private UserStatus userStatus;
 
     @Builder.Default
-    @Column(nullable = false)
-    //    @Column(name = "user_social_TF", nullable = false)
+    @Column(name = "user_social_TF", nullable = false)
     private Boolean userSocialTF = false;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_role",nullable = false)
+    @Column(name = "user_role", nullable = false)
     private UserRole role = UserRole.USER;
-
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of((GrantedAuthority) () -> role.name());  // 권한을 GrantedAuthority로 변환
-    }
     @ManyToMany
     @JoinTable(
             name = "user_tags",
@@ -76,8 +68,7 @@ public class Users {
             inverseJoinColumns = @JoinColumn(name = "tag_number")
     )
     private Set<Tag> preferredTags;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<UserTagPreference> tagPreferences;  // user_tagpreferences 참조
 
     @Builder
@@ -90,14 +81,19 @@ public class Users {
         this.userAgeGroup = userAgeGroup;
         this.preferredTags = (preferredTags != null) ? preferredTags : Set.of(); // 태그가 없으면 빈 리스트
     }
+
     @Builder
-    public Users( String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
+    public Users(String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
         this.userEmail = userEmail;
         this.userPw = userPw;
         this.userName = userName;
         this.userGender = userGender;
         this.userAgeGroup = userAgeGroup;
         this.preferredTags = (preferredTags != null) ? preferredTags : Set.of(); // 태그가 없으면 빈 리스트
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of((GrantedAuthority) () -> role.name());  // 권한을 GrantedAuthority로 변환
     }
 
     // 선호 태그 설정 메서드
