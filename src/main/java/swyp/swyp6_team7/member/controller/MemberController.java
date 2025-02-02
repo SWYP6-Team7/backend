@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.member.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.member.dto.UserCreateResponse;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.SocialUsers;
 import swyp.swyp6_team7.member.entity.Users;
@@ -23,6 +26,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import swyp.swyp6_team7.verify.service.EmailVerifyService;
 
 @Slf4j
 @RestController
@@ -31,6 +35,7 @@ import org.slf4j.LoggerFactory;
 public class MemberController {
 
     private final MemberService memberService;
+    private final EmailVerifyService emailVerifyService;
     private final MemberDeletedService memberDeletedService;
     private final UserLoginHistoryService userLoginHistoryService;
     private final JwtProvider jwtProvider;
@@ -50,6 +55,18 @@ public class MemberController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error",e.getMessage()));  // 409 Conflict 반환
         }
     }
+
+    @Operation(summary = "회원가입 V2")
+    @PostMapping("/users/sign-up")
+    public ApiResponse<UserCreateResponse> signUpV2(
+            @RequestBody UserRequestDto userRequestDto
+    ) {
+        log.info("회원 가입 요청 V2: {}", userRequestDto.getEmail());
+        emailVerifyService.checkEmailVerified(userRequestDto.getSessionToken(), userRequestDto.getEmail());
+
+        return ApiResponse.success(memberService.signUpV2(userRequestDto));
+    }
+
     // 이메일 중복 확인 엔드포인트
     @GetMapping("/users-email")
     public ResponseEntity<String> checkEmailDuplicate(@RequestParam("email") String email) {
@@ -69,6 +86,7 @@ public class MemberController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     // 관리자 회원 가입
     @PostMapping("/admins/new")
     public ResponseEntity<?> createAdmin(@RequestBody UserRequestDto userRequestDto){
@@ -77,6 +95,7 @@ public class MemberController {
         log.info("관리자 회원 가입 성공: {}", userRequestDto.getEmail());
         return new ResponseEntity<>("Admin successfully registered", HttpStatus.CREATED);
     }
+
     // 회원 탈퇴
     @DeleteMapping("/user/delete")
     public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {

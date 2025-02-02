@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.service.NotificationService;
 
@@ -24,12 +24,12 @@ public class NotificationController {
     @GetMapping("/api/notifications")
     public ResponseEntity<Page<NotificationDto>> getNotificationsByUser(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequireUserNumber Integer userNumber
     ) {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        logger.info("Notifications 조회 요청 - userId: {}", loginUserNumber);
+        logger.info("Notifications 조회 요청 - userId: {}", userNumber);
 
-        Page<NotificationDto> notifications = notificationService.getNotificationsByUser(PageRequest.of(page, size), loginUserNumber);
+        Page<NotificationDto> notifications = notificationService.getNotificationsByUser(PageRequest.of(page, size), userNumber);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(notifications);
     }

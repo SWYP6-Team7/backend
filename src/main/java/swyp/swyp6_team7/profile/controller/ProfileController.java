@@ -6,11 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
-import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
+import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
 import swyp.swyp6_team7.profile.service.ProfileService;
 
 import java.util.Optional;
@@ -21,18 +20,18 @@ import java.util.Optional;
 @RequestMapping("/api/profile")
 public class ProfileController {
     private final ProfileService profileService;
-    private final JwtProvider jwtProvider;
 
     // 프로필 수정 (이름, 자기소개, 선호 태그)
     @PutMapping("/update")
-    public ResponseEntity<?> updateProfile(@RequestBody ProfileUpdateRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<?> updateProfile(
+            @RequestBody ProfileUpdateRequest request,
+            @RequireUserNumber Integer userNumber
+    ) {
         try {
             log.info("프로필 수정 요청 확인");
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
-
             profileService.updateProfile(userNumber, request);
 
-            log.info("프로필 수정 완료 - userNumber: {}",userNumber);
+            log.info("프로필 수정 완료 - userNumber: {}", userNumber);
             return ResponseEntity.ok("프로필 업데이트 완료");
         } catch (IllegalArgumentException e) {
             String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
@@ -46,11 +45,12 @@ public class ProfileController {
 
     //프로필 조회 (이름, 이메일, 연령대, 성별, 선호 태그, 자기소개)
     @GetMapping("/me")
-    public ResponseEntity<?> viewProfile(HttpServletRequest request) {
+    public ResponseEntity<?> viewProfile(
+            HttpServletRequest request,
+            @RequireUserNumber Integer userNumber
+    ) {
         try {
             log.info("프로필 조회 요청");
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
-
             Optional<Users> userOpt = profileService.getUserByUserNumber(userNumber);
 
             if (userOpt.isEmpty()) {

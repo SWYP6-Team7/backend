@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
 import swyp.swyp6_team7.image.dto.request.TempUploadRequestDto;
@@ -13,7 +14,6 @@ import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.dto.response.ImageTempResponseDto;
 import swyp.swyp6_team7.image.service.ImageProfileService;
 import swyp.swyp6_team7.image.service.ImageService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,10 +26,10 @@ public class ImageProfileController {
 
     //초기 프로필 등록
     @PostMapping("")
-    public ResponseEntity<ImageDetailResponseDto> createProfileImage() {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-
-        ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(loginUserNumber);
+    public ResponseEntity<ImageDetailResponseDto> createProfileImage(
+            @RequireUserNumber Integer userNumber
+    ) {
+        ImageDetailResponseDto response = imageProfileService.initializeDefaultProfileImage(userNumber);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
@@ -51,37 +51,43 @@ public class ImageProfileController {
 
     // 이미지 정식 저장: 새로운 이미지 파일로 프로필 수정
     @PutMapping("")
-    public ResponseEntity<ImageDetailResponseDto> updateProfileImage(@RequestBody TempUploadRequestDto request) {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        ImageDetailResponseDto response = imageProfileService.uploadProfileImage(loginUserNumber, request.getImageUrl());
+    public ResponseEntity<ImageDetailResponseDto> updateProfileImage(
+            @RequestBody TempUploadRequestDto request,
+            @RequireUserNumber Integer userNumber
+    ) {
+        ImageDetailResponseDto response = imageProfileService.uploadProfileImage(userNumber, request.getImageUrl());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
 
     //default 이미지 중 하나로 프로필 이미지 수정
     @PutMapping("/default")
-    public ResponseEntity<ImageDetailResponseDto> updateProfileImageByDefaultImage(@RequestBody ImageUpdateByDefaultProfileRequest request) {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        ImageDetailResponseDto response = imageProfileService.updateByDefaultImage(loginUserNumber, request.getDefaultNumber());
+    public ResponseEntity<ImageDetailResponseDto> updateProfileImageByDefaultImage(
+            @RequestBody ImageUpdateByDefaultProfileRequest request,
+            @RequireUserNumber Integer userNumber
+    ) {
+        ImageDetailResponseDto response = imageProfileService.updateByDefaultImage(userNumber, request.getDefaultNumber());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
 
     //프로필 이미지 s3 데이터 삭제 후 디폴트 이미지로 설정
     @DeleteMapping("")
-    public ResponseEntity delete() {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        imageProfileService.deleteProfileImage(loginUserNumber);
+    public ResponseEntity delete(
+            @RequireUserNumber Integer userNumber
+    ) {
+        imageProfileService.deleteProfileImage(userNumber);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //프로필 이미지 조회
     @GetMapping("")
-    public ResponseEntity<ImageDetailResponseDto> getProfileImage() {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public ResponseEntity<ImageDetailResponseDto> getProfileImage(
+            @RequireUserNumber Integer loginUserNumber
+    ) {
+        log.info("loginUserNumber: {}", loginUserNumber);
         ImageDetailResponseDto response = imageService.getImageDetail("profile", loginUserNumber, 0);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
-
 }
