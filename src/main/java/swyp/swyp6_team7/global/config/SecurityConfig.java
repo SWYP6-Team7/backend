@@ -81,7 +81,8 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/health"
                         ).permitAll()
 
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요

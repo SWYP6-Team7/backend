@@ -2,14 +2,15 @@ package swyp.swyp6_team7.auth.controller;
 
 
 import jakarta.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
@@ -21,7 +22,6 @@ import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -33,8 +33,6 @@ public class LoginController {
 
     private final JwtProvider jwtProvider;
     private final JwtBlacklistService jwtBlacklistService;
-
-
 
     public LoginController(LoginService loginService, UserLoginHistoryService userLoginHistoryService,
                            MemberService memberService,UserRepository userRepository,
@@ -115,6 +113,4 @@ public class LoginController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);  // 400 Bad Request 반환
         }
     }
-
-
 }
