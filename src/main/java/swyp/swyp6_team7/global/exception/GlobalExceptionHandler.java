@@ -18,15 +18,10 @@ public class GlobalExceptionHandler {
 
     // 모든 예외 처리
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleAllExceptions(Exception e) {
+    public ResponseEntity<String> handleAllExceptions(Exception e) {
         log.error("Global exception caught: {}", e.getMessage());
-        ErrorMessage errorMessage = new ErrorMessage(
-                "서버 에러가 발생했습니다.",
-                "Internal Server Error"
-        ).setErrorType(HttpStatus.INTERNAL_SERVER_ERROR.value());
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ResultType.INTERNAL_ERROR, errorMessage));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 에러: " + e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

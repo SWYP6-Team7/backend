@@ -72,8 +72,7 @@ public class SecurityConfig {
                                 "/api/users-email",
                                 "/actuator/health", // Health check endpoint permission
                                 "/api/community/images/**",
-                                "/api/community/*/images",
-                                "/api/inquiry/submit"
+                                "/api/community/*/images"
                         ).permitAll()
 
                         .requestMatchers(
