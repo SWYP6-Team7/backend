@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
 import swyp.swyp6_team7.image.dto.request.CommunityImageUpdateRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
 import swyp.swyp6_team7.image.service.ImageCommunityService;
-import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
 import java.util.List;
 
@@ -55,19 +55,21 @@ public class ImageCommunityController {
     @PutMapping("/{postNumber}/images")
     public ResponseEntity<List<ImageDetailResponseDto>> updateImages(
             @PathVariable(name = "postNumber") int postNumber,
-            @RequestBody CommunityImageUpdateRequest request
+            @RequestBody CommunityImageUpdateRequest request,
+            @RequireUserNumber Integer userNumber
     ) {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        List<ImageDetailResponseDto> responses = imageCommunityService.updateCommunityImages(postNumber, loginUserNumber, request.getStatuses(), request.getUrls());
+        List<ImageDetailResponseDto> responses = imageCommunityService.updateCommunityImages(postNumber, userNumber, request.getStatuses(), request.getUrls());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(responses);
     }
 
     // 커뮤니티 게시글 이미지 삭제
     @DeleteMapping("/{postNumber}/images")
-    public ResponseEntity deleteImages(@PathVariable(name = "postNumber") int postNumber) {
-        int loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        imageCommunityService.deleteCommunityImages(postNumber, loginUserNumber);
+    public ResponseEntity deleteImages(
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequireUserNumber Integer userNumber
+    ) {
+        imageCommunityService.deleteCommunityImages(postNumber, userNumber);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }

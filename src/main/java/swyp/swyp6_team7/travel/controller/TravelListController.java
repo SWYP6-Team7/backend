@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelListService;
 
@@ -23,11 +23,10 @@ public class TravelListController {
     public ResponseEntity<Page<TravelListResponseDto>> getMyCreatedTravels(
             @RequestHeader("Authorization") String token,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "5") int size
+            @RequestParam(value = "size", defaultValue = "5") int size,
+            @RequireUserNumber Integer userNumber
     ) {
         Pageable pageable = PageRequest.of(page, size);
-
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         // 여행 목록 조회
         Page<TravelListResponseDto> travelList = travelListService.getTravelListByUser(userNumber, pageable);

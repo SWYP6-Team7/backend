@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.dto.response.TravelRecommendResponse;
 import swyp.swyp6_team7.travel.service.TravelHomeService;
@@ -24,12 +24,12 @@ public class TravelHomeController {
     @GetMapping("/api/travels/recent")
     public ResponseEntity<Page<TravelRecentDto>> getRecentlyCreatedTravels(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "5") int size
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequireUserNumber Integer userNumber
     ) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
 
         Page<TravelRecentDto> result = travelHomeService
-                .getTravelsSortedByCreatedAt(PageRequest.of(page, size), loginUserNumber);
+                .getTravelsSortedByCreatedAt(PageRequest.of(page, size), userNumber);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(result);
@@ -38,15 +38,15 @@ public class TravelHomeController {
     @GetMapping("/api/travels/recommend")
     public ResponseEntity<Page<TravelRecommendResponse>> getRecommendTravels(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "5") int size
+            @RequestParam(name = "size", defaultValue = "5") int size,
+            @RequireUserNumber Integer userNumber
     ) {
-        Integer loginUserNumber = MemberAuthorizeUtil.getLoginUserNumber();
         LocalDate requestDate = LocalDate.now();
 
         // 로그인 사용자: 태그 기반 추천 + 마감일이 빠른 순서 + title
-        if (loginUserNumber != null) {
+        if (userNumber != null) {
             Page<TravelRecommendResponse> result = travelHomeService
-                    .getRecommendTravelsByMember(PageRequest.of(page, size), loginUserNumber, requestDate)
+                    .getRecommendTravelsByMember(PageRequest.of(page, size), userNumber, requestDate)
                     .map(TravelRecommendResponse::new);
 
             return ResponseEntity.status(HttpStatus.OK)
