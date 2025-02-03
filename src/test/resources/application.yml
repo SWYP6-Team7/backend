@@ -112,3 +112,7 @@ google:
   scope: openid, profile, email
   client-name: Google
   provider: Google
+
+redis:
+  host: localhost
+  port: 6379
