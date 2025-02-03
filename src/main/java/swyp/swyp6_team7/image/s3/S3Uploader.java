@@ -70,7 +70,7 @@ public class S3Uploader {
             throw new RuntimeException("S3 파일 업로드 실패", e);
         } catch (SdkClientException e) {
             // AWS SDK S3 파일 업로드 예외 처리
-            log.warn("S3 파일 업로드 SdkClientException 실패 for Key: {}", S3Key);
+            log.warn("S3 파일 업로드 SdkClientException 실패 for Key: {}\nexception: {}", S3Key, e.getMessage());
             throw new RuntimeException("S3 파일 업로드 실패", e);
         }
         // S3Path 리턴
