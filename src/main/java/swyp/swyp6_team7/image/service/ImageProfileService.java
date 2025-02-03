@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.image.domain.DefaultProfileImage;
 import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.dto.ImageCreateDto;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
@@ -20,14 +21,6 @@ import java.time.LocalDateTime;
 @Service
 public class ImageProfileService {
 
-    // 디폴트 프로필 이미지 URL
-    private final static String DEFAULT_PROFILE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
-    private final static String DEFAULT_PROFILE_URL2 = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile2.png";
-    private final static String DEFAULT_PROFILE_URL3 = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile3.png";
-    private final static String DEFAULT_PROFILE_URL4 = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile4.png";
-    private final static String DEFAULT_PROFILE_URL5 = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile5.png";
-    private final static String DEFAULT_PROFILE_URL6 = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile6.png";
-
     private final ImageRepository imageRepository;
     private final S3Uploader s3Uploader;
     private final StorageNameHandler storageNameHandler;
@@ -37,14 +30,19 @@ public class ImageProfileService {
     // 프로필 생성 시 이미지 처리
     @Transactional
     public ImageDetailResponseDto initializeDefaultProfileImage(int userNumber) {
-        String defaultImageKey = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
-        
+        if (imageRepository.existsProfileImageByUserNumber(userNumber)) {
+            throw new IllegalArgumentException("이미 프로필 이미지가 존재합니다.");
+        }
+
+        String defaultImageUrl = s3KeyHandler.getDefaultProfileImageUrl(DefaultProfileImage.DEFAULT_PROFILE_1.getImageName());
+        String defaultImageKey = s3KeyHandler.getKeyByUrl(defaultImageUrl);
+
         ImageCreateDto imageCreateDto = ImageCreateDto.builder()
                 .relatedType("profile")
                 .relatedNumber(userNumber)
                 .order(0)
                 .key(defaultImageKey)
-                .url(DEFAULT_PROFILE_URL)
+                .url(defaultImageUrl)
                 .uploadDate(LocalDateTime.now())
                 .build();
 
@@ -77,31 +75,31 @@ public class ImageProfileService {
     }
 
     private String getDefaultImageUrl(int defaultProfileImageNumber) {
-        String defaultProfileImageUrl = "";
+        DefaultProfileImage defaultProfileImage = null;
         switch (defaultProfileImageNumber) {
             case 1:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_1;
                 break;
             case 2:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL2;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_2;
                 break;
             case 3:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL3;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_3;
                 break;
             case 4:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL4;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_4;
                 break;
             case 5:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL5;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_5;
                 break;
             case 6:
-                defaultProfileImageUrl = DEFAULT_PROFILE_URL6;
+                defaultProfileImage = DefaultProfileImage.DEFAULT_PROFILE_6;
                 break;
             default:
                 log.warn("유효하지 않은 Default Profile Image Number입니다: {}", defaultProfileImageNumber);
                 throw new IllegalArgumentException("유효하지 않은 Default Profile Image Number입니다: " + defaultProfileImageNumber);
         }
-        return defaultProfileImageUrl;
+        return s3KeyHandler.getDefaultProfileImageUrl(defaultProfileImage.getImageName());
     }
 
     // 프로필 이미지 변경(이미지 정식 저장): 기존 이미지 삭제 후, 주어지는 임시 저장 URL로 프로필 이미지 변경
@@ -146,8 +144,9 @@ public class ImageProfileService {
         if (s3KeyHandler.isFileUploadProfileImage(presentKey, relatedNumber)) {
             s3Uploader.deleteFile(presentKey); // s3 이미지 삭제
 
-            String key = s3KeyHandler.getKeyByUrl(DEFAULT_PROFILE_URL);
-            image.updateWithUrl(key, DEFAULT_PROFILE_URL, LocalDateTime.now());
+            String defaultImageUrl = s3KeyHandler.getDefaultProfileImageUrl(DefaultProfileImage.DEFAULT_PROFILE_1.getImageName());
+            String key = s3KeyHandler.getKeyByUrl(defaultImageUrl);
+            image.updateWithUrl(key, defaultImageUrl, LocalDateTime.now());
         }
     }
 
