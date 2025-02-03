@@ -26,11 +26,6 @@ public class TravelViewCountService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TravelRepository travelRepository;
 
-    // 조회 여부 확인
-    private boolean isViewed(String viewedInfoKey, String userIdentifier) {
-        return redisTemplate.opsForSet().isMember(viewedInfoKey, userIdentifier);
-    }
-
     // 여행 조회수 update
     public void updateViewCount(Integer travelNumber, String userIdentifier) {
         // userIdentifier 예외 처리
@@ -41,13 +36,14 @@ public class TravelViewCountService {
 
         String viewedInfoKey = VIEWED_INFO_KEY_PREFIX + travelNumber.toString();
         if (!isViewed(viewedInfoKey, userIdentifier)) {
-            // viewed set에 userIdentifier 추가
-            redisTemplate.opsForSet().add(viewedInfoKey, userIdentifier);
-            redisTemplate.expire(viewedInfoKey, 24, TimeUnit.HOURS); // TTL 1일
-            log.debug("Redis: 사용자 조회 정보 추가: viewedInfoKey={}, userIdentifier={}", viewedInfoKey, userIdentifier);
-
+            addUserIdentifierToViewedSet(viewedInfoKey, userIdentifier); // viewed set에 userIdentifier 추가
             increaseViewCount(travelNumber); // 조회수 증가
         }
+    }
+
+    // 조회 여부 확인
+    private boolean isViewed(String viewedInfoKey, String userIdentifier) {
+        return redisTemplate.opsForSet().isMember(viewedInfoKey, userIdentifier);
     }
 
     // 특정 여행 조회수 조회
@@ -57,8 +53,15 @@ public class TravelViewCountService {
         return viewCount != null ? Integer.valueOf(viewCount) : 0;
     }
 
+    // 사용자 조회 정보 추가
+    private void addUserIdentifierToViewedSet(String viewedInfoKey, String userIdentifier) {
+        redisTemplate.opsForSet().add(viewedInfoKey, userIdentifier);
+        redisTemplate.expire(viewedInfoKey, 24, TimeUnit.HOURS); // TTL 1일
+        log.debug("Redis: 사용자 조회 정보 추가: viewedInfoKey={}, userIdentifier={}", viewedInfoKey, userIdentifier);
+    }
+
     // 특정 여행 조회수 1 증가
-    public void increaseViewCount(Integer travelNumber) {
+    private void increaseViewCount(Integer travelNumber) {
         String key = VIEW_COUNT_KEY_PREFIX + travelNumber.toString();
 
         String viewCount = redisTemplate.opsForValue().get(key);
@@ -75,7 +78,7 @@ public class TravelViewCountService {
         log.info("SCHEDULER::DAILY: Redis 사용자 조회 기록 삭제 작업 시작");
 
         Set<String> keys = redisTemplate.keys(VIEWED_INFO_KEY_PREFIX + "*");
-        if (keys != null) {
+        if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
             log.info("Redis: Delete viewInfo data");
         }
