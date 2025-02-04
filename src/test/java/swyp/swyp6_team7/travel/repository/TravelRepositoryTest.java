@@ -29,22 +29,6 @@ class TravelRepositoryTest {
     private LocationRepository locationRepository;
 
 
-    @DisplayName("TravelNumber가 주어질 때, 해당 Travel의 viewCount를 1 증가시킨다.")
-    @Test
-    void updateViewCountPlusOneByTravelNumber() {
-        // given
-        int nowViewCount = 5;
-        Travel travel = travelRepository.save(createTravel(nowViewCount, LocalDateTime.now()));
-
-        // when
-        travelRepository.updateViewCountPlusOneByTravelNumber(travel.getNumber());
-
-        // then
-        assertThat(travelRepository.findAll()).hasSize(1)
-                .extracting("viewCount")
-                .contains(6);
-    }
-
     @DisplayName("TravelNumber가 주어질 때, 해당 Travel의 enrollmentLastViewedAt를 가져올 수 있다.")
     @Test
     void getEnrollmentsLastViewedAtByNumber() {

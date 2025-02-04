@@ -28,10 +28,6 @@ public interface TravelRepository extends JpaRepository<Travel, Integer>, Travel
     void updateEnrollmentsLastViewedAtByNumber(@Param("travelNumber") int travelNumber, @Param("lastViewedAt") LocalDateTime lastViewedAt);
 
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Travel t SET t.viewCount = t.viewCount + 1 WHERE t.number = :travelNumber")
-    void updateViewCountPlusOneByTravelNumber(@Param("travelNumber") int travelNumber);
-
-    @Modifying(clearAutomatically = true)
     @Query("UPDATE Travel t SET t.viewCount = t.viewCount + :newViewCount WHERE t.number = :travelNumber")
     void combineViewCountByTravelNumber(@Param("travelNumber") int travelNumber, @Param("newViewCount") int newViewCount);
 

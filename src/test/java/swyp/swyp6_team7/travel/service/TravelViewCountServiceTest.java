@@ -30,6 +30,9 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +62,8 @@ class TravelViewCountServiceTest {
     void tearDown() {
         travelRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
+        redisTemplate.delete(redisTemplate.keys(VIEW_COUNT_KEY_PREFIX + "*"));
+        redisTemplate.delete(redisTemplate.keys(VIEWED_INFO_KEY_PREFIX + "*"));
     }
 
     @DisplayName("updateViewCount: 24시간 내에 처음 접속하면 Redis의 여행 조회수가 1 증가하고 사용자 기록이 저장된다.")
@@ -102,6 +107,37 @@ class TravelViewCountServiceTest {
         // then
         String viewCount = redisTemplate.opsForValue().get(VIEW_COUNT_KEY_PREFIX + travelNumber.toString());
         assertThat(Integer.parseInt(viewCount)).isEqualTo(3);
+    }
+
+    @DisplayName("updateViewCount: 여러 사용자가 동시에 조회했을 때 요청횟수만큼 조회수가 증가한다.")
+    @Test
+    void updateViewCountWhenManyUser() throws InterruptedException {
+        // given
+        Integer travelNumber = 10;
+
+        String key = VIEW_COUNT_KEY_PREFIX + travelNumber.toString();
+        redisTemplate.opsForValue().set(key, "0"); // 조회수 0으로 설정
+
+        int numberOfThreads = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        // when
+        for (int i = 1; i <= numberOfThreads; i++) {
+            String userIdentifier = String.valueOf(i);
+            executorService.submit(() -> {
+                try {
+                    travelViewCountService.updateViewCount(travelNumber, userIdentifier);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+
+        // then
+        String viewCount = redisTemplate.opsForValue().get(VIEW_COUNT_KEY_PREFIX + travelNumber.toString());
+        assertThat(Integer.parseInt(viewCount)).isEqualTo(10);
     }
 
     @DisplayName("deleteViewInfo: Redis에 저장된 사용자 조회 기록을 삭제한다.")
@@ -156,8 +192,8 @@ class TravelViewCountServiceTest {
     void combineViewCountToDatabase() {
         // given
         Location location = locationRepository.save(createLocation());
-        Travel travel1 = travelRepository.save(createTravel(10, 5, location));
-        Travel travel2 = travelRepository.save(createTravel(11, 7, location));
+        Travel travel1 = travelRepository.save(createTravel(5, location));
+        Travel travel2 = travelRepository.save(createTravel(7, location));
 
         redisTemplate.opsForValue().set(VIEW_COUNT_KEY_PREFIX + travel1.getNumber(), "10");
         redisTemplate.opsForValue().set(VIEW_COUNT_KEY_PREFIX + travel2.getNumber(), "20");
@@ -226,9 +262,8 @@ class TravelViewCountServiceTest {
                 .build();
     }
 
-    private Travel createTravel(int travelNumber, int viewCount, Location location) {
+    private Travel createTravel(int viewCount, Location location) {
         return Travel.builder()
-                .number(travelNumber)
                 .userNumber(1)
                 .location(location)
                 .locationName(location.getLocationName())
