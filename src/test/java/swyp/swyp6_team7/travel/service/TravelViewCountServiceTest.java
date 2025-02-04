@@ -114,16 +114,15 @@ class TravelViewCountServiceTest {
     void updateViewCountWhenManyUser() throws InterruptedException {
         // given
         Integer travelNumber = 10;
-
         String key = VIEW_COUNT_KEY_PREFIX + travelNumber.toString();
         redisTemplate.opsForValue().set(key, "0"); // 조회수 0으로 설정
 
-        int numberOfThreads = 10;
-        ExecutorService executorService = Executors.newFixedThreadPool(5);
-        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+        int userCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch latch = new CountDownLatch(userCount);
 
         // when
-        for (int i = 1; i <= numberOfThreads; i++) {
+        for (int i = 1; i <= userCount; i++) {
             String userIdentifier = String.valueOf(i);
             executorService.submit(() -> {
                 try {
