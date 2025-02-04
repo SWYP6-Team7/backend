@@ -3,17 +3,13 @@ package swyp.swyp6_team7.auth.controller;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.dto.SignupRequestDto;
 import swyp.swyp6_team7.auth.service.GoogleService;
-import swyp.swyp6_team7.auth.service.KakaoService;
 
-import java.net.URI;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -22,16 +18,14 @@ import java.util.UUID;
 public class GoogleController {
 
     private final GoogleService googleService;
+    @Value("${google.client-id}")
+    private String clientId;
+    @Value("${google.redirect-uri}")
+    private String redirectUri;
 
     public GoogleController(GoogleService googleService) {
         this.googleService = googleService;
     }
-
-    @Value("${google.client-id}")
-    private String clientId;
-
-    @Value("${google.redirect-uri}")
-    private String redirectUri;
 
     // 구글 로그인 리디렉션
     @GetMapping("/login/oauth/google")
@@ -78,9 +72,8 @@ public class GoogleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Failed to process Google login: " + e.getMessage());
         }
-
-
     }
+
     @PutMapping("/social/google/complete-signup")
     public ResponseEntity<Map<String, String>> completeGoogleSignup(@RequestBody SignupRequestDto signupData) {
         try {

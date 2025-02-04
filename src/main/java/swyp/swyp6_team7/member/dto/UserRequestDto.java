@@ -17,6 +17,8 @@ public class UserRequestDto {
     private String agegroup;   // user_age_group
     private Set<String> preferredTags; // 사용자 선호 태그 리스트
 
+    private String sessionToken; // 회원가입 요청 Session Token
+
     // 관리자로 가입할 떄 사용하는 키
     @Value("${custom.admin-secret-key}")
     private String adminSecretKey;

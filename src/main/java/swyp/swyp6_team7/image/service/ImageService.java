@@ -101,7 +101,7 @@ public class ImageService {
         Image image = imageRepository.findByRelatedTypeAndRelatedNumberAndOrder(relatedType, relatedNumber, order)
                 .orElseThrow(() -> {
                     log.warn("Image Not Found. relatedType: {}, relatedNumber: {}, order: {}", relatedType, relatedNumber, order);
-                    throw new IllegalArgumentException("이미지를 찾을 수 없습니다.");
+                    return new IllegalArgumentException("이미지를 찾을 수 없습니다.");
                 });
 
         return ImageDetailResponseDto.from(image);

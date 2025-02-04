@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ImageRepository extends JpaRepository<Image, Long> {
+public interface ImageRepository extends JpaRepository<Image, Long>, ImageCustomRepository {
 
     // 관련 타입과 관련 번호로 단일 이미지를 찾는 메소드
     Optional<Image> findByRelatedTypeAndRelatedNumber(String relatedType, int relatedNumber);

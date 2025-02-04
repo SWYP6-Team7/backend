@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.member.util;
+package swyp.swyp6_team7.global.utils.auth;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

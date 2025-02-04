@@ -8,22 +8,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.category.domain.Category;
 import swyp.swyp6_team7.category.repository.CategoryRepository;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
 import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
-import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
-import swyp.swyp6_team7.category.domain.Category;
-
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.community.util.CommunitySearchSortingType;
-import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
 import java.security.Principal;
 
@@ -33,20 +28,17 @@ import java.security.Principal;
 @RequestMapping("/api/community")
 public class CommunityController {
     private final CommunityService communityService;
-    private final MemberService memberService;
     private final CategoryRepository categoryRepository;
     private final CommunityListService communityListService;
-    private final JwtProvider jwtProvider;
 
 
     //C
     @PostMapping("/posts")
     public ResponseEntity<CommunityDetailResponseDto> create(
-            @RequestBody CommunityCreateRequestDto request, Principal principal) {
-
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
-        log.info("UserNumber: {}",userNumber);
+            @RequestBody CommunityCreateRequestDto request,
+            @RequireUserNumber Integer userNumber
+    ) {
+        log.info("UserNumber: {}", userNumber);
 
         // 게시물 등록 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
@@ -60,12 +52,13 @@ public class CommunityController {
     public ResponseEntity<?> getList(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
-            @RequestParam(name = "keyword",required = false) String keyword,
+            @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "categoryName", defaultValue = "전체") String categoryName,
             @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
-            Principal principal) {
+            Principal principal,
+            @RequireUserNumber Integer userNumber
+    ) {
 
-        Integer userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
         if (principal == null) {
             log.info("비회원 커뮤니티 목록 조회 요청");
         } else {
@@ -129,12 +122,10 @@ public class CommunityController {
 
     //R
     @GetMapping("/posts/{postNumber}")
-    public ResponseEntity<CommunityDetailResponseDto> getDetail( @PathVariable(name = "postNumber") int postNumber, Principal principal
+    public ResponseEntity<CommunityDetailResponseDto> getDetail(
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequireUserNumber Integer userNumber
     ) {
-
-        //user number 가져오기
-        Integer userNumber = (principal != null) ? MemberAuthorizeUtil.getLoginUserNumber() : null;
-
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
 
@@ -144,12 +135,10 @@ public class CommunityController {
     //U
     @PutMapping("/posts/{postNumber}")
     public ResponseEntity<CommunityDetailResponseDto> update(
-            @RequestBody CommunityUpdateRequestDto request, Principal principal, @PathVariable(name = "postNumber")  int postNumber) {
-
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
-
-
+            @RequestBody CommunityUpdateRequestDto request,
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequireUserNumber Integer userNumber
+    ) {
         // 게시물 수정 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.update(request, postNumber, userNumber);
 
@@ -157,10 +146,10 @@ public class CommunityController {
     }
 
     @DeleteMapping("/posts/{postNumber}")
-    public ResponseEntity<Void> delete(@PathVariable(name = "postNumber") int postNumber, Principal principal){
-
-        //user number 가져오기
-        Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
+    public ResponseEntity<Void> delete(
+            @PathVariable(name = "postNumber") int postNumber,
+            @RequireUserNumber Integer userNumber
+    ) {
 
         try {
             communityService.delete(postNumber, userNumber);

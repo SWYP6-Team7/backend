@@ -8,18 +8,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.dto.request.CommentCreateRequestDto;
 import swyp.swyp6_team7.comment.dto.request.CommentUpdateRequestDto;
 import swyp.swyp6_team7.comment.dto.response.CommentDetailResponseDto;
 import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.service.CommentService;
-
-import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.util.MemberAuthorizeUtil;
-
-import java.security.Principal;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,19 +22,16 @@ import java.security.Principal;
 public class CommentController {
 
     private final CommentService commentService;
-    private final MemberService memberService;
-    private final JwtProvider jwtProvider;
 
     //Create
     @PostMapping("/api/{relatedType}/{relatedNumber}/comments")
     public ResponseEntity<?> create(
             @RequestBody CommentCreateRequestDto request,
-            Principal principal,
             @PathVariable(name = "relatedType") String relatedType,
-            @PathVariable(name = "relatedNumber") int relatedNumber
+            @PathVariable(name = "relatedNumber") int relatedNumber,
+            @RequireUserNumber Integer userNumber
     ) {
         try {
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
             Comment createdComment = commentService.create(request, userNumber, relatedType, relatedNumber);
             log.info("댓글 생성 성공 - 댓글 번호: {}, 사용자 번호: {}", createdComment.getCommentNumber(), userNumber);
 
@@ -59,12 +51,12 @@ public class CommentController {
     public ResponseEntity<?> getComments(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
-            Principal principal,
             @PathVariable(name = "relatedType") String relatedType,
-            @PathVariable(name = "relatedNumber") int relatedNumber) {
+            @PathVariable(name = "relatedNumber") int relatedNumber,
+            @RequireUserNumber Integer userNumber
+    ) {
 
         try {
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
             Page<CommentListReponseDto> comments = commentService.getListPage(PageRequest.of(page, size), relatedType, relatedNumber, userNumber);
             log.info("댓글 목록 조회 성공 - 총 댓글 수: {}", comments.getTotalElements());
             return ResponseEntity.ok(comments);
@@ -84,11 +76,11 @@ public class CommentController {
     //Update
     @PutMapping("/api/comments/{commentNumber}")
     public ResponseEntity<?> update(
-            @RequestBody CommentUpdateRequestDto request, Principal principal,
-            @PathVariable(name = "commentNumber") int commentNumber
+            @RequestBody CommentUpdateRequestDto request,
+            @PathVariable(name = "commentNumber") int commentNumber,
+            @RequireUserNumber Integer userNumber
     ) {
         try {
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
             CommentDetailResponseDto updateResponse = commentService.update(request, userNumber, commentNumber);
 
             log.info("댓글 수정 성공 - 댓글 번호: {}, 사용자 번호: {}", commentNumber, userNumber);
@@ -107,10 +99,9 @@ public class CommentController {
     @DeleteMapping("/api/comments/{commentNumber}")
     public ResponseEntity<?> delete(
             @PathVariable(name = "commentNumber") int commentNumber,
-            Principal principal
+            @RequireUserNumber Integer userNumber
     ) {
         try {
-            Integer userNumber = MemberAuthorizeUtil.getLoginUserNumber();
             commentService.delete(commentNumber, userNumber);
 
             log.info("댓글 삭제 성공 - 댓글 번호: {}, 사용자 번호: {}", commentNumber, userNumber);
