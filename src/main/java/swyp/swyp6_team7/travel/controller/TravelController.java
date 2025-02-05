@@ -64,8 +64,8 @@ public class TravelController {
         // 조회수 update
         // userIdentifier: userNumber(로그인) / IP address + User agent(비로그인)
         String userIdentifier;
-        if (loginUserNumber != null) {
-            userIdentifier = loginUserNumber.toString();
+        if (userNumber != null) {
+            userIdentifier = userNumber.toString();
         } else {
             String ipAddress = ClientIpAddressUtil.getClientIp(request);
             String userBrowser = request.getHeader("User-Agent");
