@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface CommunityRepository extends JpaRepository<Community, Integer> {
 
     //게시물 상세 조회
-    @Query("SELECT c FROM Community c WHERE c.postNumber = :postNumber")
+    @Query("SELECT c FROM Community_Posts c WHERE c.postNumber = :postNumber")
     Optional<Community> findByPostNumber(@Param("postNumber") int postNumber);
     boolean existsByPostNumber(Integer postNumber);
 
