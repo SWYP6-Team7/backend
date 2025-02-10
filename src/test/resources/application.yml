@@ -22,6 +22,19 @@ spring:
         format_sql: true
   slack:
     webhook: ""
+
+  mail:
+    host: localhost
+    port: 3025
+    username: test-user
+    password: test-password
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration
@@ -112,3 +125,13 @@ google:
   scope: openid, profile, email
   client-name: Google
   provider: Google
+
+cloud:
+  aws:
+    s3:
+      bucket: bucket-name
+      base-folder: images/
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

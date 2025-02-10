@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.util.S3KeyHandler;
 import swyp.swyp6_team7.image.util.StorageNameHandler;
 
@@ -26,7 +25,6 @@ public class S3Uploader {
     private final S3Component s3Component;
     private final S3KeyHandler s3KeyHandler; // s3KeyHandler 추가 - FileFolderHandler
     private final StorageNameHandler storageNameHandler; // storageNameHandler 추가 - FileNameHandler
-    private final ImageRepository imageRepository;
 
 
     //S3에 파일 업로드 하는 메소드
@@ -72,7 +70,7 @@ public class S3Uploader {
             throw new RuntimeException("S3 파일 업로드 실패", e);
         } catch (SdkClientException e) {
             // AWS SDK S3 파일 업로드 예외 처리
-            log.warn("S3 파일 업로드 SdkClientException 실패 for Key: {}", S3Key);
+            log.warn("S3 파일 업로드 SdkClientException 실패 for Key: {}\nexception: {}", S3Key, e.getMessage());
             throw new RuntimeException("S3 파일 업로드 실패", e);
         }
         // S3Path 리턴
