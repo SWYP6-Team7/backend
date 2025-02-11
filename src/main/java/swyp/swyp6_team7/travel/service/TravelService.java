@@ -8,7 +8,6 @@ import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.comment.service.CommentService;
-import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
@@ -101,6 +100,7 @@ public class TravelService {
         }
 
         // 주최자 프로필 이미지 (만약 못찾을 경우 default 프로필 이미지로 설정)
+        // TODO: DEFAULT_PROFILE_IMAGE_URL 수정
         String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
                 .orElse(DEFAULT_PROFILE_IMAGE_URL);
 
@@ -129,9 +129,9 @@ public class TravelService {
         if (hostNumber == requestUserNumber) {
             loginMemberRelatedInfo.setHostUserCheckTrue();
         } else {
-            Enrollment enrollment = enrollmentRepository
-                    .findTopByUserNumberAndTravelNumberOrderByCreatedAtDesc(requestUserNumber, travelNumber);
-            loginMemberRelatedInfo.setEnrollmentNumber(enrollment);
+            // PENDING 상태의 최신 Enrollment의 식별자를 가져온다 (없으면 NULL)
+            Long enrollmentNumber = enrollmentRepository.findPendingEnrollmentByTravelNumberAndUserNumber(travelNumber, requestUserNumber);
+            loginMemberRelatedInfo.setEnrollmentNumber(enrollmentNumber);
         }
 
         // 북마크 여부
