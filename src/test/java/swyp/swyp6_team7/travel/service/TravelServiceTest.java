@@ -204,8 +204,8 @@ class TravelServiceTest {
                 .status(EnrollmentStatus.PENDING)
                 .build();
 
-        given(enrollmentRepository.findTopByUserNumberAndTravelNumberOrderByCreatedAtDesc(anyInt(), anyInt()))
-                .willReturn(enrollment);
+        given(enrollmentRepository.findPendingEnrollmentByTravelNumberAndUserNumber(anyInt(), anyInt()))
+                .willReturn(enrollment.getNumber());
         given(bookmarkRepository.existsByUserNumberAndTravelNumber(requestUserNumber, travelNumber))
                 .willReturn(false);
 
