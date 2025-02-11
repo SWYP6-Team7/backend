@@ -46,6 +46,8 @@ public class EnrollmentService {
             log.warn("Enrollment create - 참가 신청 할 수 없는 상태의 여행입니다. travelNumber: {}", targetTravel.getNumber());
             throw new IllegalArgumentException("참가 신청 할 수 없는 상태의 여행입니다.");
         }
+        // TODO: PENDING 상태의 신청이 이미 존재하는지 확인
+
         Enrollment created = Enrollment.create(requestUserNumber, request.getTravelNumber(), request.getMessage());
         enrollmentRepository.save(created);
 

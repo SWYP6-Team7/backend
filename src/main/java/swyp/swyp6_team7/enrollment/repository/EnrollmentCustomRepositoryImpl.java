@@ -3,6 +3,7 @@ package swyp.swyp6_team7.enrollment.repository;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.domain.QEnrollment;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
@@ -61,6 +62,20 @@ public class EnrollmentCustomRepositoryImpl implements EnrollmentCustomRepositor
                         enrollment.travelNumber.eq(travelNumber),
                         enrollment.status.eq(status)
                 ).distinct().fetch();
+    }
+
+    @Override
+    public Long findPendingEnrollmentByTravelNumberAndUserNumber(int travelNumber, int userNumber) {
+        return queryFactory
+                .select(enrollment.number)
+                .from(enrollment)
+                .where(
+                        enrollment.travelNumber.eq(travelNumber),
+                        enrollment.userNumber.eq(userNumber),
+                        enrollment.status.eq(EnrollmentStatus.PENDING)
+                )
+                .orderBy(enrollment.createdAt.desc())
+                .fetchFirst();
     }
 
     @Override
