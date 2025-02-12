@@ -21,6 +21,17 @@ jobs:
       - name: Create application-credentials.yml for test
         run: echo "${{ secrets.APPLICATION_TEST_CREDENTIALS }}" > ./src/test/resources/application-credentials.yml
 
+      - name: Set up Docker for Testcontainers
+        run: |
+          sudo systemctl start docker  # Docker 데몬 실행
+          docker --version  # Docker가 정상 실행되는지 확인
+
+      - name: Run Tests with Gradle
+        run: ./gradlew test
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true  # Ryuk 비활성화로 실행 속도 향상
+          TESTCONTAINERS_CHECKS_DISABLE: true # 불필요한 체크 비활성화
+
       - name: Run Test
         run: |
           chmod +x ./gradlew
