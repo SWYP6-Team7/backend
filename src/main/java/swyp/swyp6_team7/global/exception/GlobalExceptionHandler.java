@@ -17,6 +17,7 @@ import swyp.swyp6_team7.global.utils.api.ResultType;
 public class GlobalExceptionHandler {
 
     // 모든 예외 처리
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ApiResponse<String> handleAllExceptions(Exception e) {
         log.error("Global exception caught: {}", e.getMessage());
