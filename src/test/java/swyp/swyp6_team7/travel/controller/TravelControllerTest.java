@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import swyp.swyp6_team7.config.RedisContainerConfig;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
 import swyp.swyp6_team7.travel.domain.GenderType;
@@ -34,6 +36,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Import(
+        value = {RedisContainerConfig.class}
+)
 @SpringBootTest
 @AutoConfigureMockMvc
 class TravelControllerTest {
@@ -46,7 +51,6 @@ class TravelControllerTest {
 
     @MockBean
     private TravelService travelService;
-
 
     @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
@@ -298,7 +302,7 @@ class TravelControllerTest {
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
-    private Travel createTravel(int travelNumber, int hostNumber){
+    private Travel createTravel(int travelNumber, int hostNumber) {
         return Travel.builder()
                 .number(travelNumber)
                 .userNumber(hostNumber)
