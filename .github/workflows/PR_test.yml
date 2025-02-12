@@ -27,12 +27,9 @@ jobs:
           docker --version  # Docker가 정상 실행되는지 확인
 
       - name: Run Tests with Gradle
-        run: ./gradlew test
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: true  # Ryuk 비활성화로 실행 속도 향상
-          TESTCONTAINERS_CHECKS_DISABLE: true # 불필요한 체크 비활성화
-
-      - name: Run Test
         run: |
           chmod +x ./gradlew
           ./gradlew clean test
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true  # Ryuk 비활성화로 실행 속도 향상
+          TESTCONTAINERS_CHECKS_DISABLE: true # 불필요한 체크 비활성화
