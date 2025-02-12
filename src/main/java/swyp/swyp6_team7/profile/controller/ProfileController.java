@@ -1,7 +1,6 @@
 package swyp.swyp6_team7.profile.controller;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +45,6 @@ public class ProfileController {
     //프로필 조회 (이름, 이메일, 연령대, 성별, 선호 태그, 자기소개)
     @GetMapping("/me")
     public ResponseEntity<?> viewProfile(
-            HttpServletRequest request,
             @RequireUserNumber Integer userNumber
     ) {
         try {
