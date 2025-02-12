@@ -20,6 +20,7 @@ public class RedisContainerConfig {
     public GenericContainer redisContainer() {
         return new GenericContainer<>(DockerImageName.parse(REDIS_DOCKER_IMAGE))
                 .withExposedPorts(REDIS_PORT)
-                .waitingFor(Wait.forListeningPort());
+                .waitingFor(Wait.forListeningPort())
+                .withReuse(true);
     }
 }
