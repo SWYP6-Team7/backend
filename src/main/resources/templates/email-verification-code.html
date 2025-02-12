@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Email Verification</title>
     <style>
         body {
@@ -71,7 +71,7 @@
 <div class="email-container">
     <!-- 로고 -->
     <div class="logo">
-        <img src="https://www.moing.shop/images/homeLogo.png" alt="Moing">
+        <img alt="Moing" src="https://www.moing.io/images/homeLogo.png">
     </div>
 
     <!-- 제목 -->
@@ -87,8 +87,8 @@
 
     <!-- 인증번호 -->
     <div class="verification-code-box">
-        <p th:text="${verificationCode}"
-           style="-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: rgb(78,89, 104); margin-block: 2px; font-weight: 700; letter-spacing: 10px;">
+        <p style="-ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: rgb(78,89, 104); margin-block: 2px; font-weight: 700; letter-spacing: 10px;"
+           th:text="${verificationCode}">
             000000</p>
     </div>
 
