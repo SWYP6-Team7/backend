@@ -23,6 +23,7 @@ import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
+import swyp.swyp6_team7.travel.service.TravelViewCountService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,6 +53,9 @@ class TravelControllerTest {
 
     @MockBean
     private TravelService travelService;
+
+    @MockBean
+    private TravelViewCountService travelViewCountService;
 
     @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
@@ -187,6 +192,8 @@ class TravelControllerTest {
 
         given(travelService.getDetailsByNumber(anyInt()))
                 .willReturn(travelDetailResponse);
+        doNothing().when(travelViewCountService)
+                .updateViewCount(anyInt(), anyString());
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
@@ -235,6 +242,8 @@ class TravelControllerTest {
                 .willReturn(travelDetailResponse);
         given(travelService.getTravelDetailMemberRelatedInfo(anyInt(), anyInt(), anyInt(), anyString()))
                 .willReturn(memberRelatedDto);
+        doNothing().when(travelViewCountService)
+                .updateViewCount(anyInt(), anyString());
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
