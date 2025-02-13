@@ -126,6 +126,10 @@ google:
   client-name: Google
   provider: Google
 
+redis:
+  host: localhost
+  port: 6379
+  
 cloud:
   aws:
     s3:

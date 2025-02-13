@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.global.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -14,10 +15,17 @@ import java.util.List;
 @Configuration
 public class RedisConfig {
 
+    @Value("${redis.host}")
+    private String host;
+
+    @Value("${redis.port}")
+    private int port;
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory("localhost", 6379);
+        return new LettuceConnectionFactory(host, port);
     }
+
     @Bean(name = "listRedisTemplate")
     public RedisTemplate<String, List<String>> ListRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, List<String>> template = new RedisTemplate<>();

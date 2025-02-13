@@ -144,11 +144,6 @@ public class TravelService {
     }
 
     @Transactional
-    public void addViewCount(int travelNumber) {
-        travelRepository.updateViewCountPlusOneByTravelNumber(travelNumber);
-    }
-
-    @Transactional
     public Travel update(int travelNumber, TravelUpdateRequest request, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
