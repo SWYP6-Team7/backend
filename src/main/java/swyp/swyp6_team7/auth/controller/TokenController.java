@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,7 @@ public class TokenController {
     private final JwtBlacklistService jwtBlacklistService;
     private final TokenService tokenService;
 
-    // Refresh Token으로 새로운 Access Token 발급
+
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refreshAccessToken(HttpServletRequest request) {
         String refreshToken = getRefreshTokenFromCookies(request);
@@ -46,8 +47,19 @@ public class TokenController {
         }
 
         try {
-            String newAccessToken = tokenService.refreshWithLock(refreshToken);
-            log.info("새로운 Access Token 발급 성공: accessToken={}", newAccessToken);
+            // Refresh Token으로 새로운 Access Token과 Refresh Token(회전) 발급
+            Map<String, String> newTokens = tokenService.refreshWithLock(refreshToken);
+            String newAccessToken = newTokens.get("accessToken");
+            String newRefreshToken = newTokens.get("refreshToken");
+
+            // 새로운 Refresh Token을 HttpOnly 쿠키로 갱신
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(tokenService.getRefreshTokenValidity())
+                    .build();
+            response.addHeader("Set-Cookie", cookie.toString());
 
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("userId", String.valueOf(jwtProvider.getUserNumber(newAccessToken)));
