@@ -143,7 +143,7 @@ class NotificationServiceTest {
                 .willReturn(Optional.of(targetPost));
 
         // when
-        notificationService.createCommentNotifications(1, "community", postNumber);
+        notificationService.createCommentNotifications(5, "community", postNumber);
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(1)
@@ -175,7 +175,7 @@ class NotificationServiceTest {
                 .willReturn(Optional.of(targetPost));
 
         // when
-        notificationService.createCommentNotifications(1, "community", postNumber);
+        notificationService.createCommentNotifications(5, "community", postNumber);
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(1)

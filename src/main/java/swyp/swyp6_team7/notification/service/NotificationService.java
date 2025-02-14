@@ -142,7 +142,7 @@ public class NotificationService {
 
             // to 게시물 작성자
             // 최신 Notification이 동일한 커뮤니티 게시글에 대한 댓글 알림이고 읽지 않은 경우 -> 기존 알림 데이터를 이용해 알림 생성
-            Notification notification = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(requestUserNumber);
+            Notification notification = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(targetPost.getUserNumber());
             CommunityCommentNotification newNotification;
             if (isMatchingCommunityCommentNotification(notification, targetPost.getPostNumber())) {
                 CommunityCommentNotification oldNotification = (CommunityCommentNotification) notification;
