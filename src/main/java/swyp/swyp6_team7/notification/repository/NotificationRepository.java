@@ -14,6 +14,7 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     Page<Notification> getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(Pageable pageable, int userNumber);
+    Notification findTopByReceiverNumberOrderByCreatedAtDesc(int userNumber);
 
     @Query("select n.number from Notification n where n.createdAt < :cutOffDateTime")
     List<Long> getNumbersByCreatedBefore(@Param("cutOffDateTime") LocalDateTime cutOffDateTime);

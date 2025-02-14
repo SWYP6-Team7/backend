@@ -8,11 +8,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
+import swyp.swyp6_team7.community.domain.Community;
+import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
+import swyp.swyp6_team7.notification.dto.CommunityCommentNotificationDto;
 import swyp.swyp6_team7.notification.dto.NotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
 import swyp.swyp6_team7.notification.dto.TravelNotificationDto;
+import swyp.swyp6_team7.notification.entity.CommunityCommentNotification;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
 import swyp.swyp6_team7.notification.entity.TravelNotification;
@@ -36,6 +40,7 @@ public class NotificationService {
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final CommunityRepository communityRepository;
 
 
     @Async
@@ -91,7 +96,7 @@ public class NotificationService {
 
         // to 즐겨찾기(북마크) 사용자
         List<Integer> bookmarkedUsersNumber = bookmarkRepository.findUserNumberByTravelNumber(targetTravel.getNumber())
-                        .stream().collect(Collectors.toList());
+                .stream().collect(Collectors.toList());
         bookmarkedUsersNumber.removeAll(new HashSet<>(companionsNumber));
         bookmarkedUsersNumber.removeAll(new HashSet<>(pendingUsersNumber));
 
@@ -106,29 +111,60 @@ public class NotificationService {
 
     @Async
     public void createCommentNotifications(Integer requestUserNumber, String relatedType, Integer relatedNumber) {
-        if (!relatedType.equals("travel")) {
-            return;
+        // TODO: 메서드 OR 서비스 클래스 분리
+        if (relatedType.equals("travel")) {
+            Travel targetTravel = travelRepository.findByNumber(relatedNumber)
+                    .orElseThrow(() -> {
+                        log.warn("new comment notification - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", relatedNumber);
+                        return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+                    });
+
+            // to 주최자 (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
+            if (requestUserNumber != targetTravel.getUserNumber()) {
+                notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
+            }
+
+            // to 신청자 (작성자는 알림 생성 제외)
+            List<Integer> enrolledUserNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.ACCEPTED);
+            List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
+                    .distinct()
+                    .filter(userNumber -> userNumber != requestUserNumber)
+                    .map(userNumber -> NotificationMaker.travelNewCommentMessageToEnrollments(targetTravel, userNumber))
+                    .toList();
+            notificationRepository.saveAll(createdNotifications);
+
+        } else if (relatedType.equals("community")) {
+            Community targetPost = communityRepository.findByPostNumber(relatedNumber)
+                    .orElseThrow(() -> {
+                        log.warn("new comment notification - 존재하지 않는 커뮤니티 게시글입니다. postNumber: {}", relatedNumber);
+                        return new IllegalArgumentException("존재하지 않는 커뮤니티 게시글입니다.");
+                    });
+
+            // to 게시물 작성자
+            // 최신 Notification이 동일한 커뮤니티 게시글에 대한 댓글 알림이고 읽지 않은 경우 -> 기존 알림 데이터를 이용해 알림 생성
+            Notification notification = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(requestUserNumber);
+            CommunityCommentNotification newNotification;
+            if (isMatchingCommunityCommentNotification(notification, targetPost.getPostNumber())) {
+                CommunityCommentNotification oldNotification = (CommunityCommentNotification) notification;
+                newNotification = CommunityCommentNotification.create(targetPost, oldNotification.getNotificationCount() + 1);
+                notificationRepository.delete(oldNotification);
+            } else {
+                newNotification = CommunityCommentNotification.create(targetPost, 1);
+            }
+            notificationRepository.save(newNotification);
+        }
+    }
+
+    private boolean isMatchingCommunityCommentNotification(Notification notification, Integer postNumber) {
+        if (!(notification instanceof CommunityCommentNotification)) {
+            return false;
         }
 
-        Travel targetTravel = travelRepository.findByNumber(relatedNumber)
-                .orElseThrow(() -> {
-                    log.warn("new comment notification - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", relatedNumber);
-                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
-                });
-
-        // to 주최자 (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
-        if (requestUserNumber != targetTravel.getUserNumber()) {
-            notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
+        CommunityCommentNotification commentNotification = (CommunityCommentNotification) notification;
+        if (commentNotification.getCommunityNumber() != postNumber || commentNotification.getIsRead() == true) {
+            return false;
         }
-
-        // to 신청자 (작성자는 알림 생성 제외)
-        List<Integer> enrolledUserNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.ACCEPTED);
-        List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
-                .distinct()
-                .filter(userNumber -> userNumber != requestUserNumber)
-                .map(userNumber -> NotificationMaker.travelNewCommentMessageToEnrollments(targetTravel, userNumber))
-                .toList();
-        notificationRepository.saveAll(createdNotifications);
+        return true;
     }
 
 
@@ -149,6 +185,9 @@ public class NotificationService {
         } else if (notification instanceof TravelCommentNotification) {
             TravelCommentNotification travelCommentNotification = (TravelCommentNotification) notification;
             result = new TravelCommentNotificationDto(travelCommentNotification);
+        } else if (notification instanceof CommunityCommentNotification) {
+            CommunityCommentNotification communityCommentNotification = (CommunityCommentNotification) notification;
+            result = new CommunityCommentNotificationDto(communityCommentNotification);
         } else {
             result = new NotificationDto(notification);
         }

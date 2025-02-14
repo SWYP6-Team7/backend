@@ -65,7 +65,7 @@ public class CommentService {
                 relatedNumber
         ));
 
-        //create notification to Host and Enrolled Users
+        // create comment notification
         notificationService.createCommentNotifications(userNumber, relatedType, relatedNumber);
         log.info("댓글 생성 성공 - 댓글 번호: {}, 사용자 번호: {}, 관련 타입: {}, 관련 번호: {}",
                 savedComment.getCommentNumber(), userNumber, relatedType, relatedNumber);

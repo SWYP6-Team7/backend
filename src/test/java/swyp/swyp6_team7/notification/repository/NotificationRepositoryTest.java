@@ -98,6 +98,25 @@ public class NotificationRepositoryTest {
                 .containsExactly(notification1.getNumber(), notification2.getNumber());
     }
 
+    @DisplayName("특정 사용자의 알림 중 가장 최근에 생성된 것을 한 개 가져온다.")
+    @Test
+    void findTopByReceiverNumberOrderByCreatedAtDesc() {
+        // given
+        LocalDateTime time1 = LocalDateTime.of(2025, 2, 14, 0, 0);
+        when(dateTimeProvider.getNow()).thenReturn(Optional.of(time1));
+        Notification notification1 = notificationRepository.save(createNotification(true));
+
+        LocalDateTime time2 = LocalDateTime.of(2025, 2, 14, 12, 0);
+        when(dateTimeProvider.getNow()).thenReturn(Optional.of(time2));
+        Notification notification2 = notificationRepository.save(createNotification(true));
+
+        // when
+        Notification result = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(1);
+
+        // then
+        assertThat(result).isEqualTo(notification2);
+    }
+
     @DisplayName("알림 식별자 목록이 주어질 때 해당 알림들을 삭제한다.")
     @Test
     void deleteAllByNumbers() {
@@ -130,5 +149,4 @@ public class NotificationRepositoryTest {
                 .isRead(isRead)
                 .build());
     }
-
 }
