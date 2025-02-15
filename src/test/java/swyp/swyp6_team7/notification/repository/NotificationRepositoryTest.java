@@ -13,7 +13,9 @@ import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.notification.entity.CommunityPostLikeNotification;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.TravelNotification;
 
@@ -117,6 +119,35 @@ public class NotificationRepositoryTest {
         assertThat(result).isEqualTo(notification2);
     }
 
+    @DisplayName("커뮤니티 게시물에 대한 좋아요 알림을 찾을 수 있다.")
+    @Test
+    void findCommunityPostLikeNotificationByPostNumber() {
+        // given
+        LocalDateTime time1 = LocalDateTime.of(2025, 2, 14, 0, 0);
+        when(dateTimeProvider.getNow()).thenReturn(Optional.of(time1));
+
+        Integer postNumber = 10;
+        Integer userNumber = 5;
+        Community targetPost = createCommunityPost(postNumber, userNumber);
+        CommunityPostLikeNotification notification = CommunityPostLikeNotification.builder()
+                .receiverNumber(targetPost.getUserNumber())
+                .title("커뮤니티")
+                .content(String.format("[%s]에 좋아요가 %d개 달렸어요.", targetPost.getTitle(), 1))
+                .isRead(false)
+                .communityNumber(postNumber)
+                .notificationCount(1)
+                .build();
+        notificationRepository.save(notification);
+
+        // when
+        CommunityPostLikeNotification result = notificationRepository.findCommunityPostLikeNotificationByPostNumber(10);
+
+        // then
+        assertThat(result)
+                .extracting("receiverNumber", "communityNumber", "notificationCount")
+                .contains(10, 5, 1);
+    }
+
     @DisplayName("알림 식별자 목록이 주어질 때 해당 알림들을 삭제한다.")
     @Test
     void deleteAllByNumbers() {
@@ -148,5 +179,9 @@ public class NotificationRepositoryTest {
                 .receiverNumber(1)
                 .isRead(isRead)
                 .build());
+    }
+
+    private Community createCommunityPost(Integer postNumber, Integer userNumber) {
+        return new Community(postNumber, userNumber, 1, "Test Title", "Test Content", LocalDateTime.now(), 0);
     }
 }

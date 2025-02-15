@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import swyp.swyp6_team7.notification.entity.CommunityPostLikeNotification;
 import swyp.swyp6_team7.notification.entity.Notification;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,11 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     Page<Notification> getNotificationsByReceiverNumberOrderByIsReadAscCreatedAtDesc(Pageable pageable, int userNumber);
+
     Notification findTopByReceiverNumberOrderByCreatedAtDesc(int userNumber);
+
+    @Query(value = "SELECT * FROM notifications WHERE DTYPE = 'community_post_like' and community_number = :postNumber", nativeQuery = true)
+    CommunityPostLikeNotification findCommunityPostLikeNotificationByPostNumber(@Param("postNumber") Integer postNumber);
 
     @Query("select n.number from Notification n where n.createdAt < :cutOffDateTime")
     List<Long> getNumbersByCreatedBefore(@Param("cutOffDateTime") LocalDateTime cutOffDateTime);

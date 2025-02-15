@@ -12,14 +12,8 @@ import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.notification.dto.CommunityCommentNotificationDto;
-import swyp.swyp6_team7.notification.dto.NotificationDto;
-import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
-import swyp.swyp6_team7.notification.dto.TravelNotificationDto;
-import swyp.swyp6_team7.notification.entity.CommunityCommentNotification;
-import swyp.swyp6_team7.notification.entity.Notification;
-import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
-import swyp.swyp6_team7.notification.entity.TravelNotification;
+import swyp.swyp6_team7.notification.dto.*;
+import swyp.swyp6_team7.notification.entity.*;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.notification.util.NotificationMaker;
 import swyp.swyp6_team7.travel.domain.Travel;
@@ -140,6 +134,8 @@ public class NotificationService {
                         return new IllegalArgumentException("존재하지 않는 커뮤니티 게시글입니다.");
                     });
 
+            // todo: 게시물 작성자의 댓글인 경우 -> 전송 x
+
             // to 게시물 작성자
             // 최신 Notification이 동일한 커뮤니티 게시글에 대한 댓글 알림이고 읽지 않은 경우 -> 기존 알림 데이터를 이용해 알림 생성
             Notification notification = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(targetPost.getUserNumber());
@@ -188,6 +184,9 @@ public class NotificationService {
         } else if (notification instanceof CommunityCommentNotification) {
             CommunityCommentNotification communityCommentNotification = (CommunityCommentNotification) notification;
             result = new CommunityCommentNotificationDto(communityCommentNotification);
+        } else if (notification instanceof CommunityPostLikeNotification) {
+            CommunityPostLikeNotification communityCommentNotification = (CommunityPostLikeNotification) notification;
+            result = new CommunityPostLikeNotificationDto(communityCommentNotification);
         } else {
             result = new NotificationDto(notification);
         }
