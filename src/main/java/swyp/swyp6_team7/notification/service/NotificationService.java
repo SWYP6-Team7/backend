@@ -134,35 +134,25 @@ public class NotificationService {
                         return new IllegalArgumentException("존재하지 않는 커뮤니티 게시글입니다.");
                     });
 
-            // todo: 게시물 작성자의 댓글인 경우 -> 전송 x
+            if (requestUserNumber == targetPost.getUserNumber()) {
+                return;
+            }
 
             // to 게시물 작성자
-            // 최신 Notification이 동일한 커뮤니티 게시글에 대한 댓글 알림이고 읽지 않은 경우 -> 기존 알림 데이터를 이용해 알림 생성
-            Notification notification = notificationRepository.findTopByReceiverNumberOrderByCreatedAtDesc(targetPost.getUserNumber());
+            // 기존 댓글 알림이 있는 경우 -> 기존 데이터를 이용해 새로 알림을 생성
+            CommunityCommentNotification notification = notificationRepository
+                    .findCommunityCommentNotificationByPostNumber(targetPost.getPostNumber());
+
             CommunityCommentNotification newNotification;
-            if (isMatchingCommunityCommentNotification(notification, targetPost.getPostNumber())) {
-                CommunityCommentNotification oldNotification = (CommunityCommentNotification) notification;
-                newNotification = CommunityCommentNotification.create(targetPost, oldNotification.getNotificationCount() + 1);
-                notificationRepository.delete(oldNotification);
-            } else {
+            if (notification == null) {
                 newNotification = CommunityCommentNotification.create(targetPost, 1);
+            } else {
+                newNotification = CommunityCommentNotification.create(targetPost, notification.getNotificationCount() + 1);
+                notificationRepository.delete(notification);
             }
             notificationRepository.save(newNotification);
         }
     }
-
-    private boolean isMatchingCommunityCommentNotification(Notification notification, Integer postNumber) {
-        if (!(notification instanceof CommunityCommentNotification)) {
-            return false;
-        }
-
-        CommunityCommentNotification commentNotification = (CommunityCommentNotification) notification;
-        if (commentNotification.getCommunityNumber() != postNumber || commentNotification.getIsRead() == true) {
-            return false;
-        }
-        return true;
-    }
-
 
     public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest, int requestUserNumber) {
 

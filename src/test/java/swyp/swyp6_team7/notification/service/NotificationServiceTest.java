@@ -153,7 +153,7 @@ class NotificationServiceTest {
                 );
     }
 
-    @DisplayName("특정 사용자의 가장 최신 알림이 동일한 커뮤니티 게시글에 대한 댓글 알림이고 읽지 않은 경우, 기존 알림 데이터를 이용해 알림을 생성한다.")
+    @DisplayName("커뮤니티 게시글에 대해 댓글 알림이 존재한다면, 기존 알림 데이터를 이용해 알림을 생성한다.")
     @Test
     void communityCommentNotificationWhenReuse() {
         // given
@@ -183,6 +183,23 @@ class NotificationServiceTest {
                 .contains(
                         tuple(1,"커뮤니티", "[Test Title]에 댓글이 2개 달렸어요.", false, 10, 2)
                 );
+    }
+
+    @DisplayName("커뮤니티 게시물 작성자가 댓글을 추가한 경우, 알림이 생성되지 않는다.")
+    @Test
+    void communityCommentNotificationWhenPostOwner() {
+        // given
+        Integer postNumber = 10;
+        Integer userNumber = 1;
+        Community targetPost = createCommunityPost(postNumber, userNumber);
+        given(communityRepository.findByPostNumber(anyInt()))
+                .willReturn(Optional.of(targetPost));
+
+        // when
+        notificationService.createCommentNotifications(1, "community", postNumber);
+
+        // then
+        assertThat(notificationRepository.findAll()).isEmpty();
     }
 
     private Companion createCompanion(Travel travel, int userNumber) {

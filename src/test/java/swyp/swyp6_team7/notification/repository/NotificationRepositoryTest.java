@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.notification.entity.CommunityCommentNotification;
 import swyp.swyp6_team7.notification.entity.CommunityPostLikeNotification;
 import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.TravelNotification;
@@ -117,6 +118,35 @@ public class NotificationRepositoryTest {
 
         // then
         assertThat(result).isEqualTo(notification2);
+    }
+
+    @DisplayName("커뮤니티 게시물에 대한 댓글 알림을 찾을 수 있다.")
+    @Test
+    void findCommunityCommentNotificationByPostNumber() {
+        // given
+        LocalDateTime time1 = LocalDateTime.of(2025, 2, 14, 0, 0);
+        when(dateTimeProvider.getNow()).thenReturn(Optional.of(time1));
+
+        Integer postNumber = 10;
+        Integer userNumber = 5;
+        Community targetPost = createCommunityPost(postNumber, userNumber);
+        CommunityCommentNotification notification = CommunityCommentNotification.builder()
+                .receiverNumber(targetPost.getUserNumber())
+                .title("커뮤니티")
+                .content(String.format("[%s]에 댓글이 %d개 달렸어요.", targetPost.getTitle(), 1))
+                .isRead(false)
+                .communityNumber(postNumber)
+                .notificationCount(1)
+                .build();
+        notificationRepository.save(notification);
+
+        // when
+        CommunityCommentNotification result = notificationRepository.findCommunityCommentNotificationByPostNumber(10);
+
+        // then
+        assertThat(result)
+                .extracting("receiverNumber", "communityNumber", "notificationCount")
+                .contains(10, 5, 1);
     }
 
     @DisplayName("커뮤니티 게시물에 대한 좋아요 알림을 찾을 수 있다.")
