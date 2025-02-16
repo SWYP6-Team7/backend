@@ -10,16 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.notification.dto.NotificationDto;
-import swyp.swyp6_team7.notification.dto.TravelCommentNotificationDto;
-import swyp.swyp6_team7.notification.dto.TravelNotificationDto;
-import swyp.swyp6_team7.notification.entity.Notification;
-import swyp.swyp6_team7.notification.entity.TravelCommentNotification;
-import swyp.swyp6_team7.notification.entity.TravelNotification;
+import swyp.swyp6_team7.notification.dto.*;
+import swyp.swyp6_team7.notification.entity.*;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.notification.util.NotificationMaker;
 import swyp.swyp6_team7.travel.domain.Travel;
-import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,10 +28,8 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
-
 
     @Async
     public void createEnrollNotification(Travel targetTravel, int enrollUserNumber) {
@@ -91,7 +84,7 @@ public class NotificationService {
 
         // to 즐겨찾기(북마크) 사용자
         List<Integer> bookmarkedUsersNumber = bookmarkRepository.findUserNumberByTravelNumber(targetTravel.getNumber())
-                        .stream().collect(Collectors.toList());
+                .stream().collect(Collectors.toList());
         bookmarkedUsersNumber.removeAll(new HashSet<>(companionsNumber));
         bookmarkedUsersNumber.removeAll(new HashSet<>(pendingUsersNumber));
 
@@ -103,34 +96,6 @@ public class NotificationService {
 
         notificationRepository.saveAll(createdNotifications);
     }
-
-    @Async
-    public void createCommentNotifications(Integer requestUserNumber, String relatedType, Integer relatedNumber) {
-        if (!relatedType.equals("travel")) {
-            return;
-        }
-
-        Travel targetTravel = travelRepository.findByNumber(relatedNumber)
-                .orElseThrow(() -> {
-                    log.warn("new comment notification - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", relatedNumber);
-                    return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
-                });
-
-        // to 주최자 (댓글 작성자가 주최자가 아닌 경우에만 주최자용 알림 생성)
-        if (requestUserNumber != targetTravel.getUserNumber()) {
-            notificationRepository.save(NotificationMaker.travelNewCommentMessageToHost(targetTravel));
-        }
-
-        // to 신청자 (작성자는 알림 생성 제외)
-        List<Integer> enrolledUserNumbers = enrollmentRepository.findUserNumbersByTravelNumberAndStatus(targetTravel.getNumber(), EnrollmentStatus.ACCEPTED);
-        List<TravelCommentNotification> createdNotifications = enrolledUserNumbers.stream()
-                .distinct()
-                .filter(userNumber -> userNumber != requestUserNumber)
-                .map(userNumber -> NotificationMaker.travelNewCommentMessageToEnrollments(targetTravel, userNumber))
-                .toList();
-        notificationRepository.saveAll(createdNotifications);
-    }
-
 
     public Page<NotificationDto> getNotificationsByUser(PageRequest pageRequest, int requestUserNumber) {
 
@@ -149,6 +114,12 @@ public class NotificationService {
         } else if (notification instanceof TravelCommentNotification) {
             TravelCommentNotification travelCommentNotification = (TravelCommentNotification) notification;
             result = new TravelCommentNotificationDto(travelCommentNotification);
+        } else if (notification instanceof CommunityCommentNotification) {
+            CommunityCommentNotification communityCommentNotification = (CommunityCommentNotification) notification;
+            result = new CommunityCommentNotificationDto(communityCommentNotification);
+        } else if (notification instanceof CommunityPostLikeNotification) {
+            CommunityPostLikeNotification communityCommentNotification = (CommunityPostLikeNotification) notification;
+            result = new CommunityPostLikeNotificationDto(communityCommentNotification);
         } else {
             result = new NotificationDto(notification);
         }

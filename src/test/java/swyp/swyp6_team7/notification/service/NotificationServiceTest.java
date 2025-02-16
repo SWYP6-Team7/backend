@@ -40,7 +40,6 @@ class NotificationServiceTest {
     @MockBean
     private BookmarkRepository bookmarkRepository;
 
-
     @AfterEach
     void tearDown() {
         notificationRepository.deleteAllInBatch();
@@ -64,17 +63,17 @@ class NotificationServiceTest {
                         tuple(2, "참가 신청 알림", "[여행Title]에 참가 신청이 완료되었어요. 주최자가 참가를 확정하면 알려드릴게요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16))
                 );
     }
-    
+
     @DisplayName("acceptNotification: 주어지는 사용자 번호에 대해 신청 수락 알림을 생성한다.")
     @Test
     void createAcceptNotification() {
         // given
         Travel targetTravel = createTravel(1);
         int enrollmentUserNumber = 2;
-    
+
         // when
         notificationService.createAcceptNotification(targetTravel, enrollmentUserNumber);
-    
+
         // then
         assertThat(notificationRepository.findAll()).hasSize(1)
                 .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle", "travelDueDate")
@@ -123,7 +122,6 @@ class NotificationServiceTest {
                 );
     }
 
-
     private Companion createCompanion(Travel travel, int userNumber) {
         return Companion.builder()
                 .travel(travel)
@@ -140,5 +138,4 @@ class NotificationServiceTest {
                 .dueDate(LocalDate.of(2024, 11, 16))
                 .build();
     }
-
 }

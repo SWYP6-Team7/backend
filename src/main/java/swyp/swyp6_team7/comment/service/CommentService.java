@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.comment.domain.Comment;
@@ -20,11 +19,10 @@ import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
-
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.notification.service.NotificationService;
+import swyp.swyp6_team7.notification.service.CommentNotificationService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
@@ -43,7 +41,7 @@ public class CommentService {
     private final TravelRepository travelRepository;
     private final CommunityRepository communityRepository;
     private final ImageRepository imageRepository;
-    private final NotificationService notificationService;
+    private final CommentNotificationService commentNotificationService;
 
     // Create
     @Transactional
@@ -64,11 +62,15 @@ public class CommentService {
                 relatedType,
                 relatedNumber
         ));
-
-        //create notification to Host and Enrolled Users
-        notificationService.createCommentNotifications(userNumber, relatedType, relatedNumber);
         log.info("댓글 생성 성공 - 댓글 번호: {}, 사용자 번호: {}, 관련 타입: {}, 관련 번호: {}",
                 savedComment.getCommentNumber(), userNumber, relatedType, relatedNumber);
+
+        // 댓글 알림 전송
+        if (relatedType.equals("travel")) {
+            commentNotificationService.createTravelCommentNotification(userNumber, relatedNumber);
+        } else if (relatedType.equals("community")) {
+            commentNotificationService.createCommunityCommentNotification(userNumber, relatedNumber);
+        }
 
         return savedComment;
     }
@@ -184,6 +186,7 @@ public class CommentService {
             throw new RuntimeException("댓글 삭제 실패: " + e.getMessage());
         }
     }
+
     private void deleteReplies(Comment comment) {
         List<Comment> replies = commentRepository.findByRelatedTypeAndRelatedNumberAndParentNumber(
                 comment.getRelatedType(), comment.getRelatedNumber(), comment.getCommentNumber());
@@ -197,6 +200,7 @@ public class CommentService {
             }
         }
     }
+
     private List<CommentListReponseDto> convertToResponseDtos(List<Comment> comments, Integer userNumber) {
         List<CommentListReponseDto> responseDtos = new ArrayList<>();
         for (Comment comment : comments) {
@@ -320,7 +324,7 @@ public class CommentService {
     //답글 작성 여부 가져오기
     private Boolean getCommented(Comment comment, Integer userNumber) {
 
-        if(userNumber == null){
+        if (userNumber == null) {
             return false;
         }
 

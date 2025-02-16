@@ -2,18 +2,12 @@ package swyp.swyp6_team7.comment.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.dto.request.CommentCreateRequestDto;
-import swyp.swyp6_team7.comment.dto.request.CommentUpdateRequestDto;
 import swyp.swyp6_team7.comment.dto.response.CommentDetailResponseDto;
 import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
@@ -21,9 +15,8 @@ import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.notification.service.NotificationService;
+import swyp.swyp6_team7.notification.service.CommentNotificationService;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDateTime;
@@ -33,9 +26,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @Transactional
@@ -63,7 +57,7 @@ class CommentServiceTest {
     private ImageRepository imageRepository;
 
     @Mock
-    private NotificationService notificationService;
+    private CommentNotificationService notificationService;
 
     @Test
     @DisplayName("댓글 생성 성공")
@@ -86,7 +80,7 @@ class CommentServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isEqualTo("Test Comment");
-        verify(notificationService).createCommentNotifications(userNumber, relatedType, relatedNumber);
+        verify(notificationService).createCommunityCommentNotification(userNumber, relatedNumber);
     }
 
     @Test

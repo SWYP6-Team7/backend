@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.comment.domain.Comment;
-import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.comment.service.CommentService;
 import swyp.swyp6_team7.community.domain.Community;
@@ -13,8 +12,8 @@ import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.likes.domain.Like;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
+import swyp.swyp6_team7.notification.service.LikeNotificationService;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -27,6 +26,7 @@ public class LikeService {
     private final CommentService commentService;
     private final CommunityRepository communityRepository;
     private final CommunityService communityService;
+    private final LikeNotificationService likeNotificationService;
 
     @Transactional
     public Object toggleLike(String relatedType, int relatedNumber, int userNumber) {
@@ -72,6 +72,9 @@ public class LikeService {
                 // 좋아요 추가
                 Like like = new Like(relatedType, relatedNumber, userNumber);
                 likeRepository.save(like);
+                if (userNumber != community.getUserNumber()) {
+                    likeNotificationService.createCommunityPostLikeNotification(community); // 좋아요 알림
+                }
             }
             return communityService.getDetail(community.getPostNumber(), userNumber);
 
