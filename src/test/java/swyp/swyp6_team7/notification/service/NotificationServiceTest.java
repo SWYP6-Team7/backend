@@ -3,26 +3,20 @@ package swyp.swyp6_team7.notification.service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
-import swyp.swyp6_team7.community.domain.Community;
-import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.config.SynchronousTaskExecutorConfig;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
-import swyp.swyp6_team7.notification.entity.CommunityCommentNotification;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -45,10 +39,6 @@ class NotificationServiceTest {
 
     @MockBean
     private BookmarkRepository bookmarkRepository;
-
-    @MockBean
-    private CommunityRepository communityRepository;
-
 
     @AfterEach
     void tearDown() {
@@ -132,76 +122,6 @@ class NotificationServiceTest {
                 );
     }
 
-    @DisplayName("커뮤니티 댓글 알림을 생성할 수 있다.")
-    @Test
-    void createCommunityCommentNotification() {
-        // given
-        Integer postNumber = 10;
-        Integer userNumber = 1;
-        Community targetPost = createCommunityPost(postNumber, userNumber);
-        given(communityRepository.findByPostNumber(anyInt()))
-                .willReturn(Optional.of(targetPost));
-
-        // when
-        notificationService.createCommentNotifications(5, "community", postNumber);
-
-        // then
-        assertThat(notificationRepository.findAll()).hasSize(1)
-                .extracting("receiverNumber", "title", "content", "isRead", "communityNumber", "notificationCount")
-                .contains(
-                        tuple(1,"커뮤니티", "[Test Title]에 댓글이 1개 달렸어요.", false, 10, 1)
-                );
-    }
-
-    @DisplayName("커뮤니티 게시글에 대해 댓글 알림이 존재한다면, 기존 알림 데이터를 이용해 알림을 생성한다.")
-    @Test
-    void communityCommentNotificationWhenReuse() {
-        // given
-        Integer postNumber = 10;
-        Integer userNumber = 1;
-        Community targetPost = createCommunityPost(postNumber, userNumber);
-
-        CommunityCommentNotification newNotification = CommunityCommentNotification.builder()
-                .receiverNumber(targetPost.getUserNumber())
-                .title("커뮤니티")
-                .content(String.format("[%s]에 댓글이 %d개 달렸어요.", targetPost.getTitle(), 1))
-                .isRead(false)
-                .communityNumber(targetPost.getPostNumber())
-                .notificationCount(1)
-                .build();
-        notificationRepository.save(newNotification);
-
-        given(communityRepository.findByPostNumber(anyInt()))
-                .willReturn(Optional.of(targetPost));
-
-        // when
-        notificationService.createCommentNotifications(5, "community", postNumber);
-
-        // then
-        assertThat(notificationRepository.findAll()).hasSize(1)
-                .extracting("receiverNumber", "title", "content", "isRead", "communityNumber", "notificationCount")
-                .contains(
-                        tuple(1,"커뮤니티", "[Test Title]에 댓글이 2개 달렸어요.", false, 10, 2)
-                );
-    }
-
-    @DisplayName("커뮤니티 게시물 작성자가 댓글을 추가한 경우, 알림이 생성되지 않는다.")
-    @Test
-    void communityCommentNotificationWhenPostOwner() {
-        // given
-        Integer postNumber = 10;
-        Integer userNumber = 1;
-        Community targetPost = createCommunityPost(postNumber, userNumber);
-        given(communityRepository.findByPostNumber(anyInt()))
-                .willReturn(Optional.of(targetPost));
-
-        // when
-        notificationService.createCommentNotifications(1, "community", postNumber);
-
-        // then
-        assertThat(notificationRepository.findAll()).isEmpty();
-    }
-
     private Companion createCompanion(Travel travel, int userNumber) {
         return Companion.builder()
                 .travel(travel)
@@ -217,9 +137,5 @@ class NotificationServiceTest {
                 .maxPerson(2)
                 .dueDate(LocalDate.of(2024, 11, 16))
                 .build();
-    }
-
-    private Community createCommunityPost(Integer postNumber, Integer userNumber) {
-        return new Community(postNumber, userNumber, 1, "Test Title", "Test Content", LocalDateTime.now(), 0);
     }
 }

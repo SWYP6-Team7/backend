@@ -76,11 +76,11 @@ public class NotificationMaker {
                 .build();
     }
 
-    public static TravelCommentNotification travelNewCommentMessageToEnrollments(Travel targetTravel, int enrolledUserNumber) {
+    public static TravelCommentNotification travelNewCommentMessageToCompanions(Travel targetTravel, int companionUserNumber) {
         return TravelCommentNotification.builder()
-                .receiverNumber(enrolledUserNumber)
-                .title(NotificationMessageType.TRAVEL_NEW_COMMENT_ENROLLMENT.getTitle())
-                .content(NotificationMessageType.TRAVEL_NEW_COMMENT_ENROLLMENT.getContent(targetTravel.getTitle()))
+                .receiverNumber(companionUserNumber)
+                .title(NotificationMessageType.TRAVEL_NEW_COMMENT_COMPANION.getTitle())
+                .content(NotificationMessageType.TRAVEL_NEW_COMMENT_COMPANION.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
                 .isRead(false)
                 .build();

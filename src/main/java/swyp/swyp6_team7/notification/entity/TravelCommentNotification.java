@@ -39,7 +39,7 @@ public class TravelCommentNotification extends Notification {
                 ", title='" + super.getTitle() + '\'' +
                 ", content='" + super.getContent() + '\'' +
                 ", isRead=" + super.getIsRead() +
-                "travelNumber=" + travelNumber +
+                ", travelNumber=" + travelNumber +
                 '}';
     }
 

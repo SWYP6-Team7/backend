@@ -60,7 +60,7 @@ public enum NotificationMessageType {
         }
     },
 
-    TRAVEL_NEW_COMMENT_ENROLLMENT("멤버 댓글 알림") {
+    TRAVEL_NEW_COMMENT_COMPANION("멤버 댓글 알림") {
         public String getContent(String travelTitle) {
             return String.format("참가 신청하신 [%s]에 멤버 댓글이 달렸어요. 확인해보세요.", travelTitle);
         }
