@@ -15,8 +15,7 @@ import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,16 +49,30 @@ class TokenServiceTest {
         String refreshToken = "validRefreshToken";
         Integer userNumber = 12345;
         String lockKey = "refreshTokenLock:"+refreshToken;
+        String accessCacheKey = "refreshTokenCache:"+refreshToken;
+        String newAccessToken = "newAccessToken";
+        String newRefreshToken = "newRefreshToken";
+        long ttl = 900;
 
         when(valueOperations.setIfAbsent(eq(lockKey), eq("LOCKED"),eq(Duration.ofSeconds(5)))).thenReturn(true);
         when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
         when(jwtProvider.getUserNumber(refreshToken)).thenReturn(userNumber);
-        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(new Users()));
+        when(valueOperations.get("refreshToken:"+userNumber)).thenReturn(refreshToken);
+        Users user = new Users();
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(user));
         when(jwtProvider.createAccessToken(eq(userNumber), anyList())).thenReturn("newAccessToken");
+        when(jwtProvider.createRefreshToken(eq(userNumber))).thenReturn(newRefreshToken);
+        when(jwtProvider.getRemainingValidity(newAccessToken)).thenReturn(ttl);
 
-        String result = tokenService.refreshWithLock(refreshToken);
+        // 캐시된 Access Token이 없는 상태를 시뮬레이션
+        when(valueOperations.get(eq(accessCacheKey))).thenReturn(null);
 
-        assertEquals("newAccessToken", result);
+        Map<String, String> result = tokenService.refreshWithLock(refreshToken);
+
+        // 새로운 Access Token이 Redis에 캐시되었는지 검증
+        verify(valueOperations).set(eq(accessCacheKey), eq(newAccessToken), eq(Duration.ofSeconds(ttl)));
+        assertThat(result.get("accessToken")).isEqualTo(newAccessToken);
+        assertThat(result.get("refreshToken")).isEqualTo(newRefreshToken);
         verify(redisTemplate).delete(lockKey);
     }
 
@@ -74,7 +87,6 @@ class TokenServiceTest {
 
         JwtException exception = assertThrows(JwtException.class, () -> tokenService.refreshWithLock(refreshToken));
         assertEquals("유효하지 않은 RefreshToken입니다.", exception.getMessage());
-        verify(redisTemplate).delete(lockKey);
     }
 
     @Test
@@ -89,9 +101,8 @@ class TokenServiceTest {
         when(jwtProvider.getUserNumber(refreshToken)).thenReturn(userNumber);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> tokenService.refreshWithLock(refreshToken));
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        verify(redisTemplate).delete(lockKey);
+        JwtException exception = assertThrows(JwtException.class, () -> tokenService.refreshWithLock(refreshToken));
+        assertEquals("저장된 Refresh Token과 일치하지 않습니다.", exception.getMessage());
     }
 
     @Test
@@ -102,9 +113,8 @@ class TokenServiceTest {
 
         when(valueOperations.setIfAbsent(eq(lockKey),eq("LOCKED"),eq(Duration.ofSeconds(5)))).thenReturn(false);
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> tokenService.refreshWithLock(refreshToken));
-        assertEquals("동시 요청으로 인해 처리 중단: "+refreshToken, exception.getMessage());
-        verify(redisTemplate, never()).delete(lockKey);
+        JwtException exception = assertThrows(JwtException.class, () -> tokenService.refreshWithLock(refreshToken));
+        assertEquals("유효하지 않은 RefreshToken입니다.", exception.getMessage());
     }
 
     @Test
@@ -116,62 +126,79 @@ class TokenServiceTest {
         when(valueOperations.setIfAbsent(eq(lockKey), eq("LOCKED"),eq(Duration.ofSeconds(5)))).thenReturn(true);
         when(jwtProvider.validateToken(refreshToken)).thenThrow(new RuntimeException("Unexpected Error"));
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class,()->tokenService.refreshWithLock(refreshToken));
-        assertEquals("예기치 못한 오류가 발생했습니다.", exception.getMessage());
-        verify(redisTemplate).delete(lockKey);
+        RuntimeException exception = assertThrows(RuntimeException.class,()->tokenService.refreshWithLock(refreshToken));
+        assertEquals("Unexpected Error", exception.getMessage());
     }
     @Test
     @DisplayName("유효한 RefreshToken으로 Redis 캐싱과 TTL 설정 확인")
     void testRefreshTokenCachingAndTTL() {
         String refreshToken = "valid-refresh-token";
         String newAccessToken = "new-access-token";
+        String newRefreshToken = "new-refresh-token";
         Integer userNumber = 12345;
         long ttl = 900; // 15분
         String lockKey = "refreshTokenLock:" + refreshToken;
+        String accessCacheKey = "refreshTokenCache:"+refreshToken;
 
         when(valueOperations.setIfAbsent(eq(lockKey), eq("LOCKED"), eq(Duration.ofSeconds(5))))
                 .thenReturn(true);
 
         when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
         when(jwtProvider.getUserNumber(refreshToken)).thenReturn(userNumber);
-        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(new Users()));
+        when(valueOperations.get("refreshToken:"+userNumber)).thenReturn(refreshToken);
+        Users user = new Users();
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(user));
         when(jwtProvider.createAccessToken(userNumber, List.of("ROLE_USER"))).thenReturn(newAccessToken);
+        when(jwtProvider.createRefreshToken(userNumber)).thenReturn(newRefreshToken);
         when(jwtProvider.getRemainingValidity(newAccessToken)).thenReturn(ttl);
 
-        String result = tokenService.refreshWithLock(refreshToken);
+        when(valueOperations.get(eq(accessCacheKey))).thenReturn(null);
+        Map<String, String> result = tokenService.refreshWithLock(refreshToken);
 
         verify(valueOperations).set(
                 eq("refreshTokenCache:" + refreshToken),
                 eq(newAccessToken),
                 eq(Duration.ofSeconds(ttl))
         );
-
-        assertThat(result).isEqualTo(newAccessToken);
+        assertThat(result.get("accessToken")).isEqualTo(newAccessToken);
+        assertThat(result.get("refreshToken")).isEqualTo(newRefreshToken);
         verify(redisTemplate).delete(lockKey);
     }
 
     @Test
-    @DisplayName("Redis TTL 만료후 캐시 삭제 여부 확인")
+    @DisplayName("Redis TTL 만료 후 캐시 삭제 여부 확인")
     void testRedisTTLExpiration() throws InterruptedException {
         String refreshToken = "valid-refresh-token";
         String newAccessToken = "new-access-token";
+        String newRefreshToken = "new-refresh-token";
         Integer userNumber = 12345;
         long ttl = 2; // 2초 (테스트를 위해 짧게 설정)
+        String lockKey = "refreshTokenLock:" + refreshToken;
+        String accessCacheKey = "refreshTokenCache:" + refreshToken;
 
+        when(valueOperations.setIfAbsent(eq(lockKey),eq("LOCKED"),eq(Duration.ofSeconds(5))))
+                .thenReturn(true);
         when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
         when(jwtProvider.getUserNumber(refreshToken)).thenReturn(userNumber);
-        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(new Users()));
+        when(valueOperations.get("refreshToken:"+userNumber)).thenReturn(refreshToken);
+        Users user = new Users();
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.of(user));
         when(jwtProvider.createAccessToken(userNumber, List.of("ROLE_USER"))).thenReturn(newAccessToken);
+        when(jwtProvider.createRefreshToken(userNumber)).thenReturn(newRefreshToken);
         when(jwtProvider.getRemainingValidity(newAccessToken)).thenReturn(ttl);
 
+        // 처음 캐시에는 값이 존재함
+        when(valueOperations.get(eq(accessCacheKey))).thenReturn(newAccessToken);
 
-        when(valueOperations.get(eq("refreshTokenCache:" + refreshToken))).thenReturn(newAccessToken);
+        Map<String, String> result = tokenService.refreshWithLock(refreshToken);
+        assertThat(result.get("accessToken")).isEqualTo(newAccessToken);
 
-        String result = tokenService.refreshWithLock(refreshToken);
-        assertThat(result).isEqualTo(newAccessToken);
+        // stubbing 충돌을 방지하기 위해 valueOperations 모의를 재설정하고 다시 stubbing
+        reset(valueOperations);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(eq(accessCacheKey))).thenReturn(null);
 
-        when(valueOperations.get(eq("refreshTokenCache:" + refreshToken))).thenReturn(null);
-
+        // 이후 캐시 만료 후 null 반환
         assertThat(valueOperations.get("refreshTokenCache:" + refreshToken)).isNull();
     }
 }

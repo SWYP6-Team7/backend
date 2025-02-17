@@ -4,6 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ public class TokenController {
 
 
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refreshAccessToken(HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookies(request);
         log.info("Refresh Token으로 Access Token 재발급 요청");
 
