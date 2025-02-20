@@ -2,7 +2,6 @@ package swyp.swyp6_team7.bookmark.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
 import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
@@ -16,11 +15,9 @@ import java.util.List;
 public class BookmarkController {
 
     private final BookmarkService bookmarkService;
-    private final JwtProvider jwtProvider;
 
-    public BookmarkController(BookmarkService bookmarkService, JwtProvider jwtProvider) {
+    public BookmarkController(BookmarkService bookmarkService) {
         this.bookmarkService = bookmarkService;
-        this.jwtProvider = jwtProvider;
     }
 
     // 북마크 추가

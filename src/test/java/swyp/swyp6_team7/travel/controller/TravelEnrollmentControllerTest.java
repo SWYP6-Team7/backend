@@ -22,15 +22,14 @@ import swyp.swyp6_team7.travel.service.TravelService;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -47,7 +46,6 @@ class TravelEnrollmentControllerTest {
 
     @MockBean
     private TravelService travelService;
-
 
 
     @DisplayName("findEnrollments: 특정 여행에 대한 참가 신청서 목록을 조회할 수 있다")
@@ -76,13 +74,13 @@ class TravelEnrollmentControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalCount").value(1))
-                .andExpect(jsonPath("$.enrollments[0].enrollmentNumber").value(1))
-                .andExpect(jsonPath("$.enrollments[0].userName").value("신청자명"))
-                .andExpect(jsonPath("$.enrollments[0].userAgeGroup").value("10대"))
-                .andExpect(jsonPath("$.enrollments[0].profileUrl").value("profile-url"))
-                .andExpect(jsonPath("$.enrollments[0].message").value("여행 신청"))
-                .andExpect(jsonPath("$.enrollments[0].status").value("대기"));
+                .andExpect(jsonPath("$.success.totalCount").value(1))
+                .andExpect(jsonPath("$.success.enrollments[0].enrollmentNumber").value(1))
+                .andExpect(jsonPath("$.success.enrollments[0].userName").value("신청자명"))
+                .andExpect(jsonPath("$.success.enrollments[0].userAgeGroup").value("10대"))
+                .andExpect(jsonPath("$.success.enrollments[0].profileUrl").value("profile-url"))
+                .andExpect(jsonPath("$.success.enrollments[0].message").value("여행 신청"))
+                .andExpect(jsonPath("$.success.enrollments[0].status").value("대기"));
     }
 
     @DisplayName("getEnrollmentsLastViewedTime: 여행 신청 목록 lastViewedAt을 조회한다.")
@@ -101,7 +99,7 @@ class TravelEnrollmentControllerTest {
 
         // then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.lastViewedAt").value("2024.11.17 12:00"));
+                .andExpect(jsonPath("$.success.lastViewedAt").value("2024.11.17 12:00"));
     }
 
     @DisplayName("updateEnrollmentsLastViewedTime: 여행 신청 목록 lastViewedAt을 수정한다.")
@@ -124,7 +122,7 @@ class TravelEnrollmentControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(content().string("신청 목록 LastViewedAt 수정 완료"));
+                .andExpect(jsonPath("$.success").value("신청 목록 LastViewedAt 수정 완료"));
     }
 
     @DisplayName("getEnrollmentsCount: 특정 여행에 대해 PENDING 상태의 신청 수를 가져올 수 있다.")
@@ -141,6 +139,6 @@ class TravelEnrollmentControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(content().string("2"));
+                .andExpect(jsonPath("$.success").value("2"));
     }
 }

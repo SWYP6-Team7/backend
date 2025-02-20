@@ -13,24 +13,26 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.category.repository.CategoryRepository;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
 import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
-import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.community.service.CommunityListService;
-import swyp.swyp6_team7.category.repository.CategoryRepository;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
 
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -87,11 +89,11 @@ public class CommunityControllerTest {
 
         // When & Then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.postNumber").value(1))
-                .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.content").value("Test Content"))
-                .andExpect(jsonPath("$.categoryName").value("잡담"))
-                .andExpect(jsonPath("$.likeCount").value(10));
+                .andExpect(jsonPath("$.success.postNumber").value(1))
+                .andExpect(jsonPath("$.success.title").value("Test Title"))
+                .andExpect(jsonPath("$.success.content").value("Test Content"))
+                .andExpect(jsonPath("$.success.categoryName").value("잡담"))
+                .andExpect(jsonPath("$.success.likeCount").value(10));
         then(communityService).should().create(any(CommunityCreateRequestDto.class), eq(100));
 
     }
@@ -125,9 +127,9 @@ public class CommunityControllerTest {
 
         // Then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.postNumber").value(1))
-                .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.content").value("Test Content"))
+                .andExpect(jsonPath("$.success.postNumber").value(1))
+                .andExpect(jsonPath("$.success.title").value("Test Title"))
+                .andExpect(jsonPath("$.success.content").value("Test Content"))
                 .andDo(print());
 
         then(communityService).should().increaseView(eq(1), any());
@@ -169,10 +171,10 @@ public class CommunityControllerTest {
 
         // Then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.postNumber").value(1))
-                .andExpect(jsonPath("$.title").value("Updated Title"))
-                .andExpect(jsonPath("$.content").value("Updated Content"))
-                .andExpect(jsonPath("$.categoryName").value("Updated Category"))
+                .andExpect(jsonPath("$.success.postNumber").value(1))
+                .andExpect(jsonPath("$.success.title").value("Updated Title"))
+                .andExpect(jsonPath("$.success.content").value("Updated Content"))
+                .andExpect(jsonPath("$.success.categoryName").value("Updated Category"))
                 .andDo(print());
 
         then(communityService).should().update(any(CommunityUpdateRequestDto.class), eq(1), eq(100));
@@ -189,7 +191,7 @@ public class CommunityControllerTest {
         ResultActions resultActions = mockMvc.perform(delete("/api/community/posts/1"));
 
         // Then
-        resultActions.andExpect(status().isNoContent())
+        resultActions.andExpect(status().isOk())
                 .andDo(print());
 
         then(communityService).should().delete(eq(1), eq(100));

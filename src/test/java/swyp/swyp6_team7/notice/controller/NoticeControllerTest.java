@@ -2,10 +2,8 @@ package swyp.swyp6_team7.notice.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -16,7 +14,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.notice.dto.NoticeRequestDto;
 import swyp.swyp6_team7.notice.dto.NoticeResponseDto;
 import swyp.swyp6_team7.notice.service.NoticeService;
@@ -30,7 +27,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -64,9 +62,9 @@ public class NoticeControllerTest {
         // Then
         mockMvc.perform(get("/api/notices"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].title").value("Notice 1"))
-                .andExpect(jsonPath("$[1].title").value("Notice 2"));
+                .andExpect(jsonPath("$.success.length()").value(2))
+                .andExpect(jsonPath("$.success[0].title").value("Notice 1"))
+                .andExpect(jsonPath("$.success[1].title").value("Notice 2"));
     }
 
     @Test
@@ -81,8 +79,8 @@ public class NoticeControllerTest {
         // Then
         mockMvc.perform(get("/api/notices/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Notice 1"))
-                .andExpect(jsonPath("$.content").value("Content 1"));
+                .andExpect(jsonPath("$.success.title").value("Notice 1"))
+                .andExpect(jsonPath("$.success.content").value("Content 1"));
     }
 
     @Test
@@ -103,9 +101,9 @@ public class NoticeControllerTest {
         mockMvc.perform(post("/api/notices")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"New Notice\", \"content\": \"New Content\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("New Notice"))
-                .andExpect(jsonPath("$.content").value("New Content"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.title").value("New Notice"))
+                .andExpect(jsonPath("$.success.content").value("New Content"));
     }
 
     @Test
@@ -124,8 +122,8 @@ public class NoticeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\": \"Updated Notice\", \"content\": \"Updated Content\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Updated Notice"))
-                .andExpect(jsonPath("$.content").value("Updated Content"));
+                .andExpect(jsonPath("$.success.title").value("Updated Notice"))
+                .andExpect(jsonPath("$.success.content").value("Updated Content"));
     }
 
     @Test
@@ -137,6 +135,6 @@ public class NoticeControllerTest {
 
         // Then
         mockMvc.perform(delete("/api/notices/1"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 }

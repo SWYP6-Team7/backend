@@ -29,24 +29,21 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TravelAppliedControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private TravelAppliedService travelAppliedService;
-
-    @MockBean
-    private JwtProvider jwtProvider;
-
     private final String AUTHORIZATION_HEADER = "Authorization";
     private final String BEARER_TOKEN = "Bearer test-token";
+    @Autowired
+    private MockMvc mockMvc;
+    @MockBean
+    private TravelAppliedService travelAppliedService;
+    @MockBean
+    private JwtProvider jwtProvider;
 
     @DisplayName("사용자가 신청한 여행 목록을 조회한다")
     @WithMockUser
@@ -87,14 +84,14 @@ public class TravelAppliedControllerTest {
                             .param("page", "0")
                             .param("size", "5"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content[0].travelNumber").value(25))
-                    .andExpect(jsonPath("$.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
-                    .andExpect(jsonPath("$.content[0].userName").value("김모잉"))
-                    .andExpect(jsonPath("$.content[0].tags[0]").value("즉흥"))
-                    .andExpect(jsonPath("$.page.size").value(5))
-                    .andExpect(jsonPath("$.page.number").value(0))
-                    .andExpect(jsonPath("$.page.totalElements").value(1))
-                    .andExpect(jsonPath("$.page.totalPages").value(1));
+                    .andExpect(jsonPath("$.success.content[0].travelNumber").value(25))
+                    .andExpect(jsonPath("$.success.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
+                    .andExpect(jsonPath("$.success.content[0].userName").value("김모잉"))
+                    .andExpect(jsonPath("$.success.content[0].tags[0]").value("즉흥"))
+                    .andExpect(jsonPath("$.success.page.size").value(5))
+                    .andExpect(jsonPath("$.success.page.number").value(0))
+                    .andExpect(jsonPath("$.success.page.totalElements").value(1))
+                    .andExpect(jsonPath("$.success.page.totalPages").value(1));
         }
 
     }
@@ -116,7 +113,7 @@ public class TravelAppliedControllerTest {
             // when & then
             mockMvc.perform(delete("/api/my-applied-travels/{travelNumber}/cancel", travelNumber)
                             .header(AUTHORIZATION_HEADER, BEARER_TOKEN))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk());
         }
     }
 }
