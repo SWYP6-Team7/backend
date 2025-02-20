@@ -12,12 +12,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestTemplate;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.entity.Gender;
-import swyp.swyp6_team7.member.entity.AgeGroup;
-import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
+import swyp.swyp6_team7.member.entity.AgeGroup;
+import swyp.swyp6_team7.member.entity.Gender;
+import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
 import swyp.swyp6_team7.profile.service.ProfileService;
 
@@ -26,15 +24,14 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class ProfileControllerTest {
-
-    @MockBean
-    private RestTemplate restTemplate;
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,9 +41,6 @@ class ProfileControllerTest {
 
     @MockBean
     private ProfileService profileService;
-
-    @MockBean
-    private JwtProvider jwtProvider;
 
     private String validToken;
     private Integer userNumber;
@@ -72,7 +66,7 @@ class ProfileControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(content().string("프로필 업데이트 완료"));
+                    .andExpect(jsonPath("$.success").value("프로필 업데이트 완료"));
 
             verify(profileService).updateProfile(eq(userNumber), any(ProfileUpdateRequest.class));
         }
@@ -108,8 +102,8 @@ class ProfileControllerTest {
             mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
 
             mockMvc.perform(get("/api/profile/me"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(content().string("사용자를 찾을 수 없음"));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.error.reason").value("사용자를 찾을 수 없음"));
         }
     }
 

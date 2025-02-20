@@ -3,10 +3,9 @@ package swyp.swyp6_team7.travel.controller;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.travel.dto.request.TravelEnrollmentLastViewedRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelEnrollmentLastViewedResponse;
@@ -24,38 +23,34 @@ public class TravelEnrollmentController {
 
 
     @GetMapping("/api/travel/{travelNumber}/enrollments")
-    public ResponseEntity<TravelEnrollmentsResponse> findEnrollments(
+    public ApiResponse<TravelEnrollmentsResponse> findEnrollments(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber
     ) {
         logger.info("Enrollments 조회 요청 - userId: {}, travelNumber: {}", userNumber, travelNumber);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(enrollmentService.findEnrollmentsByTravelNumber(travelNumber, userNumber));
+        return ApiResponse.success(enrollmentService.findEnrollmentsByTravelNumber(travelNumber, userNumber));
     }
 
     @GetMapping("/api/travel/{travelNumber}/enrollments/last-viewed")
-    public ResponseEntity<TravelEnrollmentLastViewedResponse> getEnrollmentsLastViewedTime(@PathVariable("travelNumber") int travelNumber) {
+    public ApiResponse<TravelEnrollmentLastViewedResponse> getEnrollmentsLastViewedTime(@PathVariable("travelNumber") int travelNumber) {
         TravelEnrollmentLastViewedResponse response = new TravelEnrollmentLastViewedResponse(
                 travelService.getEnrollmentsLastViewedAt(travelNumber)
         );
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(response);
+        return ApiResponse.success(response);
     }
 
     @PutMapping("/api/travel/{travelNumber}/enrollments/last-viewed")
-    public ResponseEntity updateEnrollmentsLastViewedTime(
+    public ApiResponse<String> updateEnrollmentsLastViewedTime(
             @PathVariable("travelNumber") int travelNumber,
             @RequestBody TravelEnrollmentLastViewedRequest request
     ) {
         travelService.updateEnrollmentLastViewedAt(travelNumber, request.getLastViewedAt());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("신청 목록 LastViewedAt 수정 완료");
+        return ApiResponse.success("신청 목록 LastViewedAt 수정 완료");
     }
 
     @GetMapping("/api/travel/{travelNumber}/enrollmentCount")
-    public ResponseEntity getEnrollmentsCount(@PathVariable("travelNumber") int travelNumber) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(enrollmentService.getPendingEnrollmentsCountByTravelNumber(travelNumber));
+    public ApiResponse<Long> getEnrollmentsCount(@PathVariable("travelNumber") int travelNumber) {
+        return ApiResponse.success(enrollmentService.getPendingEnrollmentsCountByTravelNumber(travelNumber));
     }
 }

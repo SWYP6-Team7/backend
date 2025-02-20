@@ -28,6 +28,7 @@ public class LikeService {
     private final CommunityService communityService;
     private final LikeNotificationService likeNotificationService;
 
+    // TODO: Response Type 일치 및 상속구조 구현
     @Transactional
     public Object toggleLike(String relatedType, int relatedNumber, int userNumber) {
 

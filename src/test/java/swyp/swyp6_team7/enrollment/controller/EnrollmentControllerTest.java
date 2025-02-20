@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -62,8 +62,8 @@ class EnrollmentControllerTest {
         // then
         resultActions
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(content().string("여행 참가 신청이 완료되었습니다."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value("여행 참가 신청이 완료되었습니다."));
     }
 
     @DisplayName("create: 참가 대상 여행 번호가 없을 경우 예외가 발생한다.")
@@ -87,7 +87,7 @@ class EnrollmentControllerTest {
         resultActions
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("여행 참가 신청 시 travelNumber는 필수값입니다."));
+                .andExpect(jsonPath("$.error.reason").value("여행 참가 신청 시 travelNumber는 필수값입니다."));
     }
 
     @DisplayName("create: 참가 신청 메시지 길이가 1000자를 넘을 경우 예외가 발생한다.")
@@ -97,7 +97,7 @@ class EnrollmentControllerTest {
         // given
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(1)
-                .message("*" .repeat(1001))
+                .message("*".repeat(1001))
                 .build();
 
         doNothing().when(enrollmentService)
@@ -112,7 +112,7 @@ class EnrollmentControllerTest {
         resultActions
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("여행 참가 신청 메시지는 1000자를 넘을 수 없습니다."));
+                .andExpect(jsonPath("$.error.reason").value("여행 참가 신청 메시지는 1000자를 넘을 수 없습니다."));
     }
 
     @DisplayName("delete: 신청자는 참가 신청을 삭제할 수 있다")
@@ -128,8 +128,8 @@ class EnrollmentControllerTest {
         // then
         resultActions
                 .andDo(print())
-                .andExpect(status().isNoContent())
-                .andExpect(content().string("여행 참가 신청이 취소되었습니다."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value("여행 참가 신청이 취소되었습니다."));
     }
 
     @DisplayName("accept: 여행 참가 신청을 수락할 수 있다.")
@@ -148,7 +148,7 @@ class EnrollmentControllerTest {
         resultActions
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("여행 참가 신청을 수락했습니다."));
+                .andExpect(jsonPath("$.success").value("여행 참가 신청을 수락했습니다."));
     }
 
     @DisplayName("reject: 여행 참가 신청을 거절할 수 있다.")
@@ -167,7 +167,7 @@ class EnrollmentControllerTest {
         resultActions
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("여행 참가 신청을 거절했습니다."));
+                .andExpect(jsonPath("$.success").value("여행 참가 신청을 거절했습니다."));
     }
 
 }

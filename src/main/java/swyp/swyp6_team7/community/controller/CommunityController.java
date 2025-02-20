@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.category.domain.Category;
 import swyp.swyp6_team7.category.repository.CategoryRepository;
@@ -18,6 +16,8 @@ import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
 import swyp.swyp6_team7.community.util.CommunitySearchSortingType;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
 import java.security.Principal;
@@ -34,7 +34,7 @@ public class CommunityController {
 
     //C
     @PostMapping("/posts")
-    public ResponseEntity<CommunityDetailResponseDto> create(
+    public ApiResponse<CommunityDetailResponseDto> create(
             @RequestBody CommunityCreateRequestDto request,
             @RequireUserNumber Integer userNumber
     ) {
@@ -44,12 +44,12 @@ public class CommunityController {
         CommunityDetailResponseDto detailResponse = communityService.create(request, userNumber);
         log.info("Response from Service: {}", detailResponse);
 
-        return ResponseEntity.ok(detailResponse);
+        return ApiResponse.success(detailResponse);
     }
 
     //게시물 목록
     @GetMapping("/posts")
-    public ResponseEntity<?> getList(
+    public ApiResponse<Page<CommunityListResponseDto>> getList(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
             @RequestParam(name = "keyword", required = false) String keyword,
@@ -58,6 +58,7 @@ public class CommunityController {
             Principal principal,
             @RequireUserNumber Integer userNumber
     ) {
+        // TODO: Service layer 로 로직 이동
 
         if (principal == null) {
             log.info("비회원 커뮤니티 목록 조회 요청");
@@ -73,7 +74,7 @@ public class CommunityController {
                     .orElse(null);
             if (categoryNumber == null) {
                 log.warn("유효하지 않은 카테고리 이름: {}", categoryName);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Page.empty(pageRequest)); //빈 페이지 반환
+                return ApiResponse.success(Page.empty()); //빈 페이지 반환
             }
             log.info("커뮤니티 목록 조회 - 카테고리 이름: {}, 카테고리 번호: {}", categoryName, categoryNumber);
         }
@@ -83,14 +84,12 @@ public class CommunityController {
             sortingType = CommunitySearchSortingType.of(sortingTypeName);
             if (sortingTypeName == null || sortingTypeName.isEmpty()) {
                 log.error("정렬 기준이 null 또는 빈 문자열입니다.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Page.empty(pageRequest)); // 빈 페이지 반환
+                return ApiResponse.success(Page.empty());  // 빈 페이지 반환
             }
             log.info("커뮤니티 목록 조회 시 정렬 기준: {}", sortingType.getDescription());
         } catch (IllegalArgumentException e) {
             log.error("커뮤니티 목록 조회 시 잘못된 정렬 기준: {}", sortingTypeName, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Page.empty(pageRequest)); // 빈 페이지 반환
+            return ApiResponse.success(Page.empty());  // 빈 페이지 반환
         }
 
         // 검색 조건 설정
@@ -105,36 +104,35 @@ public class CommunityController {
             Page<CommunityListResponseDto> result = communityListService.getCommunityList(pageRequest, condition, userNumber);
             if (result == null) {
                 log.error("커뮤니티 목록 조회 결과가 null입니다.");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
+                throw new MoingApplicationException("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
             }
             log.info("조회 성공: 총 데이터 수 = {}", result.getTotalElements());
-            return ResponseEntity.ok(result);
+            return ApiResponse.success(result);
         } catch (DataAccessException e) {
             log.error("데이터베이스 접근 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터를 불러오는 중 문제가 발생했습니다. 관리자에게 문의해주세요.");
+            throw new MoingApplicationException("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
         } catch (Exception e) {
             log.error("예상치 못한 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다. 다시 시도해주세요.");
+            throw new MoingApplicationException("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
         }
     }
 
 
     //R
     @GetMapping("/posts/{postNumber}")
-    public ResponseEntity<CommunityDetailResponseDto> getDetail(
+    public ApiResponse<CommunityDetailResponseDto> getDetail(
             @PathVariable(name = "postNumber") int postNumber,
             @RequireUserNumber Integer userNumber
     ) {
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
 
-        return ResponseEntity.ok(detailResponse);
+        return ApiResponse.success(detailResponse);
     }
 
     //U
     @PutMapping("/posts/{postNumber}")
-    public ResponseEntity<CommunityDetailResponseDto> update(
+    public ApiResponse<CommunityDetailResponseDto> update(
             @RequestBody CommunityUpdateRequestDto request,
             @PathVariable(name = "postNumber") int postNumber,
             @RequireUserNumber Integer userNumber
@@ -142,11 +140,11 @@ public class CommunityController {
         // 게시물 수정 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.update(request, postNumber, userNumber);
 
-        return ResponseEntity.ok(detailResponse);
+        return ApiResponse.success(detailResponse);
     }
 
     @DeleteMapping("/posts/{postNumber}")
-    public ResponseEntity<Void> delete(
+    public ApiResponse<Void> delete(
             @PathVariable(name = "postNumber") int postNumber,
             @RequireUserNumber Integer userNumber
     ) {
@@ -154,10 +152,10 @@ public class CommunityController {
         try {
             communityService.delete(postNumber, userNumber);
             // 성공 시 204
-            return ResponseEntity.noContent().build();
+            return ApiResponse.success(null);
         } catch (Exception e) {
             log.error("커뮤니티 게시물 삭제 중 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new MoingApplicationException("커뮤니티 게시물 삭제 중 오류 발생." + e.getMessage());
         }
     }
 }

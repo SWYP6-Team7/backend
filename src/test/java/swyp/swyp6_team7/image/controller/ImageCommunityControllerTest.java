@@ -70,13 +70,13 @@ class ImageCommunityControllerTest {
                 .file(mockFile));
 
         // then
-        resultActions.andExpect(status().isCreated())
-                .andExpect(jsonPath("$.imageNumber").value(1))
-                .andExpect(jsonPath("$.relatedType").value("community"))
-                .andExpect(jsonPath("$.relatedNumber").value(0))
-                .andExpect(jsonPath("$.key").value("baseFolder/community/temporary/storageName.png"))
-                .andExpect(jsonPath("$.url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName.png"))
-                .andExpect(jsonPath("$.uploadDate").value("2024년 11월 24일 10시 00분"));
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.imageNumber").value(1))
+                .andExpect(jsonPath("$.success.relatedType").value("community"))
+                .andExpect(jsonPath("$.success.relatedNumber").value(0))
+                .andExpect(jsonPath("$.success.key").value("baseFolder/community/temporary/storageName.png"))
+                .andExpect(jsonPath("$.success.url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName.png"))
+                .andExpect(jsonPath("$.success.uploadDate").value("2024년 11월 24일 10시 00분"));
     }
 
     @DisplayName("saveImages: 임시 저장 커뮤니티 이미지를 정식으로 저장한다.")
@@ -108,19 +108,19 @@ class ImageCommunityControllerTest {
 
         // then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$.[0].imageNumber").value(1L))
-                .andExpect(jsonPath("$.[0].relatedType").value("community"))
-                .andExpect(jsonPath("$.[0].relatedNumber").value(2))
-                .andExpect(jsonPath("$.[0].key").value("baseFolder/community/temporary/storageName2.png"))
-                .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName2.png"))
-                .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"))
-                .andExpect(jsonPath("$.[1].imageNumber").value(2L))
-                .andExpect(jsonPath("$.[1].relatedType").value("community"))
-                .andExpect(jsonPath("$.[1].relatedNumber").value(2))
-                .andExpect(jsonPath("$.[1].key").value("baseFolder/community/temporary/storageName3.png"))
-                .andExpect(jsonPath("$.[1].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName3.png"))
-                .andExpect(jsonPath("$.[1].uploadDate").value("2024년 11월 24일 10시 00분"));
+                .andExpect(jsonPath("$.success.length()").value(2))
+                .andExpect(jsonPath("$.success[0].imageNumber").value(1L))
+                .andExpect(jsonPath("$.success[0].relatedType").value("community"))
+                .andExpect(jsonPath("$.success[0].relatedNumber").value(2))
+                .andExpect(jsonPath("$.success[0].key").value("baseFolder/community/temporary/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].uploadDate").value("2024년 11월 24일 10시 00분"))
+                .andExpect(jsonPath("$.success[1].imageNumber").value(2L))
+                .andExpect(jsonPath("$.success[1].relatedType").value("community"))
+                .andExpect(jsonPath("$.success[1].relatedNumber").value(2))
+                .andExpect(jsonPath("$.success[1].key").value("baseFolder/community/temporary/storageName3.png"))
+                .andExpect(jsonPath("$.success[1].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName3.png"))
+                .andExpect(jsonPath("$.success[1].uploadDate").value("2024년 11월 24일 10시 00분"));
         then(imageCommunityService).should(times(1))
                 .saveCommunityImages(eq(postNumber), eq(deletedUrls), eq(tempUrls));
     }
@@ -144,12 +144,12 @@ class ImageCommunityControllerTest {
 
         // then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.[0].imageNumber").value(1L))
-                .andExpect(jsonPath("$.[0].relatedType").value("community"))
-                .andExpect(jsonPath("$.[0].relatedNumber").value(postNumber))
-                .andExpect(jsonPath("$.[0].key").value("baseFolder/community/2/1/storageName2.png"))
-                .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
-                .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"));
+                .andExpect(jsonPath("$.success[0].imageNumber").value(1L))
+                .andExpect(jsonPath("$.success[0].relatedType").value("community"))
+                .andExpect(jsonPath("$.success[0].relatedNumber").value(postNumber))
+                .andExpect(jsonPath("$.success[0].key").value("baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].uploadDate").value("2024년 11월 24일 10시 00분"));
     }
 
     @DisplayName("updateImages: 커뮤니티 게시글에 포함되는 이미지를 수정한다.")
@@ -180,12 +180,12 @@ class ImageCommunityControllerTest {
 
         // then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.[0].imageNumber").value(1L))
-                .andExpect(jsonPath("$.[0].relatedType").value("community"))
-                .andExpect(jsonPath("$.[0].relatedNumber").value(postNumber))
-                .andExpect(jsonPath("$.[0].key").value("baseFolder/community/2/1/storageName2.png"))
-                .andExpect(jsonPath("$.[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
-                .andExpect(jsonPath("$.[0].uploadDate").value("2024년 11월 24일 10시 00분"));
+                .andExpect(jsonPath("$.success[0].imageNumber").value(1L))
+                .andExpect(jsonPath("$.success[0].relatedType").value("community"))
+                .andExpect(jsonPath("$.success[0].relatedNumber").value(postNumber))
+                .andExpect(jsonPath("$.success[0].key").value("baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png"))
+                .andExpect(jsonPath("$.success[0].uploadDate").value("2024년 11월 24일 10시 00분"));
     }
 
     @DisplayName("deleteImages: 커뮤니티 게시글의 이미지를 삭제한다.")
@@ -200,7 +200,7 @@ class ImageCommunityControllerTest {
         ResultActions resultActions = mockMvc.perform(delete("/api/community/{postNumber}/images", postNumber));
 
         // then
-        resultActions.andExpect(status().isNoContent());
+        resultActions.andExpect(status().isOk());
         then(imageCommunityService).should().deleteCommunityImages(postNumber, 2);
     }
 

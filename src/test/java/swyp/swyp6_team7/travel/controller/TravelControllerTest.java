@@ -36,7 +36,8 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(
         value = {RedisContainerConfig.class}
@@ -86,8 +87,8 @@ class TravelControllerTest {
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
-        resultActions.andExpect(status().isCreated())
-                .andExpect(jsonPath("$.travelNumber").value(10));
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.travelNumber").value(10));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
@@ -115,7 +116,7 @@ class TravelControllerTest {
 
         // then
         resultActions.andExpect(status().isBadRequest())
-                .andExpect(content().string("여행 제목은 최대 20자 입니다."));
+                .andExpect(jsonPath("$.error.reason").value("여행 제목은 최대 20자 입니다."));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
@@ -143,7 +144,7 @@ class TravelControllerTest {
 
         // then
         resultActions.andExpect(status().isBadRequest())
-                .andExpect(content().string("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
+                .andExpect(jsonPath("$.error.reason").value("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
@@ -177,7 +178,7 @@ class TravelControllerTest {
 
         // then
         resultActions.andExpect(status().isBadRequest())
-                .andExpect(content().string("여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다."));
+                .andExpect(jsonPath("$.error.reason").value("여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다."));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
@@ -201,26 +202,26 @@ class TravelControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.travelNumber").value(10))
-                .andExpect(jsonPath("$.userNumber").value(1))
-                .andExpect(jsonPath("$.userName").value("주최자명"))
-                .andExpect(jsonPath("$.userAgeGroup").value("20대"))
-                .andExpect(jsonPath("$.profileUrl").value("https://user-profile-url"))
-                .andExpect(jsonPath("$.createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.location").value("서울"))
-                .andExpect(jsonPath("$.title").value("여행 제목"))
-                .andExpect(jsonPath("$.details").value("여행 상세 내용"))
-                .andExpect(jsonPath("$.viewCount").value(10))
-                .andExpect(jsonPath("$.enrollCount").value(2))
-                .andExpect(jsonPath("$.bookmarkCount").value(5))
-                .andExpect(jsonPath("$.nowPerson").value(1))
-                .andExpect(jsonPath("$.maxPerson").value(4))
-                .andExpect(jsonPath("$.genderType").value("모두"))
-                .andExpect(jsonPath("$.dueDate").value("2024-12-30"))
-                .andExpect(jsonPath("$.tags[0]").value("자연"))
-                .andExpect(jsonPath("$.tags[1]").value("쇼핑"))
-                .andExpect(jsonPath("$.postStatus").value("진행중"))
-                .andExpect(jsonPath("$.loginMemberRelatedInfo").value(nullValue()));
+                .andExpect(jsonPath("$.success.travelNumber").value(10))
+                .andExpect(jsonPath("$.success.userNumber").value(1))
+                .andExpect(jsonPath("$.success.userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.userAgeGroup").value("20대"))
+                .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
+                .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
+                .andExpect(jsonPath("$.success.viewCount").value(10))
+                .andExpect(jsonPath("$.success.enrollCount").value(2))
+                .andExpect(jsonPath("$.success.bookmarkCount").value(5))
+                .andExpect(jsonPath("$.success.nowPerson").value(1))
+                .andExpect(jsonPath("$.success.maxPerson").value(4))
+                .andExpect(jsonPath("$.success.genderType").value("모두"))
+                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.tags[0]").value("자연"))
+                .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
+                .andExpect(jsonPath("$.success.postStatus").value("진행중"))
+                .andExpect(jsonPath("$.success.loginMemberRelatedInfo").value(nullValue()));
         then(travelService).should().getDetailsByNumber(travelNumber);
     }
 
@@ -251,28 +252,28 @@ class TravelControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.travelNumber").value(10))
-                .andExpect(jsonPath("$.userNumber").value(1))
-                .andExpect(jsonPath("$.userName").value("주최자명"))
-                .andExpect(jsonPath("$.userAgeGroup").value("20대"))
-                .andExpect(jsonPath("$.profileUrl").value("https://user-profile-url"))
-                .andExpect(jsonPath("$.createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.location").value("서울"))
-                .andExpect(jsonPath("$.title").value("여행 제목"))
-                .andExpect(jsonPath("$.details").value("여행 상세 내용"))
-                .andExpect(jsonPath("$.viewCount").value(10))
-                .andExpect(jsonPath("$.enrollCount").value(2))
-                .andExpect(jsonPath("$.bookmarkCount").value(5))
-                .andExpect(jsonPath("$.nowPerson").value(1))
-                .andExpect(jsonPath("$.maxPerson").value(4))
-                .andExpect(jsonPath("$.genderType").value("모두"))
-                .andExpect(jsonPath("$.dueDate").value("2024-12-30"))
-                .andExpect(jsonPath("$.tags[0]").value("자연"))
-                .andExpect(jsonPath("$.tags[1]").value("쇼핑"))
-                .andExpect(jsonPath("$.postStatus").value("진행중"))
-                .andExpect(jsonPath("$.loginMemberRelatedInfo.hostUser").value(false))
-                .andExpect(jsonPath("$.loginMemberRelatedInfo.enrollmentNumber").value(5L))
-                .andExpect(jsonPath("$.loginMemberRelatedInfo.bookmarked").value(true));
+                .andExpect(jsonPath("$.success.travelNumber").value(10))
+                .andExpect(jsonPath("$.success.userNumber").value(1))
+                .andExpect(jsonPath("$.success.userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.userAgeGroup").value("20대"))
+                .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
+                .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
+                .andExpect(jsonPath("$.success.viewCount").value(10))
+                .andExpect(jsonPath("$.success.enrollCount").value(2))
+                .andExpect(jsonPath("$.success.bookmarkCount").value(5))
+                .andExpect(jsonPath("$.success.nowPerson").value(1))
+                .andExpect(jsonPath("$.success.maxPerson").value(4))
+                .andExpect(jsonPath("$.success.genderType").value("모두"))
+                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.tags[0]").value("자연"))
+                .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
+                .andExpect(jsonPath("$.success.postStatus").value("진행중"))
+                .andExpect(jsonPath("$.success.loginMemberRelatedInfo.hostUser").value(false))
+                .andExpect(jsonPath("$.success.loginMemberRelatedInfo.enrollmentNumber").value(5L))
+                .andExpect(jsonPath("$.success.loginMemberRelatedInfo.bookmarked").value(true));
         then(travelService).should().getDetailsByNumber(travelNumber);
         then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
     }
@@ -306,8 +307,8 @@ class TravelControllerTest {
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
-        resultActions.andExpect(status().isCreated())
-                .andExpect(jsonPath("$.travelNumber").value(10));
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.travelNumber").value(10));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 

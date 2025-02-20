@@ -62,22 +62,22 @@ class TravelHomeControllerTest {
         // then
         then(travelHomeService).should(times(1)).getTravelsSortedByCreatedAt(PageRequest.of(0, 5), 2);
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.size()").value(2))
-                .andExpect(jsonPath("$.content[0].travelNumber").value(11))
-                .andExpect(jsonPath("$.content[0].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[0].location").value("서울"))
-                .andExpect(jsonPath("$.content[0].userNumber").value(2))
-                .andExpect(jsonPath("$.content[0].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[0].tags").isEmpty())
-                .andExpect(jsonPath("$.content[0].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[0].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[0].createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.content[0].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[0].bookmarked").value(false))
-                .andExpect(jsonPath("$.content[1].travelNumber").value(10))
-                .andExpect(jsonPath("$.content[1].userNumber").value(1))
-                .andExpect(jsonPath("$.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[1].bookmarked").value(true));
+                .andExpect(jsonPath("$.success.content.size()").value(2))
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
+                .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
+                .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[0].tags").isEmpty())
+                .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
+                .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
+                .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
+                .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[1].bookmarked").value(true));
     }
 
     @DisplayName("getRecentlyCreatedTravels: 비로그인 사용자도 최근 생성된 여행 순서로 여행 목록을 조회할 수 있다.")
@@ -100,22 +100,22 @@ class TravelHomeControllerTest {
         // then
         then(travelHomeService).should(times(1)).getTravelsSortedByCreatedAt(PageRequest.of(0, 5), null);
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.size()").value(2))
-                .andExpect(jsonPath("$.content[0].travelNumber").value(11))
-                .andExpect(jsonPath("$.content[0].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[0].location").value("서울"))
-                .andExpect(jsonPath("$.content[0].userNumber").value(2))
-                .andExpect(jsonPath("$.content[0].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[0].tags").isEmpty())
-                .andExpect(jsonPath("$.content[0].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[0].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[0].createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.content[0].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[0].bookmarked").value(false))
-                .andExpect(jsonPath("$.content[1].travelNumber").value(10))
-                .andExpect(jsonPath("$.content[1].userNumber").value(1))
-                .andExpect(jsonPath("$.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[1].bookmarked").value(false));
+                .andExpect(jsonPath("$.success.content.size()").value(2))
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
+                .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
+                .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[0].tags").isEmpty())
+                .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-06 12:00"))
+                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
+                .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
+                .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
+                .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[1].bookmarked").value(false));
     }
 
     @DisplayName("getRecommendTravels: 로그인 사용자는 추천 여행 목록을 조회할 수 있다.")
@@ -139,38 +139,38 @@ class TravelHomeControllerTest {
                 .getRecommendTravelsByMember(any(PageRequest.class), anyInt(), any(LocalDate.class));
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.size()").value(2))
-                .andExpect(jsonPath("$.content[0].travelNumber").value(11))
-                .andExpect(jsonPath("$.content[0].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[0].location").value("서울"))
-                .andExpect(jsonPath("$.content[0].userNumber").value(2))
-                .andExpect(jsonPath("$.content[0].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[0].tags[0]").value("자연"))
-                .andExpect(jsonPath("$.content[0].tags[1]").value("쇼핑"))
-                .andExpect(jsonPath("$.content[0].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[0].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[0].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[0].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[0].bookmarked").value(true))
-                .andExpect(jsonPath("$.content[1].travelNumber").value(10))
-                .andExpect(jsonPath("$.content[1].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[1].location").value("서울"))
-                .andExpect(jsonPath("$.content[1].userNumber").value(1))
-                .andExpect(jsonPath("$.content[1].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[1].tags").isEmpty())
-                .andExpect(jsonPath("$.content[1].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[1].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[1].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[1].bookmarked").value(false));
+                .andExpect(jsonPath("$.success.content.size()").value(2))
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
+                .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
+                .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[0].tags[0]").value("자연"))
+                .andExpect(jsonPath("$.success.content[0].tags[1]").value("쇼핑"))
+                .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[0].bookmarked").value(true))
+                .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
+                .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[1].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
+                .andExpect(jsonPath("$.success.content[1].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[1].tags").isEmpty())
+                .andExpect(jsonPath("$.success.content[1].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[1].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[1].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[1].bookmarked").value(false));
     }
 
     @DisplayName("getRecommendTravels: 비로그인 사용자는 추천 여행 목록을 조회할 수 있다.")
     @Test
     void getRecommendTravelsWhenNotLogin() throws Exception {
         // given
-        TravelRecommendForNonMemberDto travel1 = createRecommendForNonMemberDto(10,1);
-        TravelRecommendForNonMemberDto travel2 = createRecommendForNonMemberDto(11,2);
+        TravelRecommendForNonMemberDto travel1 = createRecommendForNonMemberDto(10, 1);
+        TravelRecommendForNonMemberDto travel2 = createRecommendForNonMemberDto(11, 2);
         List<TravelRecommendForNonMemberDto> travels = Arrays.asList(travel2, travel1);
 
         Page<TravelRecommendForNonMemberDto> result = new PageImpl<>(travels, PageRequest.of(0, 5), travels.size());
@@ -185,29 +185,29 @@ class TravelHomeControllerTest {
                 .getRecommendTravelsByNonMember(any(PageRequest.class), any(LocalDate.class));
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.size()").value(2))
-                .andExpect(jsonPath("$.content[0].travelNumber").value(11))
-                .andExpect(jsonPath("$.content[0].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[0].location").value("서울"))
-                .andExpect(jsonPath("$.content[0].userNumber").value(2))
-                .andExpect(jsonPath("$.content[0].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[0].tags").isEmpty())
-                .andExpect(jsonPath("$.content[0].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[0].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[0].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[0].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[0].bookmarked").value(false))
-                .andExpect(jsonPath("$.content[1].travelNumber").value(10))
-                .andExpect(jsonPath("$.content[1].title").value("여행 제목"))
-                .andExpect(jsonPath("$.content[1].location").value("서울"))
-                .andExpect(jsonPath("$.content[1].userNumber").value(1))
-                .andExpect(jsonPath("$.content[1].userName").value("주최자명"))
-                .andExpect(jsonPath("$.content[1].tags").isEmpty())
-                .andExpect(jsonPath("$.content[1].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[1].maxPerson").value(3))
-                .andExpect(jsonPath("$.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.content[1].registerDue").value("2024-12-30"))
-                .andExpect(jsonPath("$.content[1].bookmarked").value(false));
+                .andExpect(jsonPath("$.success.content.size()").value(2))
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
+                .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
+                .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[0].tags").isEmpty())
+                .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
+                .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
+                .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
+                .andExpect(jsonPath("$.success.content[1].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
+                .andExpect(jsonPath("$.success.content[1].userName").value("주최자명"))
+                .andExpect(jsonPath("$.success.content[1].tags").isEmpty())
+                .andExpect(jsonPath("$.success.content[1].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[1].maxPerson").value(3))
+                .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
+                .andExpect(jsonPath("$.success.content[1].registerDue").value("2024-12-30"))
+                .andExpect(jsonPath("$.success.content[1].bookmarked").value(false));
     }
 
     private TravelRecentDto createRecentDto(int travelNumber, int userNumber, LocalDateTime createdAt, boolean bookmarked) {

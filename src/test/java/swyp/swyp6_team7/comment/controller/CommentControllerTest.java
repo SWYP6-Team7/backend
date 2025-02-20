@@ -26,8 +26,9 @@ import java.util.Collections;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static swyp.swyp6_team7.comment.dto.response.CommentListReponseDto.formatDate;
 
 @SpringBootTest
@@ -58,7 +59,7 @@ class CommentControllerTest {
         Comment createdComment = new Comment(1, 1, "Test Comment", 1,
                 LocalDateTime.now(), "community", 100);
         CommentDetailResponseDto response = new CommentDetailResponseDto(
-                1,1, "Test Comment",1, 0, LocalDateTime.now(), "community", 100);
+                1, 1, "Test Comment", 1, 0, LocalDateTime.now(), "community", 100);
 
         given(commentService.create(any(CommentCreateRequestDto.class), anyInt(), eq("community"), eq(100)))
                 .willReturn(createdComment);
@@ -70,9 +71,9 @@ class CommentControllerTest {
                 .content(objectMapper.writeValueAsString(request)));
 
         // Then
-        result.andExpect(status().isCreated())
-                .andExpect(jsonPath("$.commentNumber").value(1))
-                .andExpect(jsonPath("$.content").value("Test Comment"))
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.commentNumber").value(1))
+                .andExpect(jsonPath("$.success.content").value("Test Comment"))
                 .andDo(print());
     }
 
@@ -107,8 +108,8 @@ class CommentControllerTest {
 
         // Then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].commentNumber").value(1))
-                .andExpect(jsonPath("$.content[0].content").value("Test Comment"))
+                .andExpect(jsonPath("$.success.content[0].commentNumber").value(1))
+                .andExpect(jsonPath("$.success.content[0].content").value("Test Comment"))
                 .andDo(print());
     }
 
@@ -121,7 +122,7 @@ class CommentControllerTest {
                 LocalDateTime.now().minusDays(1), "community", 100);
         CommentUpdateRequestDto request = new CommentUpdateRequestDto("Updated Comment");
         CommentDetailResponseDto response = new CommentDetailResponseDto(
-                1,1, "Updated Comment",1, 0, LocalDateTime.now(), "community", 100);
+                1, 1, "Updated Comment", 1, 0, LocalDateTime.now(), "community", 100);
 
         given(commentService.update(any(CommentUpdateRequestDto.class), anyInt(), eq(1)))
                 .willReturn(response);
@@ -133,7 +134,7 @@ class CommentControllerTest {
 
         // Then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").value("Updated Comment"))
+                .andExpect(jsonPath("$.success.content").value("Updated Comment"))
                 .andDo(print());
     }
 
@@ -149,7 +150,7 @@ class CommentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // Then
-        result.andExpect(status().isNoContent())
+        result.andExpect(status().isOk())
                 .andDo(print());
     }
 }

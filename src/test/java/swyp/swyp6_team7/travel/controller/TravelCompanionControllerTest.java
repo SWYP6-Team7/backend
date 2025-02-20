@@ -13,7 +13,6 @@ import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
 import swyp.swyp6_team7.companion.service.CompanionService;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
-import swyp.swyp6_team7.travel.dto.response.TravelCompanionResponse;
 
 import java.util.List;
 
@@ -52,11 +51,11 @@ class TravelCompanionControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalCount").value(1))
-                .andExpect(jsonPath("$.companions[0].userNumber").value(1))
-                .andExpect(jsonPath("$.companions[0].userName").value("유저1"))
-                .andExpect(jsonPath("$.companions[0].ageGroup").value("10대"))
-                .andExpect(jsonPath("$.companions[0].profileUrl").value("profile-1"));
+                .andExpect(jsonPath("$.success.totalCount").value(1))
+                .andExpect(jsonPath("$.success.companions[0].userNumber").value(1))
+                .andExpect(jsonPath("$.success.companions[0].userName").value("유저1"))
+                .andExpect(jsonPath("$.success.companions[0].ageGroup").value("10대"))
+                .andExpect(jsonPath("$.success.companions[0].profileUrl").value("profile-1"));
     }
 
 

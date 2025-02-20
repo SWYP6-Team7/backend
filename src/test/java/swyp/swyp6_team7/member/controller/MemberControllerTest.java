@@ -5,13 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
@@ -22,9 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -111,7 +110,7 @@ public class MemberControllerTest {
         mockMvc.perform(get("/api/users-email")
                         .param("email", "test@example.com"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("사용 가능한 이메일입니다."));
+                .andExpect(jsonPath("$.success").value("사용 가능한 이메일입니다."));
     }
 
     @Test
@@ -123,8 +122,8 @@ public class MemberControllerTest {
         // when & then
         mockMvc.perform(get("/api/users-email")
                         .param("email", "test@example.com"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("이미 사용 중인 이메일입니다."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.error.reason").value("이미 사용 중인 이메일입니다."));
     }
 
     @Test
@@ -152,7 +151,7 @@ public class MemberControllerTest {
         mockMvc.perform(post("/api/admins/new")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"email\": \"admin@example.com\", \"password\": \"adminpassword\", \"name\": \"adminuser\", \"gender\": \"M\", \"agegroup\": \"30대\", \"preferredTags\": [\"관리자\"] }"))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("Admin successfully registered"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value("Admin successfully registered"));
     }
 }

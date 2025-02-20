@@ -5,11 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.ClientIpAddressUtil;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
@@ -31,7 +30,7 @@ public class TravelController {
     private final TravelViewCountService travelViewCountService;
 
     @PostMapping("/api/travel")
-    public ResponseEntity<TravelCreateResponse> create(
+    public ApiResponse<TravelCreateResponse> create(
             @RequestBody @Validated TravelCreateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
@@ -40,12 +39,11 @@ public class TravelController {
         Travel createdTravel = travelService.create(request, userNumber);
         logger.info("Travel 생성 완료 - userId: {}, createdTravel: {}", userNumber, createdTravel);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new TravelCreateResponse(createdTravel.getNumber()));
+        return ApiResponse.success(new TravelCreateResponse(createdTravel.getNumber()));
     }
 
     @GetMapping("/api/travel/detail/{travelNumber}")
-    public ResponseEntity<TravelDetailResponse> getDetailsByNumber(
+    public ApiResponse<TravelDetailResponse> getDetailsByNumber(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber,
             HttpServletRequest request
@@ -73,12 +71,11 @@ public class TravelController {
         }
         travelViewCountService.updateViewCount(travelNumber, userIdentifier);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(travelDetails);
+        return ApiResponse.success(travelDetails);
     }
 
     @PutMapping("/api/travel/{travelNumber}")
-    public ResponseEntity<TravelUpdateResponse> update(
+    public ApiResponse<TravelUpdateResponse> update(
             @PathVariable("travelNumber") int travelNumber,
             @RequestBody TravelUpdateRequest request,
             @RequireUserNumber Integer userNumber
@@ -88,12 +85,11 @@ public class TravelController {
         Travel updatedTravel = travelService.update(travelNumber, request, userNumber);
         logger.info("Travel 수정 요청 - userId: {}, updatedTravel: {}", userNumber, updatedTravel);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new TravelUpdateResponse(updatedTravel.getNumber()));
+        return ApiResponse.success(new TravelUpdateResponse(updatedTravel.getNumber()));
     }
 
     @DeleteMapping("/api/travel/{travelNumber}")
-    public ResponseEntity delete(
+    public ApiResponse<Void> delete(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber
     ) {
@@ -102,7 +98,6 @@ public class TravelController {
         travelService.delete(travelNumber, userNumber);
         logger.info("Travel 삭제 완료 - userId: {}, travelNumber: {}", userNumber, travelNumber);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ApiResponse.success(null);
     }
-
 }

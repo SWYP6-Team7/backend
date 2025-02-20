@@ -16,6 +16,7 @@ import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
@@ -93,11 +94,13 @@ public class CommentService {
         } else if ("community".equals(relatedType)) {
             exists = communityRepository.existsByPostNumber(relatedNumber);
         } else {
-            throw new IllegalArgumentException("유효하지 않은 게시물 종류입니다. 게시물 타입: " + relatedType);
+            log.error("유효하지 않은 게시물 종류입니다. 게시물 종류 : {}", relatedType);
+            throw new MoingApplicationException("유효하지 않은 요청입니다.");
         }
 
         if (!exists) {
-            throw new IllegalArgumentException("존재하지 않는 게시물입니다. 게시물 타입: " + relatedType + ", 게시물 번호: " + relatedNumber);
+            log.error("게시물이 존재하지 않습니다. 게시물 타입 : {}, 게시물 번호 : {}", relatedType, relatedNumber);
+            throw new MoingApplicationException("유효하지 않은 요청입니다.");
         }
     }
 
@@ -127,12 +130,10 @@ public class CommentService {
     }
 
     //댓글 목록 조회 (페이징)
-    @Transactional
     public Page<CommentListReponseDto> getListPage(PageRequest pageRequest, String relatedType, int relatedNumber, Integer userNumber) {
 
         validateRelatedPostExists(relatedType, relatedNumber);
 
-        //List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         if (comments.isEmpty()) {
             log.info("댓글이 없습니다: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
@@ -203,7 +204,7 @@ public class CommentService {
 
     private List<CommentListReponseDto> convertToResponseDtos(List<Comment> comments, Integer userNumber) {
         List<CommentListReponseDto> responseDtos = new ArrayList<>();
-        for (Comment comment : comments) {
+        for (Comment comment : comments) { // TODO: N번 순회 안하게 수정
             Optional<Users> user = userRepository.findByUserNumber(comment.getUserNumber());
             String commentWriter = user.map(Users::getUserName).orElse("unknown");
 
@@ -232,11 +233,11 @@ public class CommentService {
 
         // 존재하는 댓글인지 확인
         Comment comment = commentRepository.findByCommentNumber(commentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다. 댓글 번호: " + commentNumber));
+                .orElseThrow(() -> new MoingApplicationException("해당 댓글을 찾을 수 없습니다. 댓글 번호: " + commentNumber));
 
         // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자인지 확인
         if (comment.getUserNumber() != userNumber) {
-            throw new IllegalArgumentException("댓글 작성자가 아닙니다.");
+            throw new MoingApplicationException("댓글 작성자가 아닙니다.");
         }
     }
 

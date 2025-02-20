@@ -5,10 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.auth.service.PasswordChangeService;
 import swyp.swyp6_team7.auth.dto.PasswordChangeRequest;
 import swyp.swyp6_team7.auth.dto.PasswordVerifyRequest;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.auth.service.PasswordChangeService;
+import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,19 +22,21 @@ public class PasswordController {
 
     // 현재 비밀번호 확인
     @PostMapping("/verify")
-    public ResponseEntity<String> verifyCurrentPassword(@RequestHeader("Authorization") String token, @RequestBody PasswordVerifyRequest passwordVerifyRequest) {
+    public ResponseEntity<String> verifyCurrentPassword(
+            @RequireUserNumber Integer userNumber,
+            @RequestBody PasswordVerifyRequest passwordVerifyRequest
+    ) {
         try {
             log.info("현재 비밀번호 확인 요청");
             if (passwordVerifyRequest.getConfirmPassword() == null) {
                 log.warn("요청에 비밀번호 확인이 누락되었습니다");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("현재 비밀번호가 입력되지 않았습니다.");
             }
-            Integer userNumber = jwtProvider.getUserNumber(token.substring(7)); // "Bearer " 제거
-            log.info("토큰에서 userNumber 추출 - userNumber: {}",userNumber);
+            log.info("토큰에서 userNumber 추출 - userNumber: {}", userNumber);
 
             passwordChangeService.verifyCurrentPassword(userNumber, passwordVerifyRequest.getConfirmPassword());
 
-            log.info("현재 비밀번호 확인 성공 - userNumber: {}",userNumber);
+            log.info("현재 비밀번호 확인 성공 - userNumber: {}", userNumber);
             return ResponseEntity.ok("현재 비밀번호와 일치합니다.");
         } catch (IllegalArgumentException e) {
             log.warn("잘못된 요청: {}", e.getMessage());
@@ -46,7 +49,10 @@ public class PasswordController {
 
     // 새 비밀번호 설정
     @PutMapping("/change")
-    public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token, @RequestBody PasswordChangeRequest passwordChangeRequest) {
+    public ResponseEntity<String> changePassword(
+            @RequireUserNumber Integer userNumber,
+            @RequestBody PasswordChangeRequest passwordChangeRequest
+    ) {
         try {
             log.info("새 비밀번호 설정 요청");
 
@@ -60,12 +66,11 @@ public class PasswordController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("새 비밀번호가 일치하지 않습니다.");
             }
 
-            Integer userNumber = jwtProvider.getUserNumber(token.substring(7)); // "Bearer " 제거
-            log.info("토큰에서 userNumber 추출 - userNumber: {}",userNumber);
+            log.info("토큰에서 userNumber 추출 - userNumber: {}", userNumber);
 
             passwordChangeService.changePassword(userNumber, passwordChangeRequest.getNewPassword(), passwordChangeRequest.getNewPasswordConfirm());
 
-            log.info("새 비밀번호 설정 완료 - userNumber: {}",userNumber);
+            log.info("새 비밀번호 설정 완료 - userNumber: {}", userNumber);
             return ResponseEntity.ok("새 비밀번호 설정이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             log.warn("잘못된 요청: {}", e.getMessage());

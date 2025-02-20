@@ -88,7 +88,7 @@ public class BookmarkControllerTest {
 
             mockMvc.perform(delete("/api/bookmarks/{travelNumber}", travelNumber)
                             .header("Authorization", jwtToken))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk());
 
             Mockito.verify(bookmarkService).removeBookmark(travelNumber, 1);
         }
@@ -130,13 +130,13 @@ public class BookmarkControllerTest {
                             .param("page", "0")
                             .param("size", "5"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content[0].travelNumber").value(1))
-                    .andExpect(jsonPath("$.content[0].title").value("제목"))
-                    .andExpect(jsonPath("$.content[0].userName").value("작성자"))
-                    .andExpect(jsonPath("$.page.size").value(5))
-                    .andExpect(jsonPath("$.page.number").value(0))
-                    .andExpect(jsonPath("$.page.totalElements").value(1))
-                    .andExpect(jsonPath("$.page.totalPages").value(1));
+                    .andExpect(jsonPath("$.success.content[0].travelNumber").value(1))
+                    .andExpect(jsonPath("$.success.content[0].title").value("제목"))
+                    .andExpect(jsonPath("$.success.content[0].userName").value("작성자"))
+                    .andExpect(jsonPath("$.success.page.size").value(5))
+                    .andExpect(jsonPath("$.success.page.number").value(0))
+                    .andExpect(jsonPath("$.success.page.totalElements").value(1))
+                    .andExpect(jsonPath("$.success.page.totalPages").value(1));
 
             verify(bookmarkService).getBookmarksByUser(1, 0, 5);
         }
@@ -159,9 +159,9 @@ public class BookmarkControllerTest {
             mockMvc.perform(get("/api/bookmarks/travel-number")
                             .header(HttpHeaders.AUTHORIZATION, token))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0]").value(101))
-                    .andExpect(jsonPath("$[1]").value(102))
-                    .andExpect(jsonPath("$[2]").value(103));
+                    .andExpect(jsonPath("$.success[0]").value(101))
+                    .andExpect(jsonPath("$.success[1]").value(102))
+                    .andExpect(jsonPath("$.success[2]").value(103));
         }
     }
 

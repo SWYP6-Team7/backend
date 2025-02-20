@@ -12,10 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelListService;
@@ -25,11 +23,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,12 +38,6 @@ public class TravelListControllerTest {
 
     @MockBean
     private TravelListService travelListService;
-
-    @MockBean
-    private JwtProvider jwtProvider;
-
-    private final String AUTHORIZATION_HEADER = "Authorization";
-    private final String BEARER_TOKEN = "Bearer test-token";
 
     private MockedStatic<MemberAuthorizeUtil> mockedStaticMemberAuthorizeUtil;
 
@@ -93,23 +83,23 @@ public class TravelListControllerTest {
 
         // then
         mockMvc.perform(get("/api/my-travels")
-                        .header(HttpHeaders.AUTHORIZATION, token)
+//                        .header("Authorization", token)
                         .param("page", "0")
                         .param("size", "5"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].travelNumber").value(25))
-                .andExpect(jsonPath("$.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
-                .andExpect(jsonPath("$.content[0].userNumber").value(3))
-                .andExpect(jsonPath("$.content[0].userName").value("김모잉"))
-                .andExpect(jsonPath("$.content[0].tags[0]").value("즉흥"))
-                .andExpect(jsonPath("$.content[0].nowPerson").value(1))
-                .andExpect(jsonPath("$.content[0].maxPerson").value(5))
-                .andExpect(jsonPath("$.content[0].createdAt").value("2024-10-02 21:56"))
-                .andExpect(jsonPath("$.content[0].registerDue").value("2025-05-15"))
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(25))
+                .andExpect(jsonPath("$.success.content[0].title").value("호주 여행 같이 갈 사람 구해요"))
+                .andExpect(jsonPath("$.success.content[0].userNumber").value(3))
+                .andExpect(jsonPath("$.success.content[0].userName").value("김모잉"))
+                .andExpect(jsonPath("$.success.content[0].tags[0]").value("즉흥"))
+                .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
+                .andExpect(jsonPath("$.success.content[0].maxPerson").value(5))
+                .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-10-02 21:56"))
+                .andExpect(jsonPath("$.success.content[0].registerDue").value("2025-05-15"))
                 //.andExpect(jsonPath("$.content[0].isBookmarked").value(true))
-                .andExpect(jsonPath("$.page.size").value(5))
-                .andExpect(jsonPath("$.page.number").value(0))
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$.page.totalPages").value(1));
+                .andExpect(jsonPath("$.success.page.size").value(5))
+                .andExpect(jsonPath("$.success.page.number").value(0))
+                .andExpect(jsonPath("$.success.page.totalElements").value(1))
+                .andExpect(jsonPath("$.success.page.totalPages").value(1));
     }
 }
