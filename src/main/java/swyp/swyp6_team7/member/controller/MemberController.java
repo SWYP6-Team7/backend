@@ -1,6 +1,8 @@
 package swyp.swyp6_team7.member.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.member.dto.UserCreateResponse;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
@@ -41,6 +44,7 @@ public class MemberController {
     private final JwtProvider jwtProvider;
     private final SocialUserRepository socialUserRepository;
     private final UserRepository userRepository;
+    private final JwtBlacklistService jwtBlacklistService;
 
     @PostMapping("/users/new")
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody UserRequestDto userRequestDto) {
@@ -98,16 +102,29 @@ public class MemberController {
 
     // 회원 탈퇴
     @DeleteMapping("/user/delete")
-    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token, HttpServletResponse response) {
         log.info("회원 탈퇴 요청");
         try {
             String jwtToken = token.replace("Bearer ", "");
             Integer userNumber = jwtProvider.getUserNumber(jwtToken);
             log.info("회원 번호 추출 완료: {}", userNumber);
 
+            if (jwtProvider.validateToken(jwtToken)) {
+                long expirationTime = jwtProvider.getExpiration(jwtToken);
+                jwtBlacklistService.addToBlacklist(jwtToken, expirationTime);
+                log.info("Access Token 블랙리스트 등록 완료: {}", jwtToken);
+            }
+
+            // 클라이언트 측 Refresh Token 쿠키 삭제
+            Cookie deleteCookie = new Cookie("refreshToken", null);
+            deleteCookie.setMaxAge(0);
+            deleteCookie.setPath("/");
+            deleteCookie.setHttpOnly(true);
+            response.addCookie(deleteCookie);
+            log.info("Refresh Token 쿠키 삭제 완료");
+
             Users user = userRepository.findById(userNumber)
                     .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
-
             Optional<SocialUsers> socialUserOpt = socialUserRepository.findByUser(user);
 
             // 회원 탈퇴 서비스 호출 (일반 회원과 소셜 회원 모두 처리)

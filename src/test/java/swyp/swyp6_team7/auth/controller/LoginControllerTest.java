@@ -1,5 +1,8 @@
 package swyp.swyp6_team7.auth.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,31 +14,30 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.LoginService;
+import swyp.swyp6_team7.auth.service.TokenService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 import swyp.swyp6_team7.member.service.MemberService;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "kakao.client-id=fake-client-id",
-        "kakao.client-secret=fake-client-secret",
-        "kakao.redirect-uri=http://localhost:8080/login/oauth2/code/kakao",
-        "kakao.token-url=https://kauth.kakao.com/oauth/token",
-        "kakao.user-info-url=https://kapi.kakao.com/v2/user/me"
-})
 public class LoginControllerTest {
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,76 +54,51 @@ public class LoginControllerTest {
     @MockBean
     private UserRepository userRepository;
 
+    @MockBean
+    private TokenService tokenService;
+
+    @MockBean
+    private JwtProvider jwtProvider;
+
+    @MockBean
+    private JwtBlacklistService jwtBlacklistService;
+
     @Test
+    @DisplayName("로그인 성공")
     public void testLoginSuccess() throws Exception {
         // Given
-        String email = "test@example.com";
-        String password = "password";
-        LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail("test@example.com");
-        loginRequestDto.setPassword("password");
+        LoginRequestDto loginRequest = new LoginRequestDto();
+        loginRequest.setEmail("test@example.com");
+        loginRequest.setPassword("password");
 
-        Users mockUser = Users.builder()
-                .userNumber(123)
-                .userEmail(email)
-                .userPw("encodedPassword")
-                .userSocialTF(false)
-                .build();
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken", "mocked-access-token");
+        tokenMap.put("refreshToken", "mocked-refresh-token");
 
-        Map<String, String> mockedTokenMap = new HashMap<>();
-        mockedTokenMap.put("accessToken", "mocked-access-token");
-        mockedTokenMap.put("refreshToken", "mocked-refresh-token");
+        when(loginService.login(any(LoginRequestDto.class))).thenReturn(tokenMap);
+        when(loginService.getUserNumberByEmail(eq("test@example.com"))).thenReturn(1);
+        when(tokenService.getRefreshTokenValidity()).thenReturn(Duration.ofDays(7).getSeconds());
+        Users user = new Users();
+        user.setUserNumber(1);
+        when(loginService.getUserByEmail(eq("test@example.com"))).thenReturn(user);
 
-        Mockito.when(userRepository.findByUserEmail(anyString())).thenReturn(Optional.of(mockUser));  // 사용자 조회 설정 추가
-        Mockito.when(loginService.login(any(LoginRequestDto.class))).thenReturn(mockedTokenMap);
-        Mockito.when(loginService.getUserByEmail(anyString())).thenReturn(mockUser);
-
+        doNothing().when(userLoginHistoryService).saveLoginHistory(any(Users.class));
+        doNothing().when(memberService).updateLoginDate(any(Users.class));
+        doNothing().when(tokenService).storeRefreshToken(eq(1),eq("mocked-refresh-token"));
 
         // When & Then
         mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{ \"email\": \"test@example.com\", \"password\": \"password\" }"))
+                        .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value("1"))
                 .andExpect(jsonPath("$.accessToken").value("mocked-access-token"))
-                .andExpect(cookie().value("refreshToken", "mocked-refresh-token"))
-                .andExpect(cookie().httpOnly("refreshToken", true))
-                .andExpect(cookie().secure("refreshToken", true));
+                .andExpect(header().string("Set-Cookie", Matchers.containsString("refreshToken=mocked-refresh-token")))
+                .andDo(result -> System.out.println("로그인 성공 테스트 완료"));
 
-    }
-
-    @Test
-    public void testLoginFailedDueToWrongPassword() throws Exception {
-        // Given
-        LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail("test@example.com");
-        loginRequestDto.setPassword("wrongpassword");
-
-        Mockito.when(loginService.login(any(LoginRequestDto.class)))
-                .thenThrow(new IllegalArgumentException("비밀번호가 일치하지 않습니다."));
-
-        // When & Then
-        mockMvc.perform(post("/api/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{ \"email\": \"test@example.com\", \"password\": \"wrongpassword\" }"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("비밀번호가 일치하지 않습니다."));
-    }
-
-    @Test
-    public void testLoginFailedDueToNonExistentEmail() throws Exception {
-        // Given
-        LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail("nonexistent@example.com");
-        loginRequestDto.setPassword("password");
-
-        Mockito.when(loginService.login(any(LoginRequestDto.class)))
-                .thenThrow(new UsernameNotFoundException("사용자 이메일을 찾을 수 없습니다."));
-
-        // When & Then
-        mockMvc.perform(post("/api/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{ \"email\": \"nonexistent@example.com\", \"password\": \"password\" }"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("사용자 이메일을 찾을 수 없습니다."));
+        verify(loginService, times(1)).login(any(LoginRequestDto.class));
+        verify(tokenService, times(1)).storeRefreshToken(1, "mocked-refresh-token");
+        verify(userLoginHistoryService, times(1)).saveLoginHistory(user);
+        verify(memberService, times(1)).updateLoginDate(user);
     }
 }

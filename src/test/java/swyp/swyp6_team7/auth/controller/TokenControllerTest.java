@@ -17,6 +17,8 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.TokenService;
 
+import java.util.*;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,18 +49,23 @@ public class TokenControllerTest {
     }
 
     @Test
-    @DisplayName("새로운 액세스토큰 발급 성공")
+    @DisplayName("새로운 AccessToken 발급 성공")
     public void testRefreshAccessTokenSuccess() throws Exception {
         String validRefreshToken = "valid-refresh-token";
         String newAccessToken = "new-access-token";
+        String newRefreshToken = "new-refresh-token";
         Integer userNumber = 123;
 
         Cookie refreshTokenCookie = createRefreshTokenCookie(validRefreshToken);
 
         when(jwtBlacklistService.isTokenBlacklisted(validRefreshToken)).thenReturn(false);
-        when(tokenService.refreshWithLock(validRefreshToken)).thenReturn(newAccessToken);
-        when(jwtProvider.getUserNumber(newAccessToken)).thenReturn(userNumber);
 
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken",newAccessToken);
+        tokenMap.put("refreshToken",newRefreshToken);
+        when(tokenService.refreshWithLock(validRefreshToken)).thenReturn(tokenMap);
+
+        when(jwtProvider.getUserNumber(newAccessToken)).thenReturn(userNumber);
 
         // When & Then
         mockMvc.perform(post("/api/token/refresh")
@@ -71,7 +78,7 @@ public class TokenControllerTest {
     }
 
     @Test
-    @DisplayName("액세스 토큰 재발급 실패 - Refresh토큰 존재하지 않는 경우")
+    @DisplayName("AccessToken 재발급 실패 - RefreshToken 미존재")
     public void testRefreshAccessTokenFailureDueToMissingRefreshToken() throws Exception {
         // When & Then
         mockMvc.perform(post("/api/token/refresh")
@@ -82,17 +89,7 @@ public class TokenControllerTest {
     }
 
     @Test
-    @DisplayName("유효하지 않은 토큰으로 액세스 토큰 재발급 할 떄")
-    public void testRefreshAccessTokenFailureDueToInvalidToken() throws Exception {
-        // Given
-        mockMvc.perform(post("/api/token/refresh")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Refresh Token이 존재하지 않습니다."))
-                .andDo(result -> System.out.println("Missing Refresh Token handled correctly."));
-    }
-    @Test
-    @DisplayName("블랙리스트에 등록된 RefreshToken으로 액세스 토큰 재발급하는 경우")
+    @DisplayName("블랙리스트에 등록된 RefreshToken으로 AccessToken 재발급 실패")
     public void testRefreshAccessTokenFailureDueToBlacklistedToken() throws Exception {
         // Given
         String blacklistedRefreshToken = "blacklisted-refresh-token";
@@ -110,7 +107,7 @@ public class TokenControllerTest {
                 .andDo(result -> System.out.println("Blacklisted Refresh Token handled correctly."));
     }
     @Test
-    @DisplayName("만료된 refresh 토큰으로 액세스토큰 재발급하는 경우")
+    @DisplayName("만료된 RefreshToken으로 AccessToken 재발급 실패")
     public void testRefreshAccessTokenFailureDueToExpiredToken() throws Exception {
         // Given
         String expiredRefreshToken = "expired-refresh-token";
@@ -130,7 +127,7 @@ public class TokenControllerTest {
     }
 
     @Test
-    @DisplayName("유효하지 않은 RefreshToken으로 액세스토큰 재발급하는 경우")
+    @DisplayName("유효하지 않은 RefreshToken으로 AccessToken 재발급 실패")
     public void testRefreshAccessTokenFailureDueToJwtException() throws Exception {
         // Given
         String invalidRefreshToken = "invalid-refresh-token";
@@ -150,7 +147,7 @@ public class TokenControllerTest {
     }
 
     @Test
-    @DisplayName("알 수 없는 서버 에러의 경우")
+    @DisplayName("알 수 없는 서버 에러 발생 시 AccessToken 재발급 실패")
     public void testRefreshAccessTokenFailureDueToUnexpectedError() throws Exception {
         // Given
         String refreshToken = "refresh-token";

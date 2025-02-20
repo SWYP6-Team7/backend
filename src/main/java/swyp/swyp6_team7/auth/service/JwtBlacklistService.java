@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class JwtBlacklistService {
 
-    @Qualifier("stringRedisTemplate")
+    @Qualifier("redisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
 
     // Access Token을 블랙리스트에 추가
