@@ -1,12 +1,10 @@
 package swyp.swyp6_team7.notice.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.notice.dto.NoticeRequestDto;
 import swyp.swyp6_team7.notice.dto.NoticeResponseDto;
-import swyp.swyp6_team7.notice.entity.Notice;
 import swyp.swyp6_team7.notice.service.NoticeService;
 
 import java.util.List;
@@ -21,32 +19,32 @@ public class NoticeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NoticeResponseDto>> getAllNotices() {
-        return ResponseEntity.ok(noticeService.getAllNotices());
+    public ApiResponse<List<NoticeResponseDto>> getAllNotices() {
+        return ApiResponse.success(noticeService.getAllNotices());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NoticeResponseDto> getNoticeById(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(noticeService.getNoticeById(id));
+    public ApiResponse<NoticeResponseDto> getNoticeById(@PathVariable("id") Long id) {
+        return ApiResponse.success(noticeService.getNoticeById(id));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<NoticeResponseDto> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
-        return ResponseEntity.status(201).body(noticeService.createNotice(noticeRequestDto));
+    public ApiResponse<NoticeResponseDto> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
+        return ApiResponse.success(noticeService.createNotice(noticeRequestDto));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<NoticeResponseDto> updateNotice(
+    public ApiResponse<NoticeResponseDto> updateNotice(
             @PathVariable("id") Long id, @RequestBody NoticeRequestDto noticeRequestDto) {
-        return ResponseEntity.ok(noticeService.updateNotice(id, noticeRequestDto));
+        return ApiResponse.success(noticeService.updateNotice(id, noticeRequestDto));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable("id") Long id) {
+    public ApiResponse<Void> deleteNotice(@PathVariable("id") Long id) {
         noticeService.deleteNotice(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success(null);
     }
 }

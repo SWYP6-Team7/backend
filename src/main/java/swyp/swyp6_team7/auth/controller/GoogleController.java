@@ -7,7 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.auth.dto.SignupRequestDto;
+import swyp.swyp6_team7.auth.dto.SocialLoginRedirectResponse;
 import swyp.swyp6_team7.auth.service.GoogleService;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 
 import java.util.Map;
 import java.util.UUID;
@@ -29,7 +32,7 @@ public class GoogleController {
 
     // 구글 로그인 리디렉션
     @GetMapping("/login/oauth/google")
-    public ResponseEntity<Map<String, String>> googleLoginRedirect(HttpSession session) {
+    public ApiResponse<SocialLoginRedirectResponse> googleLoginRedirect(HttpSession session) {
         try {
             String state = UUID.randomUUID().toString();  // CSRF 방지용 state 값 생성
             session.setAttribute("oauth_state", state);   // 세션에 state 값 저장
@@ -40,11 +43,10 @@ public class GoogleController {
                     + "&state=" + state;
 
             log.info("Google 로그인 리디렉션 성공: state={}", state);
-            return ResponseEntity.ok(Map.of("redirectUrl", googleAuthUrl));
+            return ApiResponse.success(new SocialLoginRedirectResponse(googleAuthUrl));
         } catch (Exception e) {
             log.error("Google 로그인 리디렉션 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to create Google login redirect URL"));
+            throw new MoingApplicationException("Failed to create Google login redirect URL");
         }
     }
 
