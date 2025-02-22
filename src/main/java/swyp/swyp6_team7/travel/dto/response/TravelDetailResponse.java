@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,8 +31,6 @@ public class TravelDetailResponse {
     private int nowPerson;      //현재 모집 인원
     private int maxPerson;      //최대 모집 인원
     private String genderType;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate dueDate;
     private String periodType;
     private List<String> tags;
     private String postStatus;
@@ -44,8 +41,7 @@ public class TravelDetailResponse {
     public TravelDetailResponse(
             int travelNumber, int userNumber, String userName, String userAgeGroup, String profileUrl, LocalDateTime createdAt,
             String location, String title, String details, int viewCount, int enrollCount, int bookmarkCount,
-            int nowPerson, int maxPerson, String genderType, LocalDate dueDate, String periodType,
-            List<String> tags, String postStatus
+            int nowPerson, int maxPerson, String genderType, String periodType, List<String> tags, String postStatus
     ) {
         this.travelNumber = travelNumber;
         this.userNumber = userNumber;
@@ -62,7 +58,6 @@ public class TravelDetailResponse {
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.genderType = genderType;
-        this.dueDate = dueDate;
         this.periodType = periodType;
         this.tags = tags;
         this.postStatus = postStatus;
@@ -86,7 +81,6 @@ public class TravelDetailResponse {
         this.nowPerson = travelDetail.getCompanionCount();
         this.maxPerson = travelDetail.getTravel().getMaxPerson();
         this.genderType = travelDetail.getTravel().getGenderType().toString();
-        this.dueDate = travelDetail.getTravel().getDueDate();
         this.periodType = travelDetail.getTravel().getPeriodType().toString();
         this.tags = travelDetail.getTags();
         this.postStatus = travelDetail.getTravel().getStatus().toString();
@@ -115,7 +109,6 @@ public class TravelDetailResponse {
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", genderType='" + genderType + '\'' +
-                ", dueDate=" + dueDate +
                 ", periodType='" + periodType + '\'' +
                 ", tags=" + tags +
                 ", postStatus='" + postStatus + '\'' +

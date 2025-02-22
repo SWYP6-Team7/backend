@@ -60,7 +60,7 @@ class TravelCustomRepositoryImplTest {
     private BookmarkRepository bookmarkRepository;
 
 
-    @DisplayName("getDetailsByNumber: 여행 번호가 주어지면 여행의 디테일 정보를 가져올 수 있다.")
+    @DisplayName("getDetailsByNumber: 여행 번호가 주어지면 여행의 상세 정보를 가져올 수 있다.")
     @Test
     public void getDetailsByNumber() {
         // given
@@ -71,10 +71,9 @@ class TravelCustomRepositoryImplTest {
         List<Tag> tags = tagRepository.saveAll(Arrays.asList(tag1, tag2));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 2, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, tags);
+                PeriodType.ONE_WEEK, IN_PROGRESS, tags);
         travelRepository.save(travel1);
 
         // when
@@ -86,23 +85,21 @@ class TravelCustomRepositoryImplTest {
                 .contains(travel1, host.getUserNumber(), "주최자 이름", "10대", 0, List.of("쇼핑", "자연"));
     }
 
-    @DisplayName("findAll: 여행을 최신순으로 가져올 수 있다.")
+    @DisplayName("findAll: 생성 날짜가 최신 순서로 정렬된 여행 목록을 조회할 수 있다.")
     @Test
     public void findAllSortedByCreatedAt() {
         // given
         Users host = userRepository.save(createHostUser());
-
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
 
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 2, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.save(travel1);
 
         Travel travel2 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.save(travel2);
 
         // when
@@ -111,14 +108,14 @@ class TravelCustomRepositoryImplTest {
 
         // then
         assertThat(results.getContent()).hasSize(2)
-                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                .extracting("travelNumber", "title", "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson")
                 .containsExactly(
-                        tuple(travel2.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
-                        tuple(travel1.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 2, dueDate)
+                        tuple(travel2.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0),
+                        tuple(travel1.getNumber(), "여행", "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 2)
                 );
     }
 
-    @DisplayName("findAllByPreferredTags: 사용자의 선호 태그와 콘텐츠 태그의 중복 태그 개수를 여행과 함께 가져올 수 있다.")
+    @DisplayName("findAllByPreferredTags: 사용자의 선호 태그가 많이 포함된 순서로 정렬된 여행 목록과 포함된 태그 개수를 함께 가져온다.")
     @Test
     public void findAllByPreferredTags() {
         // given
@@ -129,19 +126,18 @@ class TravelCustomRepositoryImplTest {
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
         Travel travel4 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
         travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
 
         List<String> preferredTags = Arrays.asList("쇼핑", "자연", "먹방");
@@ -162,6 +158,7 @@ class TravelCustomRepositoryImplTest {
                 );
     }
 
+    /*
     @DisplayName("findAllByPreferredTags: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
     @Test
     public void findAllByPreferredTagsWithDate() {
@@ -204,21 +201,20 @@ class TravelCustomRepositoryImplTest {
                         tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1),
                         tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
                 );
-    }
+    }*/
 
-    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 많은 순서로 여행을 가져온다.")
+    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 많은 순서로 정렬된 여행 목록을 가져온다.")
     @Test
     void findAllByBookmarkNumberAndTitle() {
         // given
         Users host = userRepository.save(createHostUser());
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 9);
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행1", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 host.getUserNumber(), location, "여행2", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
@@ -230,33 +226,32 @@ class TravelCustomRepositoryImplTest {
         LocalDate requestDate = LocalDate.of(2024, 11, 8);
 
         // when
-        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5),  requestDate);
+        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5), requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(2)
                 .extracting("travelNumber", "title", "bookmarkCount",
-                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson")
                 .containsExactly(
                         tuple(travel2.getNumber(), "여행2", 2,
-                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0),
                         tuple(travel1.getNumber(), "여행1", 1,
-                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate)
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0)
                 );
     }
 
-    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 같다면 제목 사전순 정렬으로 가져온다.")
+    @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 같으면 제목 사전순으로 추가 정렬한다.")
     @Test
     void findAllByBookmarkNumberAndTitleWhenSameBookmarkNumber() {
         // given
         Users host = userRepository.save(createHostUser());
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 9);
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행갸", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 host.getUserNumber(), location, "여행가", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
@@ -272,15 +267,16 @@ class TravelCustomRepositoryImplTest {
         // then
         assertThat(result.getContent()).hasSize(2)
                 .extracting("travelNumber", "title", "bookmarkCount",
-                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson")
                 .containsExactly(
                         tuple(travel2.getNumber(), "여행가", 1,
-                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate),
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0),
                         tuple(travel1.getNumber(), "여행갸", 1,
-                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate)
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0)
                 );
     }
 
+    /*
     @DisplayName("findAllByBookmarkNumberAndTitle: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
     @Test
     void findAllByBookmarkNumberAndTitleWithDate() {
@@ -308,7 +304,7 @@ class TravelCustomRepositoryImplTest {
         LocalDate requestDate = LocalDate.of(2024, 11, 8);
 
         // when
-        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5),  requestDate);
+        Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5), requestDate);
 
         // then
         assertThat(result.getContent()).hasSize(1)
@@ -318,20 +314,19 @@ class TravelCustomRepositoryImplTest {
                         tuple(travel2.getNumber(), "여행2", 2,
                                 "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate2)
                 );
-    }
+    }*/
 
-    @DisplayName("search: keyword가 포함된 여행을 가져올 수 있다.")
+    @DisplayName("search: 제목에 keyword가 포함된 여행 목록을 가져올 수 있다.")
     @Test
     public void searchWithKeyword() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "Seoul 여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "키워드", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -348,19 +343,18 @@ class TravelCustomRepositoryImplTest {
                 .allMatch(title -> ((String) title).contains("키워드"));
     }
 
-    @DisplayName("search: 장소 이름에 keyword가 포함된 여행을 가져올 수 있다.")
+    @DisplayName("search: 장소 이름에 keyword가 포함된 여행 목록을 가져올 수 있다.")
     @Test
     public void searchWithKeywordThroughTitleAndLocation() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
         Location location2 = locationRepository.save(createLocation("Busan", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행1", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location2, "여행2", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -383,13 +377,12 @@ class TravelCustomRepositoryImplTest {
     public void searchWithoutKeyword() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "Seoul 여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "키워드", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -403,21 +396,20 @@ class TravelCustomRepositoryImplTest {
         assertThat(results.getContent()).hasSize(2);
     }
 
-    @DisplayName("search: 콘텐츠의 상태가 IN_PROGRESS, CLOSED인 여행만 가져온다.")
+    @DisplayName("search: 콘텐츠의 상태가 IN_PROGRESS, CLOSED인 여행만 검색 결과에 포함되어 있다.")
     @Test
     public void searchOnlyActivated() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, DELETED, new ArrayList<>());
+                PeriodType.ONE_WEEK, DELETED, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, CLOSED, new ArrayList<>());
+                PeriodType.ONE_WEEK, CLOSED, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -433,7 +425,7 @@ class TravelCustomRepositoryImplTest {
                 .allMatch(status -> List.of(IN_PROGRESS.toString(), CLOSED.toString()).contains(status));
     }
 
-    @DisplayName("search: 여러 개의 문자열이 주어질 때, 해당 문자열의 태그를 전부 포함하는 여행을 가져온다.")
+    @DisplayName("search: 여러 개의 태그 이름이 주어질 때, 태그를 전부 포함하는 여행 목록을 가져온다.")
     @Test
     public void searchWithTags() {
         // given
@@ -442,13 +434,12 @@ class TravelCustomRepositoryImplTest {
         tagRepository.saveAll(Arrays.asList(tag1, tag2));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
         travelRepository.saveAll(List.of(travel1, travel2));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -466,21 +457,20 @@ class TravelCustomRepositoryImplTest {
                 );
     }
 
-    @DisplayName("search: 주어지는 GenderType에 해당하는 여행을 가져올 수 있다.")
+    @DisplayName("search: 주어지는 GenderType을 가진 여행 목록을 가져올 수 있다.")
     @Test
     public void searchWithGenderFilter() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.WOMAN_ONLY,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MAN_ONLY,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -497,21 +487,20 @@ class TravelCustomRepositoryImplTest {
                 .containsExactlyInAnyOrder(travel1.getNumber(), travel2.getNumber());
     }
 
-    @DisplayName("search: 주어지는 PeriodType에 해당하는 여행을 가져올 수 있다.")
+    @DisplayName("search: 주어지는 PeriodType을 가진 여행 목록을 가져올 수 있다.")
     @Test
     public void searchWithPeriodFilter() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
+                PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.THREE_WEEKS, IN_PROGRESS, new ArrayList<>());
+                PeriodType.THREE_WEEKS, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
+                PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -529,24 +518,23 @@ class TravelCustomRepositoryImplTest {
     }
 
 
-    @DisplayName("search: 주어지는 personTypes에 해당하는 여행을 가져올 수 있다.")
+    @DisplayName("search: 주어지는 personTypes을 가진 여행을 가져올 수 있다.")
     @Test
     public void searchWithPersonRangeFilter() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 2, GenderType.MIXED,
-                dueDate, PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
+                PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 3, GenderType.MIXED,
-                dueDate, PeriodType.THREE_WEEKS, IN_PROGRESS, new ArrayList<>());
+                PeriodType.THREE_WEEKS, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 4, GenderType.MIXED,
-                dueDate, PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
+                PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
         Travel travel4 = createTravel(
                 1, location, "여행", 0, 5, GenderType.MIXED,
-                dueDate, PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
+                PeriodType.TWO_WEEKS, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -564,7 +552,7 @@ class TravelCustomRepositoryImplTest {
     }
 
 
-    @DisplayName("search: 장소 필터링을 통해 국내 카테고리의 여행을 검색할 수 있다.")
+    @DisplayName("search: 국내 카테고리(DOMESTIC)에 해당하는 여행을 검색할 수 있다.")
     @Test
     public void searchDomesticTravelWithLocationFilter() {
         // given
@@ -574,13 +562,13 @@ class TravelCustomRepositoryImplTest {
         LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, domesticLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, domesticLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, internationalLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -597,23 +585,22 @@ class TravelCustomRepositoryImplTest {
                 .containsExactlyInAnyOrder(travel1.getNumber(), travel2.getNumber());
     }
 
-    @DisplayName("search: 장소 필터링을 통해 해외 카테고리의 여행을 검색할 수 있다.")
+    @DisplayName("search: 해외 카테고리(INTERNATIONAL)에 해당하는 여행을 검색할 수 있다.")
     @Test
     public void searchInternationalTravelWithLocationFilter() {
         // given
         Location domesticLocation = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
         Location internationalLocation = locationRepository.save(createLocation("London", LocationType.INTERNATIONAL));
 
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, domesticLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, internationalLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, internationalLocation, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -630,21 +617,20 @@ class TravelCustomRepositoryImplTest {
                 .containsExactlyInAnyOrder(travel2.getNumber(), travel3.getNumber());
     }
 
-    @DisplayName("search: 검색할 때 정렬 키워드가 주어지지 않으면, dueDate가 빠른 순서대로 정렬된다.")
+    @DisplayName("search: 검색 정렬 조건이 주어지지 않으면, 최신 생성 순서로 정렬된 여행 목록을 가져온다.")
     @Test
     public void searchWithoutSortingType() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate.plusDays(2), PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate.plusDays(1), PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         TravelSearchCondition condition = TravelSearchCondition.builder()
@@ -660,50 +646,20 @@ class TravelCustomRepositoryImplTest {
                 .containsExactly(travel3.getNumber(), travel2.getNumber(), travel1.getNumber());
     }
 
-    @DisplayName("search: 검색할 때 정렬 키워드가 주어지지 않았을 때, dueDate가 동일하면 최근 생성된 순서로 정렬된다.")
-    @Test
-    public void searchWithoutSortingType2() {
-        // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
-        Travel travel1 = travelRepository.save(createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
-        Travel travel2 = travelRepository.save(createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
-        Travel travel3 = travelRepository.save(createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>()));
-
-        TravelSearchCondition condition = TravelSearchCondition.builder()
-                .pageRequest(PageRequest.of(0, 5))
-                .build();
-
-        // when
-        Page<TravelSearchDto> results = travelRepository.search(condition);
-
-        // then
-        assertThat(results.getContent()).hasSize(3)
-                .extracting("travelNumber")
-                .containsExactly(travel3.getNumber(), travel2.getNumber(), travel1.getNumber());
-    }
-
-    @DisplayName("search: 추천순 정렬은 북마크 개수, 조회수가 많은 순서대로 여행을 가져온다.")
+    @DisplayName("search: 검색의 추천순 정렬은 북마크 개수, 조회수가 많은 순서대로 정렬된 여행 목록을 가져온다.")
     @Test
     public void searchWithRecommendSorting() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 3, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 2, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         LocalDateTime createdAt = LocalDateTime.of(2024, 11, 6, 12, 0);
@@ -726,21 +682,20 @@ class TravelCustomRepositoryImplTest {
                 .containsExactly(travel3.getNumber(), travel2.getNumber(), travel1.getNumber());
     }
 
-    @DisplayName("search: 추천순 정렬에서 북마크가 동일한 경우 조회수가 많은 순서대로 여행을 가져온다.")
+    @DisplayName("search: 검색 추천순 정렬에서 북마크 개수가 동일하면, 조회수가 많은 순서대로 추가 정렬한다.")
     @Test
     void searchWithRecommendSorting2() {
         // given
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel2 = createTravel(
                 1, location, "여행", 3, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         Travel travel3 = createTravel(
                 1, location, "여행", 1, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+                PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         LocalDateTime createdAt = LocalDateTime.of(2024, 11, 6, 12, 0);
@@ -784,8 +739,8 @@ class TravelCustomRepositoryImplTest {
     }
 
     private Travel createTravel(
-            int hostNumber, Location location, String title, int viewCount, int maxPerson, GenderType genderType,
-            LocalDate dueDate, PeriodType periodType, TravelStatus status, List<Tag> tags
+            int hostNumber, Location location, String title, int viewCount, int maxPerson,
+            GenderType genderType, PeriodType periodType, TravelStatus status, List<Tag> tags
     ) {
         return Travel.builder()
                 .userNumber(hostNumber)
@@ -796,7 +751,6 @@ class TravelCustomRepositoryImplTest {
                 .viewCount(viewCount)
                 .maxPerson(maxPerson)
                 .genderType(genderType)
-                .dueDate(dueDate)
                 .periodType(periodType)
                 .status(status)
                 .tags(tags)

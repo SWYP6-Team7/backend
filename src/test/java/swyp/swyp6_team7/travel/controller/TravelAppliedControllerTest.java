@@ -20,7 +20,6 @@ import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -57,7 +56,6 @@ public class TravelAppliedControllerTest {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         LocalDateTime createdAt = LocalDateTime.parse("2024-10-02 21:56", dateTimeFormatter);
-        LocalDate registerDue = LocalDate.parse("2025-05-15", dateFormatter);
 
         TravelListResponseDto responseDto = TravelListResponseDto.builder()
                 .travelNumber(25)
@@ -68,7 +66,6 @@ public class TravelAppliedControllerTest {
                 .nowPerson(1)
                 .maxPerson(5)
                 .createdAt(createdAt)
-                .registerDue(registerDue)
                 .isBookmarked(false)
                 .build();
         Page<TravelListResponseDto> page = new PageImpl<>(Collections.singletonList(responseDto), pageable, 1);
@@ -93,7 +90,6 @@ public class TravelAppliedControllerTest {
                     .andExpect(jsonPath("$.success.page.totalElements").value(1))
                     .andExpect(jsonPath("$.success.page.totalPages").value(1));
         }
-
     }
 
     @DisplayName("사용자가 특정 여행에 대한 참가 신청을 취소한다")

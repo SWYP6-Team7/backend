@@ -33,7 +33,6 @@ import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -82,12 +81,11 @@ class TravelServiceTest {
         userRepository.deleteAllInBatch();
     }
 
-    @DisplayName("create: 여행 콘텐츠를 만들 수 있다")
+    @DisplayName("create: 여행 콘텐츠를 만들 수 있다.")
     @Test
     public void create() {
         // given
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
 
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("Seoul")
@@ -95,7 +93,6 @@ class TravelServiceTest {
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType(GenderType.MIXED.toString())
-                .dueDate(dueDate)
                 .periodType(PeriodType.ONE_WEEK.toString())
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -113,7 +110,6 @@ class TravelServiceTest {
         assertThat(createdTravel.getViewCount()).isEqualTo(0);
         assertThat(createdTravel.getMaxPerson()).isEqualTo(2);
         assertThat(createdTravel.getGenderType()).isEqualTo(GenderType.MIXED);
-        assertThat(createdTravel.getDueDate()).isEqualTo(dueDate);
         assertThat(createdTravel.getPeriodType()).isEqualTo(PeriodType.ONE_WEEK);
         assertThat(createdTravel.getStatus()).isEqualTo(TravelStatus.IN_PROGRESS);
         assertThat(createdTravel.getEnrollmentsLastViewedAt()).isNull();
@@ -130,8 +126,7 @@ class TravelServiceTest {
         String defaultProfileUrl = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
         Users host = userRepository.save(createHostUser());
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, TravelStatus.IN_PROGRESS));
 
         // when
         TravelDetailResponse travelDetails = travelService.getDetailsByNumber(savedTravel.getNumber());
@@ -151,7 +146,6 @@ class TravelServiceTest {
         assertThat(travelDetails.getNowPerson()).isEqualTo(0);      // 현재 참가자
         assertThat(travelDetails.getMaxPerson()).isEqualTo(2);
         assertThat(travelDetails.getGenderType()).isEqualTo(GenderType.MIXED.toString());
-        assertThat(travelDetails.getDueDate()).isEqualTo(dueDate);
         assertThat(travelDetails.getPeriodType()).isEqualTo(PeriodType.ONE_WEEK.toString());
         assertThat(travelDetails.getTags()).hasSize(1);
         assertThat(travelDetails.getPostStatus()).isEqualTo(TravelStatus.IN_PROGRESS.toString());
@@ -171,15 +165,14 @@ class TravelServiceTest {
                 .hasMessage("해당하는 여행을 찾을 수 없습니다. - travelNumber: " + targetTravelNumber);
     }
 
-    @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Deleted인 경우 예외가 발생한다.")
+    @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Deleted라면 예외가 발생한다.")
     @Test
     void getDetailsByNumberWhenDeletedStatus() {
         // given
         Users host = userRepository.save(createHostUser());
 
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, dueDate, TravelStatus.DELETED));
+        Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, TravelStatus.DELETED));
 
         // when // then
         assertThatThrownBy(() -> {
@@ -188,7 +181,7 @@ class TravelServiceTest {
                 .hasMessage("Deleted 상태의 여행 콘텐츠입니다.");
     }
 
-    @DisplayName("getTravelDetailMemberRelatedInfo: 로그인 유저의 여행 상세 조회 요청 시, 필요한 추가 정보를 가져올 수 있다.")
+    @DisplayName("getTravelDetailMemberRelatedInfo: 로그인 유저는 여행 상세 조회 요청 시, 자신과 관련된 상세 정보를 가져올 수 있다.")
     @Test
     void getTravelDetailMemberRelatedInfo() {
         // given
@@ -241,8 +234,7 @@ class TravelServiceTest {
         // given
         int hostUserNumber = 1;
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .locationName("Seoul")
@@ -250,7 +242,6 @@ class TravelServiceTest {
                 .details("여행 내용 수정")
                 .maxPerson(3)
                 .genderType(GenderType.WOMAN_ONLY.toString())
-                .dueDate(LocalDate.of(2024, 11, 5))
                 .periodType(PeriodType.MORE_THAN_MONTH.toString())
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -267,7 +258,6 @@ class TravelServiceTest {
         assertThat(updatedTravel.getDetails()).isEqualTo("여행 내용 수정");
         assertThat(updatedTravel.getMaxPerson()).isEqualTo(3);
         assertThat(updatedTravel.getGenderType()).isEqualTo(GenderType.WOMAN_ONLY);
-        assertThat(updatedTravel.getDueDate()).isEqualTo(LocalDate.of(2024, 11, 5));
         assertThat(updatedTravel.getPeriodType()).isEqualTo(PeriodType.MORE_THAN_MONTH);
         assertThat(updatedTravel.getStatus()).isEqualTo(TravelStatus.IN_PROGRESS);
         assertThat(updatedTravel.getTravelTags()).hasSize(1);
@@ -287,8 +277,7 @@ class TravelServiceTest {
         int requestUserNumber = 2;
 
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .tags(List.of())
@@ -308,8 +297,7 @@ class TravelServiceTest {
         // given
         int hostUserNumber = 1;
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         // when
         travelService.delete(savedTravel.getNumber(), hostUserNumber);
@@ -331,8 +319,7 @@ class TravelServiceTest {
         int requestUserNumber = 2;
 
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         // when //then
         assertThatThrownBy(() -> {
@@ -347,8 +334,7 @@ class TravelServiceTest {
         // given
         int hostUserNumber = 1;
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         // when
         LocalDateTime lastViewedAt = travelService.getEnrollmentsLastViewedAt(savedTravel.getNumber());
@@ -363,8 +349,7 @@ class TravelServiceTest {
         // given
         int hostUserNumber = 1;
         Location location = locationRepository.save(createLocation("Seoul"));
-        LocalDate dueDate = LocalDate.of(2024, 11, 4);
-        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, dueDate, TravelStatus.IN_PROGRESS));
+        Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         LocalDateTime updateDateTime = LocalDateTime.of(2024, 11, 20, 10, 0);
 
@@ -396,7 +381,7 @@ class TravelServiceTest {
                 .build();
     }
 
-    private Travel createTravel(int hostUserNumber, Location location, LocalDate dueDate, TravelStatus status) {
+    private Travel createTravel(int hostUserNumber, Location location, TravelStatus status) {
         Tag tag1 = tagRepository.save(Tag.of("자연"));
 
         return Travel.builder()
@@ -408,7 +393,6 @@ class TravelServiceTest {
                 .viewCount(0)
                 .maxPerson(2)
                 .genderType(GenderType.MIXED)
-                .dueDate(dueDate)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
                 .tags(List.of(tag1))

@@ -17,7 +17,6 @@ import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -196,7 +195,6 @@ class CommentNotificationServiceTest {
                 .userNumber(hostUserNumber)
                 .title("여행Title")
                 .maxPerson(2)
-                .dueDate(LocalDate.of(2024, 11, 16))
                 .build();
     }
 

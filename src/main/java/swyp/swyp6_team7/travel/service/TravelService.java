@@ -36,6 +36,8 @@ import java.util.List;
 public class TravelService {
 
     public static final int TRAVEL_TAG_MAX_COUNT = 5;
+
+    // TODO: 링크 수정
     private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
 
     private final TravelTagService travelTagService;
@@ -56,7 +58,7 @@ public class TravelService {
 
         Travel travel = Travel.create(loginUserNumber, location,
                 request.getTitle(), request.getDetails(), request.getMaxPerson(),
-                request.getGenderType(), request.getDueDate(), request.getPeriodType(), tags);
+                request.getGenderType(), request.getPeriodType(), tags);
 
         return travelRepository.save(travel);
     }
@@ -100,7 +102,6 @@ public class TravelService {
         }
 
         // 주최자 프로필 이미지 (만약 못찾을 경우 default 프로필 이미지로 설정)
-        // TODO: DEFAULT_PROFILE_IMAGE_URL 수정
         String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
                 .orElse(DEFAULT_PROFILE_IMAGE_URL);
 
@@ -162,7 +163,7 @@ public class TravelService {
 
         Travel updatedTravel = travel.update(
                 location, request.getTitle(), request.getDetails(), request.getMaxPerson(),
-                request.getGenderType(), request.getDueDate(), request.getPeriodType(), request.getCompletionStatus(),
+                request.getGenderType(), request.getPeriodType(), request.getCompletionStatus(),
                 travelTags
         );
 

@@ -25,7 +25,6 @@ import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
 import swyp.swyp6_team7.travel.service.TravelViewCountService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -69,7 +68,6 @@ class TravelControllerTest {
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -103,7 +101,6 @@ class TravelControllerTest {
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -120,7 +117,7 @@ class TravelControllerTest {
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
-    @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작을 경우 예외가 발생한다.")
+    @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작으면 예외가 발생한다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
     public void createWithValidateMaxPerson() throws Exception {
@@ -131,7 +128,6 @@ class TravelControllerTest {
                 .details("여행 내용")
                 .maxPerson(-1)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -145,40 +141,6 @@ class TravelControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reason").value("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
-    }
-
-    @DisplayName("create: 여행 생성 요청 시 dueDate가 오늘보다 이전인 경우 예외가 발생한다.")
-    @WithMockCustomUser(userNumber = 2)
-    @Test
-    public void createWithValidateDueDate() throws Exception {
-        // given
-        TravelCreateRequest request = TravelCreateRequest.builder()
-                .locationName("서울")
-                .title("여행 제목")
-                .details("여행 내용")
-                .maxPerson(2)
-                .genderType("모두")
-                .dueDate(LocalDate.now().minusDays(10))
-                .periodType("일주일 이하")
-                .tags(List.of("쇼핑"))
-                .completionStatus(true)
-                .build();
-
-        int travelNumber = 10;
-        Travel createdTravel = createTravel(travelNumber, 2);
-
-        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
-                .willReturn(createdTravel);
-
-        // when
-        ResultActions resultActions = mockMvc.perform(post("/api/travel")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        resultActions.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.reason").value("여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다."));
         then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
@@ -217,7 +179,6 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.nowPerson").value(1))
                 .andExpect(jsonPath("$.success.maxPerson").value(4))
                 .andExpect(jsonPath("$.success.genderType").value("모두"))
-                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.tags[0]").value("자연"))
                 .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
                 .andExpect(jsonPath("$.success.postStatus").value("진행중"))
@@ -267,7 +228,6 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.nowPerson").value(1))
                 .andExpect(jsonPath("$.success.maxPerson").value(4))
                 .andExpect(jsonPath("$.success.genderType").value("모두"))
-                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.tags[0]").value("자연"))
                 .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
                 .andExpect(jsonPath("$.success.postStatus").value("진행중"))
@@ -278,7 +238,7 @@ class TravelControllerTest {
         then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
     }
 
-    @DisplayName("update: 사용자는 여행 콘텐츠를 수정할 수 있다.")
+    @DisplayName("update: 사용자는 자신이 작성한 여행 콘텐츠를 수정할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
     public void update() throws Exception {
@@ -289,7 +249,6 @@ class TravelControllerTest {
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
                 .completionStatus(true)
@@ -336,7 +295,6 @@ class TravelControllerTest {
                 .nowPerson(1)
                 .maxPerson(4)
                 .genderType(GenderType.MIXED.getDescription())
-                .dueDate(LocalDate.of(2024, 12, 30))
                 .periodType(PeriodType.ONE_WEEK.getDescription())
                 .tags(List.of("자연", "쇼핑"))
                 .postStatus(TravelStatus.IN_PROGRESS.toString())

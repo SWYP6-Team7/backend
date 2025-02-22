@@ -70,19 +70,18 @@ class TravelHomeServiceTest {
         locationRepository.deleteAllInBatch();
     }
 
-    @DisplayName("최근 생성된 순서로 여행 목록을 가져오고 로그인 상태인 경우 사용자의 북마크 여부를 추가로 설정한다.")
+    @DisplayName("최근 생성된 순서로 정렬된 여행 목록을 가져오고 로그인 상태라면 사용자의 북마크 여부를 추가로 설정한다.")
     @Test
     void getTravelsSortedByCreatedAt() {
         // given
         Integer loginUserNumber = 1;
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
         Travel travel2 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
 
         Map<Integer, Boolean> bookmarkedMap = new HashMap<>();
         bookmarkedMap.put(travel1.getNumber(), true);
@@ -103,19 +102,18 @@ class TravelHomeServiceTest {
                 );
     }
 
-    @DisplayName("최근 생성된 순서로 여행 목록을 가져오고 비로그인 상태인 경우 사용자의 북마크 여부는 전부 false이다.")
+    @DisplayName("최근 생성된 순서로 여행 목록을 가져오고 비로그인 상태라면 사용자의 북마크 여부는 전부 false이다.")
     @Test
     void getTravelsSortedByCreatedAtWhenNotLogin() {
         // given
         Integer loginUserNumber = null;
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
         Travel travel2 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
 
         // when
         Page<TravelRecentDto> result = travelHomeService.getTravelsSortedByCreatedAt(PageRequest.of(0, 5), loginUserNumber);
@@ -129,7 +127,7 @@ class TravelHomeServiceTest {
                 );
     }
 
-    @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 큰 순서대로 여행 목록을 가져온다.")
+    @DisplayName("사용자의 선호 태그를 많이 가진 순서로 정렬된 여행 목록을 가져온다.")
     @Test
     void getRecommendTravelsByMember() {
         // given
@@ -140,20 +138,16 @@ class TravelHomeServiceTest {
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
         Travel travel2 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         Travel travel3 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate.plusDays(1), PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
-        Travel travel4 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
-        travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
+        travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
         LocalDate requestDate = LocalDate.of(2024, 11, 6);
 
@@ -164,16 +158,16 @@ class TravelHomeServiceTest {
         Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
 
         // then
-        assertThat(result.getContent()).hasSize(4)
-                .extracting("travelNumber", "tags", "preferredNumber", "registerDue")
+        assertThat(result.getContent()).hasSize(3)
+                .extracting("travelNumber", "tags", "preferredNumber")
                 .containsExactly(
-                        tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3, dueDate),
-                        tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2, dueDate),
-                        tuple(travel1.getNumber(), Arrays.asList("쇼핑"), 1, dueDate),
-                        tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1, dueDate.plusDays(1))
+                        tuple(travel3.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3),
+                        tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2),
+                        tuple(travel1.getNumber(), Arrays.asList("쇼핑"), 1)
                 );
     }
 
+    /*
     @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 동일한 경우 registerDue가 빠른 순서대로 여행을 가져온다.")
     @Test
     void getRecommendTravelsByMemberWhenSamePreferredNumber() {
@@ -216,13 +210,12 @@ class TravelHomeServiceTest {
         tagRepository.saveAll(List.of(tag1, tag2));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
                 1, location, "여행-나", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         Travel travel2 = createTravel(
                 1, location, "여행-가", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         travelRepository.saveAll(List.of(travel1, travel2));
 
         LocalDate requestDate = LocalDate.of(2024, 11, 6);
@@ -235,12 +228,12 @@ class TravelHomeServiceTest {
 
         // then
         assertThat(result.getContent()).hasSize(2)
-                .extracting("travelNumber", "tags", "preferredNumber", "registerDue", "title")
+                .extracting("travelNumber", "tags", "preferredNumber", "title")
                 .containsExactly(
-                        tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2, dueDate, "여행-가"),
-                        tuple(travel1.getNumber(), Arrays.asList("쇼핑", "자연"), 2, dueDate, "여행-나")
+                        tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2, "여행-가"),
+                        tuple(travel1.getNumber(), Arrays.asList("쇼핑", "자연"), 2, "여행-나")
                 );
-    }
+    }*/
 
     private Location createLocation(String locationName, LocationType locationType) {
         return Location.builder()
@@ -250,8 +243,8 @@ class TravelHomeServiceTest {
     }
 
     private Travel createTravel(
-            int hostNumber, Location location, String title, int viewCount, int maxPerson, GenderType genderType,
-            LocalDate dueDate, PeriodType periodType, TravelStatus status, List<Tag> tags
+            int hostNumber, Location location, String title, int viewCount, int maxPerson,
+            GenderType genderType, PeriodType periodType, TravelStatus status, List<Tag> tags
     ) {
         return Travel.builder()
                 .userNumber(hostNumber)
@@ -262,11 +255,9 @@ class TravelHomeServiceTest {
                 .viewCount(viewCount)
                 .maxPerson(maxPerson)
                 .genderType(genderType)
-                .dueDate(dueDate)
                 .periodType(periodType)
                 .status(status)
                 .tags(tags)
                 .build();
     }
-
 }

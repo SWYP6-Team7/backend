@@ -18,7 +18,6 @@ import swyp.swyp6_team7.notification.entity.Notification;
 import swyp.swyp6_team7.notification.entity.TravelNotification;
 import swyp.swyp6_team7.notification.service.NotificationService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +61,6 @@ class NotificationControllerTest {
                 .isRead(true)
                 .travelNumber(1)
                 .travelTitle("여행 제목")
-                .travelDueDate(LocalDate.of(2024, 11, 21))
                 .travelHost(true)
                 .build();
         NotificationDto notificationDto2 = new TravelNotificationDto(travelNotification);
@@ -90,8 +88,6 @@ class NotificationControllerTest {
                 .andExpect(jsonPath("$.success.content[1].isRead").value(true))
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(1))
                 .andExpect(jsonPath("$.success.content[1].travelTitle").value("여행 제목"))
-                .andExpect(jsonPath("$.success.content[1].travelDueDate").value("2024-11-21"))
                 .andExpect(jsonPath("$.success.content[1].travelHostUser").value(true));
     }
-
 }

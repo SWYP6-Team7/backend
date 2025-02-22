@@ -42,7 +42,7 @@ class TravelHomeControllerTest {
     private TravelHomeService travelHomeService;
 
 
-    @DisplayName("getRecentlyCreatedTravels: 최근 생성된 여행 순서로 여행 목록을 조회할 수 있다.")
+    @DisplayName("getRecentlyCreatedTravels: 최근 생성된 순서로 정렬된 여행 목록을 조회할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
     void getRecentlyCreatedTravels() throws Exception {
@@ -72,7 +72,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
@@ -80,7 +79,7 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[1].bookmarked").value(true));
     }
 
-    @DisplayName("getRecentlyCreatedTravels: 비로그인 사용자도 최근 생성된 여행 순서로 여행 목록을 조회할 수 있다.")
+    @DisplayName("getRecentlyCreatedTravels: 비로그인 사용자는 최근 생성된 순서로 정렬된 여행 목록을 조회할 수 있다.")
     @Test
     void getRecentlyCreatedTravelsWhenNotLogin() throws Exception {
         // given
@@ -110,7 +109,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-06 12:00"))
-                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
@@ -150,7 +148,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[0].bookmarked").value(true))
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
@@ -161,7 +158,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[1].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[1].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.success.content[1].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[1].bookmarked").value(false));
     }
 
@@ -195,7 +191,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[0].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[0].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[0].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.success.content[0].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[0].bookmarked").value(false))
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
@@ -206,7 +201,6 @@ class TravelHomeControllerTest {
                 .andExpect(jsonPath("$.success.content[1].nowPerson").value(1))
                 .andExpect(jsonPath("$.success.content[1].maxPerson").value(3))
                 .andExpect(jsonPath("$.success.content[1].createdAt").value("2024-12-05 12:00"))
-                .andExpect(jsonPath("$.success.content[1].registerDue").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.content[1].bookmarked").value(false));
     }
 
@@ -221,7 +215,6 @@ class TravelHomeControllerTest {
                 .nowPerson(1)
                 .maxPerson(3)
                 .createdAt(createdAt)
-                .registerDue(LocalDate.of(2024, 12, 30))
                 .isBookmarked(bookmarked)
                 .build();
     }
@@ -237,7 +230,6 @@ class TravelHomeControllerTest {
                 .nowPerson(1)
                 .maxPerson(3)
                 .createdAt(LocalDateTime.of(2024, 12, 5, 12, 0))
-                .registerDue(LocalDate.of(2024, 12, 30))
                 .preferredNumber(preferredNumber)
                 .isBookmarked(bookmarked)
                 .build();
@@ -254,7 +246,6 @@ class TravelHomeControllerTest {
                 .nowPerson(1)
                 .maxPerson(3)
                 .createdAt(LocalDateTime.of(2024, 12, 5, 12, 0))
-                .registerDue(LocalDate.of(2024, 12, 30))
                 .build();
     }
 }

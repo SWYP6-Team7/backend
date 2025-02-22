@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.domain.Travel;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,8 +27,6 @@ public class TravelSearchDto {
     private int maxPerson;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private String postStatus;
     private boolean bookmarked;
 
@@ -38,7 +35,7 @@ public class TravelSearchDto {
     public TravelSearchDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int maxPerson, int nowPerson,
-            LocalDateTime createdAt, LocalDate registerDue, String postStatus, boolean isBookmarked
+            LocalDateTime createdAt, String postStatus, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -49,7 +46,6 @@ public class TravelSearchDto {
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
-        this.registerDue = registerDue;
         this.postStatus = postStatus;
         this.bookmarked = isBookmarked;
     }
@@ -69,7 +65,6 @@ public class TravelSearchDto {
         this.nowPerson = companionCount;
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
-        this.registerDue = travel.getDueDate();
         this.postStatus = travel.getStatus().getName();
         this.bookmarked = false;
     }
@@ -91,7 +86,6 @@ public class TravelSearchDto {
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
-                ", registerDue=" + registerDue +
                 ", postStatus='" + postStatus + '\'' +
                 ", bookmarked=" + bookmarked +
                 '}';

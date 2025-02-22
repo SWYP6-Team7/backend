@@ -72,7 +72,6 @@ public class TravelListService {
                     currentApplicants,
                     travel.getMaxPerson(),
                     travel.getCreatedAt(),
-                    travel.getDueDate(),
                     isBookmarked
             );
         }

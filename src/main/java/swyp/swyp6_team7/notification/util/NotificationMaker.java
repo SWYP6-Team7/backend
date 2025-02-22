@@ -47,7 +47,6 @@ public class NotificationMaker {
                 .content(messageType.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
                 .travelHost(true)
                 .isRead(false)
                 .build();
@@ -60,7 +59,6 @@ public class NotificationMaker {
                 .content(messageType.getContent(targetTravel.getTitle()))
                 .travelNumber(targetTravel.getNumber())
                 .travelTitle(targetTravel.getTitle())
-                .travelDueDate(targetTravel.getDueDate())
                 .travelHost(false)
                 .isRead(false)
                 .build();

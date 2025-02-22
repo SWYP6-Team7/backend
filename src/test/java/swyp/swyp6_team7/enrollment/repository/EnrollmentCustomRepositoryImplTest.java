@@ -26,7 +26,6 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -67,7 +66,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -96,7 +95,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -124,7 +123,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -147,7 +146,7 @@ class EnrollmentCustomRepositoryImplTest {
         Users user = userRepository.save(createUser("user1"));
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = enrollmentRepository.save(createEnrollment(travel.getNumber(), user.getUserNumber(), EnrollmentStatus.PENDING));
@@ -186,13 +185,12 @@ class EnrollmentCustomRepositoryImplTest {
                 .build();
     }
 
-    private Travel createTravel(int hostUserNumber, int maxPerson, Location location, LocalDate dueDate, TravelStatus status) {
+    private Travel createTravel(int hostUserNumber, int maxPerson, Location location, TravelStatus status) {
         return Travel.builder()
                 .userNumber(hostUserNumber)
                 .maxPerson(maxPerson)
                 .location(location)
                 .viewCount(0)
-                .dueDate(dueDate)
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
@@ -209,5 +207,4 @@ class EnrollmentCustomRepositoryImplTest {
                 .userStatus(UserStatus.ABLE)
                 .build();
     }
-
 }

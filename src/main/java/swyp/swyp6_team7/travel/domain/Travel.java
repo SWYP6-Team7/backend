@@ -10,7 +10,6 @@ import swyp.swyp6_team7.member.entity.DeletedUsers;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,10 +68,6 @@ public class Travel {
     @Column(name = "travel_gender", nullable = false, length = 20)
     private GenderType genderType;
 
-    //모집 종료 일시
-    @Column(name = "travel_due_date")
-    private LocalDate dueDate;
-
     //여행 기간 카테고리
     @Enumerated(EnumType.STRING)
     @Column(name = "travel_period", nullable = false, length = 20)
@@ -101,9 +96,8 @@ public class Travel {
     public Travel(
             int number, int userNumber, LocalDateTime createdAt,
             Location location, String locationName, String title, String details, int viewCount,
-            int maxPerson, GenderType genderType, LocalDate dueDate,
-            PeriodType periodType, TravelStatus status, LocalDateTime enrollmentsLastViewedAt,
-            List<Tag> tags, DeletedUsers deletedUser
+            int maxPerson, GenderType genderType, PeriodType periodType, TravelStatus status,
+            LocalDateTime enrollmentsLastViewedAt, List<Tag> tags, DeletedUsers deletedUser
     ) {
         this.number = number;
         this.userNumber = userNumber;
@@ -115,7 +109,6 @@ public class Travel {
         this.viewCount = viewCount;
         this.maxPerson = maxPerson;
         this.genderType = genderType;
-        this.dueDate = dueDate;
         this.periodType = periodType;
         this.status = status;
         this.enrollmentsLastViewedAt = enrollmentsLastViewedAt;
@@ -135,7 +128,7 @@ public class Travel {
 
     public static Travel create(
             int userNumber, Location location, String title, String details, int maxPerson,
-            String genderType, LocalDate dueDate, String periodType, List<Tag> tags
+            String genderType, String periodType, List<Tag> tags
     ) {
         return Travel.builder()
                 .userNumber(userNumber)
@@ -146,7 +139,6 @@ public class Travel {
                 .viewCount(0)
                 .maxPerson(maxPerson)
                 .genderType(GenderType.of(genderType))
-                .dueDate(dueDate)
                 .periodType(PeriodType.of(periodType))
                 .status(TravelStatus.IN_PROGRESS)
                 .tags(tags)
@@ -155,8 +147,7 @@ public class Travel {
 
     public Travel update(
             Location location, String title, String details, int maxPerson,
-            String genderType, LocalDate dueDate, String periodType, Boolean status,
-            List<TravelTag> tags
+            String genderType, String periodType, Boolean status, List<TravelTag> tags
     ) {
         this.location = location;
         this.locationName = location.getLocationName();
@@ -164,7 +155,6 @@ public class Travel {
         this.details = details;
         this.maxPerson = maxPerson;
         this.genderType = GenderType.of(genderType);
-        this.dueDate = dueDate;
         this.periodType = PeriodType.of(periodType);
         this.status = TravelStatus.convertCompletionToStatus(status);
         this.travelTags = tags;
@@ -179,11 +169,8 @@ public class Travel {
         this.status = TravelStatus.DELETED;
     }
 
-    public boolean availableForEnroll(LocalDate checkDateTime) {
+    public boolean availableForEnroll() {
         if (this.status != TravelStatus.IN_PROGRESS) {
-            return false;
-        }
-        if (this.dueDate.isBefore(checkDateTime)) {
             return false;
         }
         return true;
@@ -223,7 +210,6 @@ public class Travel {
                 ", viewCount=" + viewCount +
                 ", maxPerson=" + maxPerson +
                 ", genderType=" + genderType +
-                ", dueDate=" + dueDate +
                 ", periodType=" + periodType +
                 ", status=" + status +
                 ", enrollmentsLastViewedAt=" + enrollmentsLastViewedAt +
