@@ -138,13 +138,13 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(travel.travelTags, travelTag)
                 .leftJoin(travelTag.tag, tag)
                 .where(
-                        statusInProgress()
-                        //travel.dueDate.after(requestDate)
+                        statusInProgress(),
+                        travel.startDate.after(requestDate)
                 )
                 .groupBy(travel.number)
                 .orderBy(
-                        matchingTagCount.desc()
-                        //travel.dueDate.asc()
+                        matchingTagCount.desc(),
+                        travel.title.asc()
                 )
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
@@ -170,8 +170,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(bookmark).on(bookmark.userNumber.eq(loginUserNumber)
                         .and(bookmark.travelNumber.eq(travel.number)))
                 .where(
-                        travel.number.in(travels)
-                        //travel.dueDate.after(requestDate)
+                        travel.number.in(travels),
+                        travel.startDate.after(requestDate)
                 )
                 .transform(groupBy(travel.number).list(
                         Projections.constructor(TravelRecommendForMemberDto.class,
@@ -190,8 +190,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .select(travel.number.countDistinct())
                 .from(travel)
                 .where(
-                        statusInProgress()
-                        //travel.dueDate.after(requestDate)
+                        statusInProgress(),
+                        travel.startDate.after(requestDate)
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
@@ -210,8 +210,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(travelTag.tag, tag)
                 .leftJoin(bookmark).on(bookmark.travelNumber.eq(travel.number))
                 .where(
-                        statusInProgress()
-                        //travel.dueDate.after(requestDate)
+                        statusInProgress(),
+                        travel.startDate.after(requestDate)
                 )
                 .groupBy(travel.number)
                 .orderBy(
@@ -234,8 +234,8 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .select(travel.number.countDistinct())
                 .from(travel)
                 .where(
-                        statusInProgress()
-                        //travel.dueDate.after(requestDate)
+                        statusInProgress(),
+                        travel.startDate.after(requestDate)
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);

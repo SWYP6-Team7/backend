@@ -1,11 +1,11 @@
 package swyp.swyp6_team7.travel.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.ClientIpAddressUtil;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
@@ -31,13 +31,13 @@ public class TravelController {
 
     @PostMapping("/api/travel")
     public ApiResponse<TravelCreateResponse> create(
-            @RequestBody @Validated TravelCreateRequest request,
+            @RequestBody @Valid TravelCreateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 생성 요청 - userId: {}", userNumber);
+        logger.info("Travel 생성 요청: userId={}", userNumber);
 
         Travel createdTravel = travelService.create(request, userNumber);
-        logger.info("Travel 생성 완료 - userId: {}, createdTravel: {}", userNumber, createdTravel);
+        logger.info("Travel 생성 완료: userId={}, createdTravel={}", userNumber, createdTravel);
 
         return ApiResponse.success(new TravelCreateResponse(createdTravel.getNumber()));
     }
@@ -77,13 +77,13 @@ public class TravelController {
     @PutMapping("/api/travel/{travelNumber}")
     public ApiResponse<TravelUpdateResponse> update(
             @PathVariable("travelNumber") int travelNumber,
-            @RequestBody TravelUpdateRequest request,
+            @RequestBody @Valid TravelUpdateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 수정 요청 - userId: {}, travelNumber: {}", userNumber, travelNumber);
+        logger.info("Travel 수정 요청: userId={}, travelNumber={}", userNumber, travelNumber);
 
         Travel updatedTravel = travelService.update(travelNumber, request, userNumber);
-        logger.info("Travel 수정 요청 - userId: {}, updatedTravel: {}", userNumber, updatedTravel);
+        logger.info("Travel 수정 요청: userId={}, updatedTravel={}", userNumber, updatedTravel);
 
         return ApiResponse.success(new TravelUpdateResponse(updatedTravel.getNumber()));
     }
@@ -93,10 +93,10 @@ public class TravelController {
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 삭제 요청 - userId: {}, travelNumber: {}", userNumber, travelNumber);
+        logger.info("Travel 삭제 요청: userId={}, travelNumber={}", userNumber, travelNumber);
 
         travelService.delete(travelNumber, userNumber);
-        logger.info("Travel 삭제 완료 - userId: {}, travelNumber: {}", userNumber, travelNumber);
+        logger.info("Travel 삭제 완료: userId={}, travelNumber={}", userNumber, travelNumber);
 
         return ApiResponse.success(null);
     }

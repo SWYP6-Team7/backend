@@ -10,6 +10,7 @@ import swyp.swyp6_team7.member.entity.DeletedUsers;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,14 @@ public class Travel {
     //여행지
     @Column(name = "travel_location", length = 20)
     private String locationName;
+
+    //여행 시작 일자
+    @Column(name = "travel_start_date", nullable = false)
+    private LocalDate startDate;
+
+    //여행 종료 일자
+    @Column(name = "travel_end_date", nullable = false)
+    private LocalDate endDate;
 
     //제목
     @Column(name = "travel_title", length = 20)
@@ -94,8 +103,8 @@ public class Travel {
 
     @Builder
     public Travel(
-            int number, int userNumber, LocalDateTime createdAt,
-            Location location, String locationName, String title, String details, int viewCount,
+            int number, int userNumber, LocalDateTime createdAt, Location location, String locationName,
+            LocalDate startDate, LocalDate endDate, String title, String details, int viewCount,
             int maxPerson, GenderType genderType, PeriodType periodType, TravelStatus status,
             LocalDateTime enrollmentsLastViewedAt, List<Tag> tags, DeletedUsers deletedUser
     ) {
@@ -104,6 +113,8 @@ public class Travel {
         this.createdAt = createdAt;
         this.location = location;
         this.locationName = locationName;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.details = details;
         this.viewCount = viewCount;
@@ -127,13 +138,15 @@ public class Travel {
     }
 
     public static Travel create(
-            int userNumber, Location location, String title, String details, int maxPerson,
-            String genderType, String periodType, List<Tag> tags
+            int userNumber, Location location, LocalDate startDate, LocalDate endDate,
+            String title, String details, int maxPerson, String genderType, String periodType, List<Tag> tags
     ) {
         return Travel.builder()
                 .userNumber(userNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(startDate)
+                .endDate(endDate)
                 .title(title)
                 .details(details)
                 .viewCount(0)
@@ -146,17 +159,18 @@ public class Travel {
     }
 
     public Travel update(
-            Location location, String title, String details, int maxPerson,
-            String genderType, String periodType, Boolean status, List<TravelTag> tags
+            Location location, LocalDate startDate, LocalDate endDate,
+            String title, String details, int maxPerson, String genderType, String periodType, List<TravelTag> tags
     ) {
         this.location = location;
         this.locationName = location.getLocationName();
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.details = details;
         this.maxPerson = maxPerson;
         this.genderType = GenderType.of(genderType);
         this.periodType = PeriodType.of(periodType);
-        this.status = TravelStatus.convertCompletionToStatus(status);
         this.travelTags = tags;
         return this;
     }
@@ -204,7 +218,9 @@ public class Travel {
                 "number=" + number +
                 ", userNumber=" + userNumber +
                 ", createdAt=" + createdAt +
-                ", location='" + locationName + '\'' +
+                ", locationName='" + locationName + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", title='" + title + '\'' +
                 ", details='" + details + '\'' +
                 ", viewCount=" + viewCount +
@@ -214,10 +230,6 @@ public class Travel {
                 ", status=" + status +
                 ", enrollmentsLastViewedAt=" + enrollmentsLastViewedAt +
                 '}';
-    }
-
-    public Long getLocationId() {
-        return location != null ? location.getId() : null;
     }
 
 }

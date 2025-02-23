@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.dto.TravelDetailDto;
 import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +24,10 @@ public class TravelDetailResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private String title;
     private String details;
     private int viewCount;      //조회수
@@ -40,8 +45,8 @@ public class TravelDetailResponse {
     @Builder
     public TravelDetailResponse(
             int travelNumber, int userNumber, String userName, String userAgeGroup, String profileUrl, LocalDateTime createdAt,
-            String location, String title, String details, int viewCount, int enrollCount, int bookmarkCount,
-            int nowPerson, int maxPerson, String genderType, String periodType, List<String> tags, String postStatus
+            LocalDate startDate, LocalDate endDate, String location, String title, String details, int viewCount, int enrollCount,
+            int bookmarkCount, int nowPerson, int maxPerson, String genderType, String periodType, List<String> tags, String postStatus
     ) {
         this.travelNumber = travelNumber;
         this.userNumber = userNumber;
@@ -50,6 +55,8 @@ public class TravelDetailResponse {
         this.profileUrl = profileUrl;
         this.createdAt = createdAt;
         this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.details = details;
         this.viewCount = viewCount;
@@ -73,6 +80,8 @@ public class TravelDetailResponse {
         this.profileUrl = hostProfileImageUrl;
         this.createdAt = travelDetail.getTravel().getCreatedAt();
         this.location = travelDetail.getTravel().getLocationName();
+        this.startDate = travelDetail.getTravel().getStartDate();
+        this.endDate = travelDetail.getTravel().getEndDate();
         this.title = travelDetail.getTravel().getTitle();
         this.details = travelDetail.getTravel().getDetails();
         this.viewCount = travelDetail.getTravel().getViewCount();
@@ -101,6 +110,8 @@ public class TravelDetailResponse {
                 ", profileUrl='" + profileUrl + '\'' +
                 ", createdAt=" + createdAt +
                 ", location='" + location + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", title='" + title + '\'' +
                 ", details='" + details + '\'' +
                 ", viewCount=" + viewCount +

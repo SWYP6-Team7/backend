@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,10 @@ import java.util.List;
 public class TravelUpdateRequest {
 
     private String locationName;
-    // todo: 시작, 종료 날짜 필드 추가
+    @NotNull
+    private LocalDate startDate;
+    @NotNull
+    private LocalDate endDate;
     @Size(max = 20, message = "여행 제목은 최대 20자 입니다.")
     private String title;
     private String details;
@@ -26,7 +30,5 @@ public class TravelUpdateRequest {
     @NotNull
     @Builder.Default
     private List<String> tags = new ArrayList<>();
-    @NotNull
-    private Boolean completionStatus;
 
 }
