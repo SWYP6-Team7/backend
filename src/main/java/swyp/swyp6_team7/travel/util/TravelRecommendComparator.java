@@ -9,10 +9,7 @@ public class TravelRecommendComparator implements Comparator<TravelRecommendForM
     @Override
     public int compare(TravelRecommendForMemberDto o1, TravelRecommendForMemberDto o2) {
         if (o1.getPreferredNumber() == o2.getPreferredNumber()) {
-            if (o1.getRegisterDue().compareTo(o2.getRegisterDue()) == 0) {
-                return o1.getTitle().compareTo(o2.getTitle());
-            }
-            return o1.getRegisterDue().compareTo(o2.getRegisterDue());
+            return o1.getTitle().compareTo(o2.getTitle());
         }
         return -1 * (o1.getPreferredNumber() - o2.getPreferredNumber());
     }

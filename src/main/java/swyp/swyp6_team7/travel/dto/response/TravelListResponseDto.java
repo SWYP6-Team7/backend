@@ -7,10 +7,7 @@ import lombok.Getter;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.travel.domain.Travel;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,8 +25,6 @@ public class TravelListResponseDto {
     private int maxPerson;              // 최대 참가 인원 수
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private boolean isBookmarked;       // 북마크 여부
 
 
@@ -44,7 +39,6 @@ public class TravelListResponseDto {
                 currentApplicants,
                 travel.getMaxPerson(),
                 travel.getCreatedAt(),
-                travel.getDueDate(),
                 isBookmarked
         );
     }

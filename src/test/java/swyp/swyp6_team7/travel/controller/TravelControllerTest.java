@@ -65,14 +65,14 @@ class TravelControllerTest {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         int travelNumber = 10;
@@ -99,14 +99,14 @@ class TravelControllerTest {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("*".repeat(21))
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -117,24 +117,23 @@ class TravelControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reason").value("여행 제목은 최대 20자 입니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
-    @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작을 경우 예외가 발생한다.")
+    @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작으면 예외가 발생한다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
     public void createWithValidateMaxPerson() throws Exception {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(-1)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -145,43 +144,7 @@ class TravelControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reason").value("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
-
-    @DisplayName("create: 여행 생성 요청 시 dueDate가 오늘보다 이전인 경우 예외가 발생한다.")
-    @WithMockCustomUser(userNumber = 2)
-    @Test
-    public void createWithValidateDueDate() throws Exception {
-        // given
-        TravelCreateRequest request = TravelCreateRequest.builder()
-                .locationName("서울")
-                .title("여행 제목")
-                .details("여행 내용")
-                .maxPerson(2)
-                .genderType("모두")
-                .dueDate(LocalDate.now().minusDays(10))
-                .periodType("일주일 이하")
-                .tags(List.of("쇼핑"))
-                .completionStatus(true)
-                .build();
-
-        int travelNumber = 10;
-        Travel createdTravel = createTravel(travelNumber, 2);
-
-        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
-                .willReturn(createdTravel);
-
-        // when
-        ResultActions resultActions = mockMvc.perform(post("/api/travel")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        resultActions.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.reason").value("여행 신청 마감 날짜는 현재 날짜보다 이전일 수 없습니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
-    }
-
 
     @DisplayName("getDetailsByNumber: 비회원(비로그인) 사용자는 여행 상세 정보를 단건 조회할 수 있다.")
     @Test
@@ -209,6 +172,8 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
                 .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
                 .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.startDate").value("2024-11-22"))
+                .andExpect(jsonPath("$.success.endDate").value("2024-11-28"))
                 .andExpect(jsonPath("$.success.title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
                 .andExpect(jsonPath("$.success.viewCount").value(10))
@@ -217,7 +182,6 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.nowPerson").value(1))
                 .andExpect(jsonPath("$.success.maxPerson").value(4))
                 .andExpect(jsonPath("$.success.genderType").value("모두"))
-                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.tags[0]").value("자연"))
                 .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
                 .andExpect(jsonPath("$.success.postStatus").value("진행중"))
@@ -259,6 +223,8 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
                 .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
                 .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.startDate").value("2024-11-22"))
+                .andExpect(jsonPath("$.success.endDate").value("2024-11-28"))
                 .andExpect(jsonPath("$.success.title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
                 .andExpect(jsonPath("$.success.viewCount").value(10))
@@ -267,7 +233,6 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.nowPerson").value(1))
                 .andExpect(jsonPath("$.success.maxPerson").value(4))
                 .andExpect(jsonPath("$.success.genderType").value("모두"))
-                .andExpect(jsonPath("$.success.dueDate").value("2024-12-30"))
                 .andExpect(jsonPath("$.success.tags[0]").value("자연"))
                 .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
                 .andExpect(jsonPath("$.success.postStatus").value("진행중"))
@@ -278,21 +243,21 @@ class TravelControllerTest {
         then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
     }
 
-    @DisplayName("update: 사용자는 여행 콘텐츠를 수정할 수 있다.")
+    @DisplayName("update: 사용자는 자신이 작성한 여행 콘텐츠를 수정할 수 있다.")
     @WithMockCustomUser(userNumber = 2)
     @Test
     public void update() throws Exception {
         // given
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         int travelNumber = 10;
@@ -328,6 +293,8 @@ class TravelControllerTest {
                 .profileUrl("https://user-profile-url")
                 .createdAt(LocalDateTime.of(2024, 12, 06, 12, 0))
                 .location("서울")
+                .startDate(LocalDate.of(2024,11,22))
+                .endDate(LocalDate.of(2024,11,28))
                 .title("여행 제목")
                 .details("여행 상세 내용")
                 .viewCount(10)
@@ -336,7 +303,6 @@ class TravelControllerTest {
                 .nowPerson(1)
                 .maxPerson(4)
                 .genderType(GenderType.MIXED.getDescription())
-                .dueDate(LocalDate.of(2024, 12, 30))
                 .periodType(PeriodType.ONE_WEEK.getDescription())
                 .tags(List.of("자연", "쇼핑"))
                 .postStatus(TravelStatus.IN_PROGRESS.toString())

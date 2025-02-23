@@ -15,7 +15,6 @@ import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 
-import java.time.LocalDate;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +44,7 @@ class NotificationServiceTest {
         notificationRepository.deleteAllInBatch();
     }
 
-    @DisplayName("enrollNotification: 주어지는 사용자 번호와 여행 주최자에 대해 신청 생성 알림을 생성한다.")
+    @DisplayName("enrollNotification: 여행 신청자와 주최자가 받을 여행 신청 추가 알림을 생성한다.")
     @Test
     void createEnrollNotification() {
         // given
@@ -57,14 +56,14 @@ class NotificationServiceTest {
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(2)
-                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle", "travelDueDate")
+                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle")
                 .containsExactlyInAnyOrder(
-                        tuple(1, "여행 신청 알림", "[여행Title]에 참가 신청자가 있어요. 알림을 눌러 확인해보세요.", false, true, 10, "여행Title", LocalDate.of(2024, 11, 16)),
-                        tuple(2, "참가 신청 알림", "[여행Title]에 참가 신청이 완료되었어요. 주최자가 참가를 확정하면 알려드릴게요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16))
+                        tuple(1, "여행 신청 알림", "[여행Title]에 참가 신청자가 있어요. 알림을 눌러 확인해보세요.", false, true, 10, "여행Title"),
+                        tuple(2, "참가 신청 알림", "[여행Title]에 참가 신청이 완료되었어요. 주최자가 참가를 확정하면 알려드릴게요.", false, false, 10, "여행Title")
                 );
     }
 
-    @DisplayName("acceptNotification: 주어지는 사용자 번호에 대해 신청 수락 알림을 생성한다.")
+    @DisplayName("acceptNotification: 신청자가 받을 신청 수락 알림을 생성한다.")
     @Test
     void createAcceptNotification() {
         // given
@@ -76,11 +75,11 @@ class NotificationServiceTest {
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(1)
-                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle", "travelDueDate")
-                .contains(tuple(2, "참가 확정 알림", "[여행Title]에 참가가 확정되었어요. 멤버 댓글을 통해 인사를 나눠보세요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16)));
+                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle")
+                .contains(tuple(2, "참가 확정 알림", "[여행Title]에 참가가 확정되었어요. 멤버 댓글을 통해 인사를 나눠보세요.", false, false, 10, "여행Title"));
     }
 
-    @DisplayName("rejectNotification: 주어지는 사용자 번호에 대해 신청 거절 알림을 생성한다.")
+    @DisplayName("rejectNotification: 신청자가 받을 신청 거절 알림을 생성한다.")
     @Test
     void createRejectNotification() {
         // given
@@ -92,11 +91,11 @@ class NotificationServiceTest {
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(1)
-                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle", "travelDueDate")
-                .contains(tuple(2, "참가 거절 알림", "[여행Title]에 참가가 아쉽게도 거절되었어요. 다른 여행을 찾아볼까요?", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16)));
+                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle")
+                .contains(tuple(2, "참가 거절 알림", "[여행Title]에 참가가 아쉽게도 거절되었어요. 다른 여행을 찾아볼까요?", false, false, 10, "여행Title"));
     }
 
-    @DisplayName("companionClosedNotification: 주최자, 참여자, pending 상태의 신청자, 즐겨찾기 사용자에 대해 인원 마감 알림을 생성한다.")
+    @DisplayName("companionClosedNotification: 주최자, 참여자, pending 상태의 신청자, 즐겨찾기 사용자가 받을 인원 마감 알림을 생성한다.")
     @Test
     void createCompanionClosedNotification() {
         // given
@@ -113,12 +112,12 @@ class NotificationServiceTest {
 
         // then
         assertThat(notificationRepository.findAll()).hasSize(4)
-                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle", "travelDueDate")
+                .extracting("receiverNumber", "title", "content", "isRead", "travelHost", "travelNumber", "travelTitle")
                 .containsExactlyInAnyOrder(
-                        tuple(1, "모집 마감 알림", "[여행Title]의 인원이 가득 차 모집이 마감되었어요.", false, true, 10, "여행Title", LocalDate.of(2024, 11, 16)),
-                        tuple(2, "모집 마감 알림", "참가하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16)),
-                        tuple(3, "모집 마감 알림", "참가 신청하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16)),
-                        tuple(4, "모집 마감 알림", "즐겨찾기하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title", LocalDate.of(2024, 11, 16))
+                        tuple(1, "모집 마감 알림", "[여행Title]의 인원이 가득 차 모집이 마감되었어요.", false, true, 10, "여행Title"),
+                        tuple(2, "모집 마감 알림", "참가하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title"),
+                        tuple(3, "모집 마감 알림", "참가 신청하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title"),
+                        tuple(4, "모집 마감 알림", "즐겨찾기하신 [여행Title]의 모집이 마감되었어요.", false, false, 10, "여행Title")
                 );
     }
 
@@ -135,7 +134,6 @@ class NotificationServiceTest {
                 .userNumber(hostUserNumber)
                 .title("여행Title")
                 .maxPerson(2)
-                .dueDate(LocalDate.of(2024, 11, 16))
                 .build();
     }
 }

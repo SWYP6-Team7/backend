@@ -14,6 +14,7 @@ import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +73,8 @@ class TravelRepositoryTest {
         return Travel.builder()
                 .userNumber(1)
                 .location(location)
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .viewCount(nowViewCount)
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)

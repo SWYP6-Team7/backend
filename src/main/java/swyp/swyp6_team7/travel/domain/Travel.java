@@ -47,6 +47,14 @@ public class Travel {
     @Column(name = "travel_location", length = 20)
     private String locationName;
 
+    //여행 시작 일자
+    @Column(name = "travel_start_date", nullable = false)
+    private LocalDate startDate;
+
+    //여행 종료 일자
+    @Column(name = "travel_end_date", nullable = false)
+    private LocalDate endDate;
+
     //제목
     @Column(name = "travel_title", length = 20)
     private String title;
@@ -68,10 +76,6 @@ public class Travel {
     @Enumerated(EnumType.STRING)
     @Column(name = "travel_gender", nullable = false, length = 20)
     private GenderType genderType;
-
-    //모집 종료 일시
-    @Column(name = "travel_due_date")
-    private LocalDate dueDate;
 
     //여행 기간 카테고리
     @Enumerated(EnumType.STRING)
@@ -99,23 +103,23 @@ public class Travel {
 
     @Builder
     public Travel(
-            int number, int userNumber, LocalDateTime createdAt,
-            Location location, String locationName, String title, String details, int viewCount,
-            int maxPerson, GenderType genderType, LocalDate dueDate,
-            PeriodType periodType, TravelStatus status, LocalDateTime enrollmentsLastViewedAt,
-            List<Tag> tags, DeletedUsers deletedUser
+            int number, int userNumber, LocalDateTime createdAt, Location location, String locationName,
+            LocalDate startDate, LocalDate endDate, String title, String details, int viewCount,
+            int maxPerson, GenderType genderType, PeriodType periodType, TravelStatus status,
+            LocalDateTime enrollmentsLastViewedAt, List<Tag> tags, DeletedUsers deletedUser
     ) {
         this.number = number;
         this.userNumber = userNumber;
         this.createdAt = createdAt;
         this.location = location;
         this.locationName = locationName;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.details = details;
         this.viewCount = viewCount;
         this.maxPerson = maxPerson;
         this.genderType = genderType;
-        this.dueDate = dueDate;
         this.periodType = periodType;
         this.status = status;
         this.enrollmentsLastViewedAt = enrollmentsLastViewedAt;
@@ -134,19 +138,20 @@ public class Travel {
     }
 
     public static Travel create(
-            int userNumber, Location location, String title, String details, int maxPerson,
-            String genderType, LocalDate dueDate, String periodType, List<Tag> tags
+            int userNumber, Location location, LocalDate startDate, LocalDate endDate,
+            String title, String details, int maxPerson, String genderType, String periodType, List<Tag> tags
     ) {
         return Travel.builder()
                 .userNumber(userNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(startDate)
+                .endDate(endDate)
                 .title(title)
                 .details(details)
                 .viewCount(0)
                 .maxPerson(maxPerson)
                 .genderType(GenderType.of(genderType))
-                .dueDate(dueDate)
                 .periodType(PeriodType.of(periodType))
                 .status(TravelStatus.IN_PROGRESS)
                 .tags(tags)
@@ -154,19 +159,18 @@ public class Travel {
     }
 
     public Travel update(
-            Location location, String title, String details, int maxPerson,
-            String genderType, LocalDate dueDate, String periodType, Boolean status,
-            List<TravelTag> tags
+            Location location, LocalDate startDate, LocalDate endDate,
+            String title, String details, int maxPerson, String genderType, String periodType, List<TravelTag> tags
     ) {
         this.location = location;
         this.locationName = location.getLocationName();
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.title = title;
         this.details = details;
         this.maxPerson = maxPerson;
         this.genderType = GenderType.of(genderType);
-        this.dueDate = dueDate;
         this.periodType = PeriodType.of(periodType);
-        this.status = TravelStatus.convertCompletionToStatus(status);
         this.travelTags = tags;
         return this;
     }
@@ -179,11 +183,8 @@ public class Travel {
         this.status = TravelStatus.DELETED;
     }
 
-    public boolean availableForEnroll(LocalDate checkDateTime) {
+    public boolean availableForEnroll() {
         if (this.status != TravelStatus.IN_PROGRESS) {
-            return false;
-        }
-        if (this.dueDate.isBefore(checkDateTime)) {
             return false;
         }
         return true;
@@ -217,21 +218,18 @@ public class Travel {
                 "number=" + number +
                 ", userNumber=" + userNumber +
                 ", createdAt=" + createdAt +
-                ", location='" + locationName + '\'' +
+                ", locationName='" + locationName + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", title='" + title + '\'' +
                 ", details='" + details + '\'' +
                 ", viewCount=" + viewCount +
                 ", maxPerson=" + maxPerson +
                 ", genderType=" + genderType +
-                ", dueDate=" + dueDate +
                 ", periodType=" + periodType +
                 ", status=" + status +
                 ", enrollmentsLastViewedAt=" + enrollmentsLastViewedAt +
                 '}';
-    }
-
-    public Long getLocationId() {
-        return location != null ? location.getId() : null;
     }
 
 }

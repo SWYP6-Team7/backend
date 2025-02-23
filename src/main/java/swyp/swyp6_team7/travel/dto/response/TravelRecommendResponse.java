@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForNonMemberDto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,8 +26,6 @@ public class TravelRecommendResponse {
     private int maxPerson;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private boolean bookmarked;
 
     public TravelRecommendResponse(TravelRecommendForMemberDto dto) {
@@ -41,7 +38,6 @@ public class TravelRecommendResponse {
         this.nowPerson = dto.getNowPerson();
         this.maxPerson = dto.getMaxPerson();
         this.createdAt = dto.getCreatedAt();
-        this.registerDue = dto.getRegisterDue();
         this.bookmarked = dto.isBookmarked();
     }
 
@@ -55,7 +51,6 @@ public class TravelRecommendResponse {
         this.nowPerson = dto.getNowPerson();
         this.maxPerson = dto.getMaxPerson();
         this.createdAt = dto.getCreatedAt();
-        this.registerDue = dto.getRegisterDue();
         this.bookmarked = false;
     }
 

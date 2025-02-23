@@ -28,12 +28,10 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final TravelRepository travelRepository;
     private final CompanionRepository companionRepository;
-
     private final NotificationService notificationService;
 
 
     @Transactional
-
     public void create(EnrollmentCreateRequest request, int requestUserNumber, LocalDate nowDate) {
 
         Travel targetTravel = travelRepository.findByNumber(request.getTravelNumber())
@@ -42,7 +40,7 @@ public class EnrollmentService {
                     return new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
                 });
 
-        if (!targetTravel.availableForEnroll(nowDate)) {
+        if (!targetTravel.availableForEnroll()) {
             log.warn("Enrollment create - 참가 신청 할 수 없는 상태의 여행입니다. travelNumber: {}", targetTravel.getNumber());
             throw new IllegalArgumentException("참가 신청 할 수 없는 상태의 여행입니다.");
         }
@@ -157,7 +155,6 @@ public class EnrollmentService {
 
         //알림
         notificationService.createRejectNotification(targetTravel, enrollment.getUserNumber());
-
     }
 
 }

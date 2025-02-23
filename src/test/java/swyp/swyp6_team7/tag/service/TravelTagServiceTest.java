@@ -18,6 +18,7 @@ import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,6 +105,8 @@ class TravelTagServiceTest {
         return Travel.builder()
                 .userNumber(1)
                 .location(location)
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .viewCount(0)
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)

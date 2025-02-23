@@ -68,7 +68,7 @@ class EnrollmentServiceTest {
     void create() {
         // given
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.IN_PROGRESS);
+        Travel targetTravel = createTravel(1, 2, TravelStatus.IN_PROGRESS);
 
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(targetTravel.getNumber())
@@ -91,6 +91,7 @@ class EnrollmentServiceTest {
                 );
     }
 
+    /*
     @DisplayName("create: 마감 날짜를 넘겨 참가 신청할 경우 예외가 발생한다.")
     @Test
     void createWhenNotAvailableForEnroll() {
@@ -114,13 +115,13 @@ class EnrollmentServiceTest {
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("참가 신청 할 수 없는 상태의 여행입니다.");
     }
-
+*/
     @DisplayName("create: 여행 상태가 IN_PROGRESS가 아닌 경우 예외가 발생한다.")
     @Test
     void createWhenNotInProgressStatus() {
         // given
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(1, 2, TravelStatus.DELETED);
 
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .travelNumber(targetTravel.getNumber())
@@ -173,7 +174,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -200,7 +201,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -223,7 +224,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 0, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 0, TravelStatus.DELETED);
 
         Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -246,7 +247,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -273,7 +274,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         Enrollment enrollment = createEnrollment(2, 1, "신청", EnrollmentStatus.PENDING);
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -296,7 +297,7 @@ class EnrollmentServiceTest {
         // given
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         EnrollmentResponse enrollment1 = EnrollmentResponse.builder()
                 .enrollmentNumber(1)
@@ -329,7 +330,7 @@ class EnrollmentServiceTest {
     void findEnrollmentsWhenNotHostUser() {
         Integer hostUserNumber = 1;
         LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(hostUserNumber, 2, dueDate, TravelStatus.DELETED);
+        Travel targetTravel = createTravel(hostUserNumber, 2, TravelStatus.DELETED);
 
         given(travelRepository.findByNumber(any(Integer.class)))
                 .willReturn(Optional.of(targetTravel));
@@ -357,18 +358,16 @@ class EnrollmentServiceTest {
                 .build();
     }
 
-    private Travel createTravel(int hostUserNumber, int maxPerson, LocalDate dueDate, TravelStatus status) {
+    private Travel createTravel(int hostUserNumber, int maxPerson, TravelStatus status) {
         return Travel.builder()
                 .number(1)
                 .userNumber(hostUserNumber)
                 .maxPerson(maxPerson)
                 .location(createLocation())
                 .viewCount(0)
-                .dueDate(dueDate)
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
                 .build();
     }
-
 }

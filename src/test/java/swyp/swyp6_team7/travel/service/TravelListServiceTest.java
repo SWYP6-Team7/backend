@@ -67,7 +67,6 @@ class TravelListServiceTest {
                 .createdAt(LocalDateTime.now().minusDays(2))
                 .title("Title 1")
                 .maxPerson(5)
-                .dueDate(LocalDate.now().plusDays(3))
                 .location(travelLocation)
                 .build();
 
@@ -77,7 +76,6 @@ class TravelListServiceTest {
                 .createdAt(LocalDateTime.now().minusDays(6))
                 .title("Title 2")
                 .maxPerson(10)
-                .dueDate(LocalDate.now().minusDays(1))
                 .location(travelLocation)
                 .build();
 
@@ -112,7 +110,6 @@ class TravelListServiceTest {
                     travel.getCompanions().size(),
                     travel.getMaxPerson(),
                     travel.getCreatedAt(),
-                    travel.getDueDate(),
                     isBookmarked
             );
         }).collect(Collectors.toList());

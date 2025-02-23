@@ -1,6 +1,5 @@
 package swyp.swyp6_team7.member.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -107,6 +105,8 @@ public class DeletedMemberServiceTest {
                 .userNumber(testUser.getUserNumber())
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title("Test Travel")
                 .genderType(GenderType.MAN_ONLY)
                 .periodType(PeriodType.ONE_WEEK)

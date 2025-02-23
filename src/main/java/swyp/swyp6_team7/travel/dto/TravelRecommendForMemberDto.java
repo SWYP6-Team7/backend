@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.domain.Travel;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,7 +23,6 @@ public class TravelRecommendForMemberDto {
     private int nowPerson;
     private int maxPerson;
     private LocalDateTime createdAt;
-    private LocalDate registerDue;
     private int preferredNumber;
     private boolean bookmarked;
 
@@ -32,7 +30,7 @@ public class TravelRecommendForMemberDto {
     public TravelRecommendForMemberDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber, boolean isBookmarked
+            LocalDateTime createdAt, int preferredNumber, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -43,7 +41,6 @@ public class TravelRecommendForMemberDto {
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
-        this.registerDue = registerDue;
         this.preferredNumber = preferredNumber;
         this.bookmarked = isBookmarked;
     }
@@ -62,7 +59,6 @@ public class TravelRecommendForMemberDto {
         this.nowPerson = companionCount;
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
-        this.registerDue = travel.getDueDate();
         this.bookmarked = isBookmarked;
     }
 
@@ -83,7 +79,6 @@ public class TravelRecommendForMemberDto {
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
-                ", registerDue=" + registerDue +
                 ", preferredNumber=" + preferredNumber +
                 ", bookmarked=" + bookmarked +
                 '}';

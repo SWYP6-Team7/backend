@@ -23,7 +23,6 @@ import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
 import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -102,7 +101,6 @@ public class BookmarkControllerTest {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         LocalDateTime createdAt = LocalDateTime.parse("2024-10-02 21:56", dateTimeFormatter);
-        LocalDate registerDue = LocalDate.parse("2025-05-15", dateFormatter);
         BookmarkResponse response = new BookmarkResponse(
                 1,
                 "제목",
@@ -113,7 +111,6 @@ public class BookmarkControllerTest {
                 1,
                 4,
                 createdAt,
-                registerDue,
                 true);
 
         List<BookmarkResponse> responses = List.of(response);

@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.domain.Travel;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,8 +27,6 @@ public class TravelRecentDto {
     private int maxPerson;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private boolean bookmarked;
 
 
@@ -37,7 +34,7 @@ public class TravelRecentDto {
     public TravelRecentDto(
             int travelNumber, String title, String location, int userNumber, String userName,
             List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue, boolean isBookmarked
+            LocalDateTime createdAt, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
@@ -48,7 +45,6 @@ public class TravelRecentDto {
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
-        this.registerDue = registerDue;
         this.bookmarked = isBookmarked;
     }
 
@@ -66,7 +62,6 @@ public class TravelRecentDto {
         this.nowPerson = companionCount;
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
-        this.registerDue = travel.getDueDate();
         this.bookmarked = false;
     }
 
