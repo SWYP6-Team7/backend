@@ -158,8 +158,7 @@ class TravelCustomRepositoryImplTest {
                 );
     }
 
-    /*
-    @DisplayName("findAllByPreferredTags: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
+    @DisplayName("findAllByPreferredTags: 여행 시작 날짜가 지난 여행은 목록에 포함시키지 않는다.")
     @Test
     public void findAllByPreferredTagsWithDate() {
         // given
@@ -170,25 +169,27 @@ class TravelCustomRepositoryImplTest {
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate1 = LocalDate.of(2024, 11, 7);
-        Travel travel1 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate1, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
-        Travel travel2 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate1, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
 
-        LocalDate dueDate2 = LocalDate.of(2024, 11, 9);
-        Travel travel3 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
-        Travel travel4 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
+        LocalDate startDate1 = LocalDate.of(2024, 11, 22);
+        LocalDate endDate = LocalDate.of(2024, 11, 28);
+        Travel travel1 = createTravelWithDate(
+                1, location, startDate1, endDate, "여행", 0, 0,
+                GenderType.MIXED, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
+        Travel travel2 = createTravelWithDate(
+                1, location, startDate1, endDate, "여행", 0, 0, GenderType.MIXED,
+                PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
+
+        LocalDate startDate2 = LocalDate.of(2024, 11, 25);
+        Travel travel3 = createTravelWithDate(
+                1, location, startDate2, endDate, "여행", 0, 0,
+                GenderType.MIXED, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag4));
+        Travel travel4 = createTravelWithDate(
+                1, location, startDate2, endDate, "여행", 0, 0,
+                GenderType.MIXED, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
         travelRepository.saveAll(List.of(travel1, travel2, travel3, travel4));
 
         List<String> preferredTags = Arrays.asList("쇼핑", "자연", "먹방");
-        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+        LocalDate requestDate = LocalDate.of(2024, 11, 24);
 
         // when
         Page<TravelRecommendForMemberDto> result = travelRepository
@@ -201,7 +202,7 @@ class TravelCustomRepositoryImplTest {
                         tuple(travel3.getNumber(), Arrays.asList("쇼핑", "즉흥"), 1),
                         tuple(travel4.getNumber(), Arrays.asList("쇼핑", "자연", "먹방"), 3)
                 );
-    }*/
+    }
 
     @DisplayName("findAllByBookmarkNumberAndTitle: 북마크 개수가 많은 순서로 정렬된 여행 목록을 가져온다.")
     @Test
@@ -276,23 +277,23 @@ class TravelCustomRepositoryImplTest {
                 );
     }
 
-    /*
-    @DisplayName("findAllByBookmarkNumberAndTitle: 주어지는 날짜보다 마감일이 늦은 여행만 가져온다.")
+    @DisplayName("findAllByBookmarkNumberAndTitle: 여행 시작 날짜가 지난 여행은 목록에 포함시키지 않는다.")
     @Test
     void findAllByBookmarkNumberAndTitleWithDate() {
         // given
         Users host = userRepository.save(createHostUser());
         Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
 
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
-        Travel travel1 = createTravel(
-                host.getUserNumber(), location, "여행1", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        LocalDate startDate1 = LocalDate.of(2024, 11, 22);
+        LocalDate endDate = LocalDate.of(2024, 11, 28);
+        Travel travel1 = createTravelWithDate(
+                host.getUserNumber(), location, startDate1, endDate, "여행1", 0, 0,
+                GenderType.MIXED, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
 
-        LocalDate dueDate2 = LocalDate.of(2024, 11, 9);
-        Travel travel2 = createTravel(
-                host.getUserNumber(), location, "여행2", 0, 0, GenderType.MIXED,
-                dueDate2, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
+        LocalDate startDate2 = LocalDate.of(2024, 11, 25);
+        Travel travel2 = createTravelWithDate(
+                host.getUserNumber(), location, startDate2, endDate, "여행2", 0, 0,
+                GenderType.MIXED, PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
         travelRepository.saveAll(List.of(travel1, travel2));
 
         LocalDateTime createdAt = LocalDateTime.of(2024, 12, 7, 12, 0);
@@ -301,7 +302,7 @@ class TravelCustomRepositoryImplTest {
         Bookmark bookmark3 = createBookmark(travel2.getNumber(), createdAt);
         bookmarkRepository.saveAll(List.of(bookmark1, bookmark2, bookmark3));
 
-        LocalDate requestDate = LocalDate.of(2024, 11, 8);
+        LocalDate requestDate = LocalDate.of(2024, 11, 24);
 
         // when
         Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(PageRequest.of(0, 5), requestDate);
@@ -309,12 +310,12 @@ class TravelCustomRepositoryImplTest {
         // then
         assertThat(result.getContent()).hasSize(1)
                 .extracting("travelNumber", "title", "bookmarkCount",
-                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson", "registerDue")
+                        "location", "userNumber", "userName", "tags", "nowPerson", "maxPerson")
                 .containsExactly(
                         tuple(travel2.getNumber(), "여행2", 2,
-                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0, dueDate2)
+                                "Seoul", host.getUserNumber(), "주최자 이름", List.of(), 0, 0)
                 );
-    }*/
+    }
 
     @DisplayName("search: 제목에 keyword가 포함된 여행 목록을 가져올 수 있다.")
     @Test
@@ -746,6 +747,29 @@ class TravelCustomRepositoryImplTest {
                 .userNumber(hostNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
+                .title(title)
+                .details("여행 내용")
+                .viewCount(viewCount)
+                .maxPerson(maxPerson)
+                .genderType(genderType)
+                .periodType(periodType)
+                .status(status)
+                .tags(tags)
+                .build();
+    }
+
+    private Travel createTravelWithDate(
+            int hostNumber, Location location, LocalDate startDate, LocalDate endDate, String title, int viewCount,
+            int maxPerson, GenderType genderType, PeriodType periodType, TravelStatus status, List<Tag> tags
+    ) {
+        return Travel.builder()
+                .userNumber(hostNumber)
+                .location(location)
+                .locationName(location.getLocationName())
+                .startDate(startDate)
+                .endDate(endDate)
                 .title(title)
                 .details("여행 내용")
                 .viewCount(viewCount)

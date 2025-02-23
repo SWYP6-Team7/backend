@@ -33,18 +33,17 @@ class TravelRecommendComparatorTest {
         assertThat(result.get(1)).isEqualTo(dto1);
     }
 
-    /*
-    @DisplayName("compareTo: preferredNumber가 같으면 RegisterDue가 작은 쪽(현재와 가까운)이 더 작다")
+    @DisplayName("compareTo: preferredNumber가 같으면 제목순으로 오름차순 정렬한다")
     @Test
-    public void compareToWhenPreferredNumberSame() {
+    public void compareToWhenDueDateSame() {
         // given
         TravelRecommendForMemberDto dto1 = TravelRecommendForMemberDto.builder()
+                .title("나")
                 .preferredNumber(5)
-                .registerDue(LocalDate.now().plusDays(5))
                 .build();
         TravelRecommendForMemberDto dto2 = TravelRecommendForMemberDto.builder()
+                .title("가다")
                 .preferredNumber(5)
-                .registerDue(LocalDate.now().plusDays(1))
                 .build();
         List<TravelRecommendForMemberDto> result = new ArrayList<>(List.of(dto1, dto2));
 
@@ -55,29 +54,5 @@ class TravelRecommendComparatorTest {
         assertThat(result.get(0)).isEqualTo(dto2);
         assertThat(result.get(1)).isEqualTo(dto1);
     }
-
-    @DisplayName("compareTo: preferredNumber, RegisterDue가 같으면 제목순으로 오름차순 정렬한다")
-    @Test
-    public void compareToWhenDueDateSame() {
-        // given
-        TravelRecommendForMemberDto dto1 = TravelRecommendForMemberDto.builder()
-                .title("나")
-                .preferredNumber(5)
-                .registerDue(LocalDate.now().plusDays(5))
-                .build();
-        TravelRecommendForMemberDto dto2 = TravelRecommendForMemberDto.builder()
-                .title("가다")
-                .preferredNumber(5)
-                .registerDue(LocalDate.now().plusDays(5))
-                .build();
-        List<TravelRecommendForMemberDto> result = new ArrayList<>(List.of(dto1, dto2));
-
-        // when
-        Collections.sort(result, new TravelRecommendComparator());
-
-        // then
-        assertThat(result.get(0)).isEqualTo(dto2);
-        assertThat(result.get(1)).isEqualTo(dto1);
-    }*/
 
 }

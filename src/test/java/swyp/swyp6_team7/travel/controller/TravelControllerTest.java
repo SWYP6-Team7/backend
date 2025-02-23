@@ -25,6 +25,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.service.TravelService;
 import swyp.swyp6_team7.travel.service.TravelViewCountService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -64,13 +65,14 @@ class TravelControllerTest {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         int travelNumber = 10;
@@ -97,13 +99,14 @@ class TravelControllerTest {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("*".repeat(21))
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -114,7 +117,6 @@ class TravelControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reason").value("여행 제목은 최대 20자 입니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
     @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작으면 예외가 발생한다.")
@@ -124,13 +126,14 @@ class TravelControllerTest {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(-1)
                 .genderType("모두")
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -141,9 +144,7 @@ class TravelControllerTest {
         // then
         resultActions.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reason").value("여행 참가 최대 인원은 0보다 작을 수 없습니다."));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
-
 
     @DisplayName("getDetailsByNumber: 비회원(비로그인) 사용자는 여행 상세 정보를 단건 조회할 수 있다.")
     @Test
@@ -171,6 +172,8 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
                 .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
                 .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.startDate").value("2024-11-22"))
+                .andExpect(jsonPath("$.success.endDate").value("2024-11-28"))
                 .andExpect(jsonPath("$.success.title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
                 .andExpect(jsonPath("$.success.viewCount").value(10))
@@ -220,6 +223,8 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.profileUrl").value("https://user-profile-url"))
                 .andExpect(jsonPath("$.success.createdAt").value("2024-12-06 12:00"))
                 .andExpect(jsonPath("$.success.location").value("서울"))
+                .andExpect(jsonPath("$.success.startDate").value("2024-11-22"))
+                .andExpect(jsonPath("$.success.endDate").value("2024-11-28"))
                 .andExpect(jsonPath("$.success.title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.details").value("여행 상세 내용"))
                 .andExpect(jsonPath("$.success.viewCount").value(10))
@@ -245,13 +250,14 @@ class TravelControllerTest {
         // given
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .locationName("서울")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType("모두")
                 .periodType("일주일 이하")
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         int travelNumber = 10;
@@ -287,6 +293,8 @@ class TravelControllerTest {
                 .profileUrl("https://user-profile-url")
                 .createdAt(LocalDateTime.of(2024, 12, 06, 12, 0))
                 .location("서울")
+                .startDate(LocalDate.of(2024,11,22))
+                .endDate(LocalDate.of(2024,11,28))
                 .title("여행 제목")
                 .details("여행 상세 내용")
                 .viewCount(10)

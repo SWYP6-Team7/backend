@@ -12,6 +12,7 @@ import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -33,6 +34,7 @@ import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -86,16 +88,16 @@ class TravelServiceTest {
     public void create() {
         // given
         Location location = locationRepository.save(createLocation("Seoul"));
-
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("Seoul")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
                 .genderType(GenderType.MIXED.toString())
                 .periodType(PeriodType.ONE_WEEK.toString())
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -105,6 +107,8 @@ class TravelServiceTest {
         assertThat(travelRepository.findAll()).hasSize(1);
         assertThat(createdTravel.getUserNumber()).isEqualTo(1);
         assertThat(createdTravel.getLocationName()).isEqualTo("Seoul");
+        assertThat(createdTravel.getStartDate()).isEqualTo(LocalDate.of(2024, 12, 22));
+        assertThat(createdTravel.getEndDate()).isEqualTo(LocalDate.of(2024, 12, 28));
         assertThat(createdTravel.getTitle()).isEqualTo("여행 제목");
         assertThat(createdTravel.getDetails()).isEqualTo("여행 내용");
         assertThat(createdTravel.getViewCount()).isEqualTo(0);
@@ -117,6 +121,33 @@ class TravelServiceTest {
         assertThat(createdTravel.getTravelTags().get(0).getTag().getName()).isEqualTo("쇼핑");
         assertThat(createdTravel.getCompanions()).isEmpty();
         assertThat(createdTravel.getDeletedUser()).isNull();
+    }
+
+    @DisplayName("create: 여행 생성 시 여행 기간이 90일을 초과하면 예외가 발생한다.")
+    @Test
+    void createWithValidateDateRange() {
+        // given
+        Location location = locationRepository.save(createLocation("Seoul"));
+        LocalDate startDate = LocalDate.of(2024, 12, 22);
+        LocalDate endDate = startDate.plusDays(90);
+
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("Seoul")
+                .startDate(startDate)
+                .endDate(endDate)
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType(GenderType.MIXED.toString())
+                .periodType(PeriodType.ONE_WEEK.toString())
+                .tags(List.of("쇼핑"))
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> {
+            travelService.create(request, 1);
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("여행 기간은 90일을 초과할 수 없습니다.");
     }
 
     @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, 여행 상세 정보를 조회할 수 있다.")
@@ -138,6 +169,8 @@ class TravelServiceTest {
         assertThat(travelDetails.getUserName()).isEqualTo("주최자 이름");
         assertThat(travelDetails.getProfileUrl()).isEqualTo(defaultProfileUrl);
         assertThat(travelDetails.getLocation()).isEqualTo("Seoul");
+        assertThat(travelDetails.getStartDate()).isEqualTo(LocalDate.of(2024, 11, 22));
+        assertThat(travelDetails.getEndDate()).isEqualTo(LocalDate.of(2024, 11, 28));
         assertThat(travelDetails.getTitle()).isEqualTo("여행 제목");
         assertThat(travelDetails.getDetails()).isEqualTo("여행 내용");
         assertThat(travelDetails.getViewCount()).isEqualTo(0);      // 조회수
@@ -238,13 +271,14 @@ class TravelServiceTest {
 
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .locationName("Seoul")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
                 .title("여행 제목 수정")
                 .details("여행 내용 수정")
                 .maxPerson(3)
                 .genderType(GenderType.WOMAN_ONLY.toString())
                 .periodType(PeriodType.MORE_THAN_MONTH.toString())
                 .tags(List.of("쇼핑"))
-                .completionStatus(true)
                 .build();
 
         // when
@@ -254,6 +288,8 @@ class TravelServiceTest {
         assertThat(travelRepository.findAll()).hasSize(1);
         assertThat(updatedTravel.getUserNumber()).isEqualTo(1);
         assertThat(updatedTravel.getLocationName()).isEqualTo("Seoul");
+        assertThat(updatedTravel.getStartDate()).isEqualTo(LocalDate.of(2024, 12, 22));
+        assertThat(updatedTravel.getEndDate()).isEqualTo(LocalDate.of(2024, 12, 28));
         assertThat(updatedTravel.getTitle()).isEqualTo("여행 제목 수정");
         assertThat(updatedTravel.getDetails()).isEqualTo("여행 내용 수정");
         assertThat(updatedTravel.getMaxPerson()).isEqualTo(3);
@@ -281,7 +317,6 @@ class TravelServiceTest {
 
         TravelUpdateRequest request = TravelUpdateRequest.builder()
                 .tags(List.of())
-                .completionStatus(true)
                 .build();
 
         // when //then
@@ -388,6 +423,8 @@ class TravelServiceTest {
                 .userNumber(hostUserNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .viewCount(0)
@@ -399,5 +436,4 @@ class TravelServiceTest {
                 .enrollmentsLastViewedAt(LocalDateTime.of(2024, 11, 17, 12, 0))
                 .build();
     }
-
 }

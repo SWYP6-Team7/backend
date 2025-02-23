@@ -167,42 +167,7 @@ class TravelHomeServiceTest {
                 );
     }
 
-    /*
-    @DisplayName("사용자의 선호 태그와 공통되는 여행 태그 개수 preferredNumber가 동일한 경우 registerDue가 빠른 순서대로 여행을 가져온다.")
-    @Test
-    void getRecommendTravelsByMemberWhenSamePreferredNumber() {
-        Tag tag1 = Tag.of("쇼핑");
-        Tag tag2 = Tag.of("자연");
-        tagRepository.saveAll(List.of(tag1, tag2));
-
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        LocalDate dueDate = LocalDate.of(2024, 11, 7);
-        Travel travel1 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate.plusDays(1), PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
-        Travel travel2 = createTravel(
-                1, location, "여행", 0, 0, GenderType.MIXED,
-                dueDate, PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
-        travelRepository.saveAll(List.of(travel1, travel2));
-
-        LocalDate requestDate = LocalDate.of(2024, 11, 6);
-
-        given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
-                .willReturn(Arrays.asList("쇼핑", "자연"));
-
-        // when
-        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
-
-        // then
-        assertThat(result.getContent()).hasSize(2)
-                .extracting("travelNumber", "tags", "preferredNumber", "registerDue")
-                .containsExactly(
-                        tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2, dueDate),
-                        tuple(travel1.getNumber(), Arrays.asList("쇼핑", "자연"), 2, dueDate.plusDays(1))
-                );
-    }
-
-    @DisplayName("preferredNumber, registerDue가 동일한 경우 title을 기준으로 가나다 순서대로 가져온다.")
+    @DisplayName("preferredNumber 값이 같으면 title이 오름차순으로 정렬된 여행 목록을 가져온다.")
     @Test
     void getRecommendTravelsByMemberWhenSamePreferredNumberSameRegisterDue() {
         Tag tag1 = Tag.of("쇼핑");
@@ -233,7 +198,7 @@ class TravelHomeServiceTest {
                         tuple(travel2.getNumber(), Arrays.asList("쇼핑", "자연"), 2, "여행-가"),
                         tuple(travel1.getNumber(), Arrays.asList("쇼핑", "자연"), 2, "여행-나")
                 );
-    }*/
+    }
 
     private Location createLocation(String locationName, LocationType locationType) {
         return Location.builder()
@@ -250,6 +215,8 @@ class TravelHomeServiceTest {
                 .userNumber(hostNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title(title)
                 .details("여행 내용")
                 .viewCount(viewCount)

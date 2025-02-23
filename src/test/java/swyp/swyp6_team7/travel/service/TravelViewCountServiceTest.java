@@ -24,6 +24,7 @@ import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -264,6 +265,8 @@ class TravelViewCountServiceTest {
                 .userNumber(1)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title("여행 제목")
                 .details("여행 내용")
                 .viewCount(viewCount)

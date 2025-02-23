@@ -176,6 +176,8 @@ class TravelSearchServiceTest {
                 .userNumber(hostNumber)
                 .location(location)
                 .locationName(location.getLocationName())
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title(title)
                 .details("여행 내용")
                 .viewCount(viewCount)
