@@ -1,18 +1,16 @@
 package swyp.swyp6_team7.auth.service;
 
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.provider.NaverProvider;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberDeletedService;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +24,7 @@ public class NaverService {
     private final UserRepository userRepository;
     private final SocialUserRepository socialUserRepository;
     private final MemberDeletedService memberDeletedService;
+
     // 네이버 로그인 URL 생성
     public String naverLogin() {
         String state = UUID.randomUUID().toString(); // 무작위 state 값 생성
@@ -46,7 +45,8 @@ public class NaverService {
             throw new RuntimeException("Failed to get user info from Naver", e);
         }
     }
-    public Map<String, String> processNaverLogin(String code, String state) {
+
+    public UserInfoDto processNaverLogin(String code, String state) {
         log.info("Naver 사용자 정보 수집 및 저장 시작: code={}, state={}", code, state);
 
         try {
@@ -60,15 +60,16 @@ public class NaverService {
                     userInfo.get("provider")
             );
 
-            Map<String, String> response = new HashMap<>();
-            response.put("userNumber", user.getUserNumber().toString());
-            response.put("name", user.getUserName());
-            response.put("email", user.getUserEmail());
-            response.put("gender", user.getUserGender().toString());
-            response.put("ageGroup",user.getUserAgeGroup().toString());
-            response.put("userStatus", user.getUserStatus().toString());
-            response.put("socialLoginId", userInfo.get("socialID"));
-            response.put("provider",userInfo.get("provider"));
+            UserInfoDto response = new UserInfoDto(
+                    user.getUserNumber(),
+                    user.getUserName(),
+                    user.getUserEmail(),
+                    user.getUserStatus(),
+                    userInfo.get("socialID"),
+                    user.getUserGender(),
+                    user.getUserAgeGroup(),
+                    userInfo.get("provider")
+            );
 
             log.info("Naver 사용자 정보 수집 및 저장 완료: userInfo={}", userInfo);
             return response;
@@ -79,7 +80,6 @@ public class NaverService {
     }
 
     // Users와 SocialUsers에 저장하는 메서드
-    @Transactional
     private Users saveSocialUser(String email, String name, String gender, String socialLoginId, String ageGroup, String provider) {
         log.info("소셜 사용자 저장 시작: email={}, socialLoginId={}", email, socialLoginId);
 

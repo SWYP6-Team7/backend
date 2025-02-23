@@ -1,6 +1,5 @@
 package swyp.swyp6_team7.auth.controller;
 
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -82,7 +80,7 @@ public class LogoutControllerTest {
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("로그아웃 성공")))
+                .andExpect(jsonPath("$.success").value("로그아웃 성공"))
                 // refreshToken 쿠키가 maxAge=0으로 설정되어 삭제됨을 검증
                 .andExpect(cookie().maxAge("refreshToken", 0));
 
@@ -99,7 +97,7 @@ public class LogoutControllerTest {
 
         mockMvc.perform(post("/api/logout")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string("Access Denied"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.error.reason").value("Access Denied"));
     }
 }

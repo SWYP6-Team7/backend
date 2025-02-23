@@ -4,25 +4,19 @@ package swyp.swyp6_team7.auth.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.auth.service.JwtBlacklistService;
+import swyp.swyp6_team7.auth.dto.LoginResponse;
 import swyp.swyp6_team7.auth.service.LoginService;
 import swyp.swyp6_team7.auth.service.TokenService;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,14 +27,12 @@ public class LoginController {
     private final UserLoginHistoryService userLoginHistoryService;
     private final MemberService memberService;
     private final TokenService tokenService;
-    private final JwtProvider jwtProvider;
-    private final JwtBlacklistService jwtBlacklistService;
-
 
     @PostMapping("/api/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response) {
-
-
+    public ApiResponse<LoginResponse> login(
+            @RequestBody LoginRequestDto loginRequestDto,
+            HttpServletResponse response
+    ) {
         // 로그인 및 토큰 생성
         log.info("로그인 요청 - 이메일: {}", loginRequestDto.getEmail());
         Map<String, String> tokenMap = loginService.login(loginRequestDto);
@@ -66,11 +58,11 @@ public class LoginController {
         memberService.updateLoginDate(user);
 
         // Access Token과 userId를 포함하는 JSON 응답 반환
-        Map<String, String> responseMap = new HashMap<>();
-        responseMap.put("userId", String.valueOf(user.getUserNumber()));
-        responseMap.put("accessToken", accessToken);
-
+        LoginResponse loginResponse = new LoginResponse(
+                user.getUserNumber(),
+                accessToken
+        );
         log.info("로그인 성공 - userNumber: {}", user.getUserNumber());
-        return ResponseEntity.ok(responseMap);
+        return ApiResponse.success(loginResponse);
     }
 }

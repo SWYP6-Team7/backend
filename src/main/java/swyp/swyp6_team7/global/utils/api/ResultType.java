@@ -7,6 +7,8 @@ public enum ResultType {
     HTTP_TIMEOUT,
     FAIL,
     BAD_REQUEST,
+    UNAUTHORIZED,
+    ACCESS_DENIED,
     INTERNAL_ERROR;
 
     private ResultType() {
