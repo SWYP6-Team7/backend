@@ -3,10 +3,11 @@ package swyp.swyp6_team7.auth.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import swyp.swyp6_team7.auth.dto.SignupRequestDto;
+import swyp.swyp6_team7.auth.dto.SocialUserSignUpResponse;
+import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.provider.GoogleProvider;
 import swyp.swyp6_team7.member.entity.*;
@@ -18,7 +19,10 @@ import swyp.swyp6_team7.tag.domain.UserTagPreference;
 import swyp.swyp6_team7.tag.repository.TagRepository;
 import swyp.swyp6_team7.tag.repository.UserTagPreferenceRepository;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -38,21 +42,22 @@ public class GoogleService {
     }
 
     @Transactional
-    public Map<String, String> processGoogleLogin(String code) {
+    public UserInfoDto processGoogleLogin(String code) {
         log.info("Google 사용자 정보 수집 및 저장 시작: code={}", code);
         try {
             Map<String, String> userInfo = googleProvider.getUserInfoFromGoogle(code);
             Users user = saveSocialUser(userInfo);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("userNumber", user.getUserNumber().toString());
-            response.put("userName", user.getUserName());
-            response.put("userEmail", user.getUserEmail());
-            response.put("userStatus", user.getUserStatus().toString());
-            response.put("socialLoginId", userInfo.get("socialLoginId"));
+            UserInfoDto userInfoResponse = new UserInfoDto(
+                    user.getUserNumber(),
+                    user.getUserName(),
+                    user.getUserEmail(),
+                    user.getUserStatus(),
+                    userInfo.get("socialLoginId")
+            );
 
             log.info("Google 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
-            return response;
+            return userInfoResponse;
         } catch (Exception e) {
             log.error("Google 사용자 정보 수집 중 오류 발생", e);
             throw new RuntimeException("Failed to process Google login", e);
@@ -60,7 +65,7 @@ public class GoogleService {
     }
 
     @Transactional
-    public Map<String, String> completeSignup(@RequestBody SignupRequestDto signupData) {
+    public SocialUserSignUpResponse completeSignup(@RequestBody SignupRequestDto signupData) {
         log.info("Google 회원가입 완료 요청: userNumber={}", signupData.getUserNumber());
         try {
             if (signupData.getUserNumber() == null) {
@@ -105,18 +110,18 @@ public class GoogleService {
                 log.info("사용자 선호 태그 저장 완료: userNumber={}, tagCount={}", user.getUserNumber(), tagPreferences.size());
             }
 
-            userRepository.save(user);
+            user = userRepository.save(user);
 
             Optional<SocialUsers> existingSocialUser = socialUserRepository.findByUser(user);
             String socialLoginId = existingSocialUser.map(SocialUsers::getSocialLoginId).orElse("N/A");
-            if (existingSocialUser.isPresent()) {
-                socialUserRepository.save(existingSocialUser.get());
-            }
+            existingSocialUser.ifPresent(socialUserRepository::save);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Signup complete");
-            response.put("socialLoginId", socialLoginId);
-            response.put("email", user.getUserEmail());
+            SocialUserSignUpResponse response = new SocialUserSignUpResponse(
+                    user.getUserNumber(),
+                    "Signup complete",
+                    socialLoginId,
+                    user.getUserEmail()
+            );
 
             log.info("Google 회원가입 완료 성공: userNumber={}", user.getUserNumber());
             return response;

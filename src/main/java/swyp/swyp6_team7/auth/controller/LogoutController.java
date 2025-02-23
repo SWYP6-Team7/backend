@@ -5,17 +5,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.details.CustomUserDetails;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.TokenService;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.global.utils.api.ErrorMessage;
+import swyp.swyp6_team7.global.utils.api.ResultType;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
@@ -34,7 +34,7 @@ public class LogoutController {
 
 
     @PostMapping("/api/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response) {
         // 현재 인증된 유저 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
@@ -72,11 +72,10 @@ public class LogoutController {
             // SecurityContext에서 인증 정보 제거
             SecurityContextHolder.clearContext();
 
-            return ResponseEntity.ok("로그아웃 성공");
-
+            return ApiResponse.success("로그아웃 성공");
         } else {
             log.warn("로그아웃 요청 시 인증 정보가 없음");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+            return ApiResponse.error(ResultType.ACCESS_DENIED, new ErrorMessage("Access Denied", "로그아웃 실패"));
         }
 
     }
