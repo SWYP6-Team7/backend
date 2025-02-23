@@ -16,6 +16,7 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.TokenService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.global.exception.MoingAuthenticationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 
 import java.util.Map;
@@ -45,7 +46,7 @@ public class TokenController {
         if (jwtBlacklistService.isTokenBlacklisted(refreshToken)) {
             log.warn("블랙리스트에 등록된 Refresh Token 사용 시도: {}", refreshToken);
             // TODO: 403 Http Status 반환하도록 수정
-            throw new MoingApplicationException("Refresh Token이 블랙리스트에 있습니다. 다시 로그인 해주세요.");
+            throw new MoingAuthenticationException("Refresh Token이 블랙리스트에 있습니다. 다시 로그인 해주세요.");
         }
 
         try {

@@ -40,6 +40,19 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(errorMessage);
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(MoingAuthenticationException.class)
+    @ResponseBody
+    public ApiResponse<String> handleAuthenticationException(MoingAuthenticationException e) {
+        log.error("Moing Authentication Exception: {}", e.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                e.getMessage(),
+                "인증 에러가 발생했습니다."
+        );
+
+        return ApiResponse.error(ResultType.UNAUTHORIZED, message);
+    }
+
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler(MoingApplicationException.class)
     @ResponseBody

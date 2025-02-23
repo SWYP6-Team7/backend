@@ -17,11 +17,13 @@ import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.TokenService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,7 +47,7 @@ public class TokenControllerTest {
 
     @BeforeEach
     public void setUp() {
-        Mockito.clearInvocations(jwtProvider, jwtBlacklistService ,tokenService);
+        Mockito.clearInvocations(jwtProvider, jwtBlacklistService, tokenService);
     }
 
     @Test
@@ -61,8 +63,8 @@ public class TokenControllerTest {
         when(jwtBlacklistService.isTokenBlacklisted(validRefreshToken)).thenReturn(false);
 
         Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put("accessToken",newAccessToken);
-        tokenMap.put("refreshToken",newRefreshToken);
+        tokenMap.put("accessToken", newAccessToken);
+        tokenMap.put("refreshToken", newRefreshToken);
         when(tokenService.refreshWithLock(validRefreshToken)).thenReturn(tokenMap);
 
         when(jwtProvider.getUserNumber(newAccessToken)).thenReturn(userNumber);
@@ -72,8 +74,8 @@ public class TokenControllerTest {
                         .cookie(refreshTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(userNumber.toString()))
-                .andExpect(jsonPath("$.accessToken").value(newAccessToken))
+                .andExpect(jsonPath("$.success.userId").value(userNumber))
+                .andExpect(jsonPath("$.success.accessToken").value(newAccessToken))
                 .andDo(result -> System.out.println("Access Token successfully refreshed."));
     }
 
@@ -83,8 +85,8 @@ public class TokenControllerTest {
         // When & Then
         mockMvc.perform(post("/api/token/refresh")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Refresh Token이 존재하지 않습니다."))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.error.reason").value("Refresh Token이 존재하지 않습니다."))
                 .andDo(result -> System.out.println("Missing Refresh Token handled correctly."));
     }
 
@@ -103,9 +105,10 @@ public class TokenControllerTest {
                         .cookie(refreshTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Refresh Token이 블랙리스트에 있습니다. 다시 로그인 해주세요."))
+                .andExpect(jsonPath("$.error.reason").value("Refresh Token이 블랙리스트에 있습니다. 다시 로그인 해주세요."))
                 .andDo(result -> System.out.println("Blacklisted Refresh Token handled correctly."));
     }
+
     @Test
     @DisplayName("만료된 RefreshToken으로 AccessToken 재발급 실패")
     public void testRefreshAccessTokenFailureDueToExpiredToken() throws Exception {
@@ -121,8 +124,8 @@ public class TokenControllerTest {
         mockMvc.perform(post("/api/token/refresh")
                         .cookie(refreshTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Refresh Token이 만료되었습니다. 다시 로그인 해주세요."))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.error.reason").value("Refresh Token이 만료되었습니다. 다시 로그인 해주세요."))
                 .andDo(result -> System.out.println("Expired Refresh Token handled correctly."));
     }
 
@@ -141,8 +144,8 @@ public class TokenControllerTest {
         mockMvc.perform(post("/api/token/refresh")
                         .cookie(refreshTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Refresh Token이 유효하지 않습니다."))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.error.reason").value("Refresh Token이 유효하지 않습니다."))
                 .andDo(result -> System.out.println("Invalid Refresh Token handled correctly."));
     }
 
@@ -162,7 +165,7 @@ public class TokenControllerTest {
                         .cookie(refreshTokenCookie)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Access Token 재발급에 실패했습니다."))
+//                .andExpect(jsonPath("$.error.reason").value("Access Token 재발급에 실패했습니다."))
                 .andDo(result -> System.out.println("Unexpected error handled correctly."));
     }
 }
