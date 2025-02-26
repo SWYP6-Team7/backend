@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.member.dto.ReportDetailReason;
 import swyp.swyp6_team7.member.dto.ReportReasonResponse;
+import swyp.swyp6_team7.member.dto.UserBlockDetailResponse;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.*;
 
@@ -61,6 +62,12 @@ public class MemberBlockService {
         List<UserBlockReport> reportsBySameUser = reports.stream()
                 .filter(report -> report.getReporterUserNumber().equals(reporterUserNumber))
                 .toList();
+
+        // 기존 요청사항
+        // 동일인 & 동일 사유 => 시간 요소 추가. 3회 / 5회
+        // 동일인 X & 동일 사유 => 시간 요소 X. 3회 / 5회
+        // 동일인 & 다른 사유 => 시간 요소 추가. 5회 / 10회
+        // 동일인 X & 다른 사유 => 시간 요소 X. 5회 / 10회
 
         // 2-2. 동일인 신고 존재 시, 가장 마지막 신고로부터 시점 계산
         UserBlockReport lastReportBySameUser = reportsBySameUser.getLast();
@@ -163,5 +170,28 @@ public class MemberBlockService {
         boolean isReportable = LocalDateTime.now().minusWeeks(reportGapWeek).isAfter(lastReportTs);
         log.info("reportGapWeek={}, lastReportTs={}, isReportable={}", reportGapWeek, lastReportTs, isReportable);
         return isReportable;
+    }
+
+    public UserBlockDetailResponse getBlockDetail(Integer userNumber) {
+        Users user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
+
+        if (!user.isBlocked()) {
+            return new UserBlockDetailResponse(userNumber, false, null, null);
+        }
+
+        UserBlock userBlock = userBlockRepository.findAllByUserNumberOrderByRegTs(userNumber)
+                .stream().filter(UserBlock::isValidBlock)
+                .toList().getLast();
+
+        if (userBlock == null) {
+            user.setUserStatus(UserStatus.ABLE);
+            userRepository.save(user);
+            return new UserBlockDetailResponse(userNumber, false, null, null);
+        }
+
+        // TODO: 기간 지난 valid block 들 제거
+        // TODO: 신고 사유 어떻게 할지
+        return new UserBlockDetailResponse(userNumber, true, null, userBlock.getBlockPeriod());
     }
 }

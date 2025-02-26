@@ -54,4 +54,8 @@ public class UserBlock {
         this.regTs = LocalDateTime.now();
         this.updTs = LocalDateTime.now();
     }
+
+    public boolean isValidBlock() {
+        return isActive && blockPeriod.isAfter(LocalDateTime.now());
+    }
 }

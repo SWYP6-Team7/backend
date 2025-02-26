@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "user_block_report")
+@Table(name = "report_reason")
 // 신고 사유 테이블
 public class ReportReason {
 
@@ -21,7 +21,7 @@ public class ReportReason {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "report_category")
+    @Column(name = "report_category", nullable = false)
     private ReportCategory reportCategory; // 신고 유형
 
     @Column(name = "reason")

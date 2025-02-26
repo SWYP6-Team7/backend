@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.member.dto.ReportReasonResponse;
+import swyp.swyp6_team7.member.dto.UserBlockDetailResponse;
 import swyp.swyp6_team7.member.dto.UserReportRequest;
 import swyp.swyp6_team7.member.service.MemberBlockService;
-import swyp.swyp6_team7.member.service.MemberService;
 
 import java.util.List;
 
@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/api/member/block")
 public class MemberBlockController {
 
-    private final MemberService memberService;
     private final MemberBlockService memberBlockService;
 
     @Operation(summary = "상대방 신고")
@@ -47,14 +46,10 @@ public class MemberBlockController {
 
     @Operation(summary = "내 신고 상세")
     @GetMapping("/my/detail")
-    public ApiResponse<Object> myBlockDetail() {
-        return ApiResponse.success(null);
-    }
-
-    @Operation(summary = "신고해제 소명")
-    @PostMapping("/explain")
-    public ApiResponse<Boolean> explain() {
-        return ApiResponse.success(true);
+    public ApiResponse<UserBlockDetailResponse> myBlockDetail(
+            @RequireUserNumber Integer userNumber
+    ) {
+        return ApiResponse.success(memberBlockService.getBlockDetail(userNumber));
     }
 
     @Operation(summary = "신고 사유 문의")
