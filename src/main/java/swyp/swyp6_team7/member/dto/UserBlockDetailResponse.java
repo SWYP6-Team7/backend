@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -16,5 +16,5 @@ public class UserBlockDetailResponse {
     @Nullable
     private String reason;
     @Nullable
-    private LocalDateTime blockPeriod;
+    private LocalDate blockPeriod;
 }

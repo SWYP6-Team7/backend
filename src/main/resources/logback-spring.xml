@@ -28,7 +28,7 @@
         <appender-ref ref="SLACK"/>
     </root>
 
-    <springProfile name="local-db">
+    <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>

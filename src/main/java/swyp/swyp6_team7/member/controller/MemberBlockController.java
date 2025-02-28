@@ -29,13 +29,13 @@ public class MemberBlockController {
             @RequireUserNumber Integer userNumber,
             @RequestBody UserReportRequest request
     ) {
-        memberBlockService.report(
+        final String response = memberBlockService.report(
                 userNumber,
                 request.getReportedUserNumber(),
                 request.getReportReasonId(),
                 request.getReportReasonExtra()
         );
-        return ApiResponse.success("정상 처리되었습니다.");
+        return ApiResponse.success(response);
     }
 
     @Operation(summary = "신고 사유 목록")

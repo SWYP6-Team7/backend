@@ -10,6 +10,7 @@ import swyp.swyp6_team7.member.dto.UserBlockDetailResponse;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,11 +23,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MemberBlockService {
 
-    private UserRepository userRepository;
-    private UserBlockRepository userBlockRepository;
-    private UserBlockReportRepository userBlockReportRepository;
-    private ReportReasonRepository reportReasonRepository;
-    private UserBlockExplanationRepository userBlockExplanationRepository;
+    private final UserRepository userRepository;
+    private final UserBlockRepository userBlockRepository;
+    private final UserBlockReportRepository userBlockReportRepository;
+    private final ReportReasonRepository reportReasonRepository;
+    private final UserBlockExplanationRepository userBlockExplanationRepository;
 
     public List<ReportReasonResponse> getAllReportReason() {
         List<ReportReason> reportReasons = reportReasonRepository.findAll();
@@ -49,7 +50,7 @@ public class MemberBlockService {
     }
 
     @Transactional
-    public void report(
+    public String report(
             Integer reporterUserNumber,
             int reportedUserNumber,
             int reportReasonId,
@@ -70,24 +71,11 @@ public class MemberBlockService {
         // 동일인 X & 다른 사유 => 시간 요소 X. 5회 / 10회
 
         // 2-2. 동일인 신고 존재 시, 가장 마지막 신고로부터 시점 계산
-        UserBlockReport lastReportBySameUser = reportsBySameUser.getLast();
+        int userReportCount = reports.size();
         int sameUserReportCount = reportsBySameUser.size();
-        if (lastReportBySameUser != null) {
-            boolean isReportable = canUseReport(sameUserReportCount, lastReportBySameUser.getRegTs());
 
-            if (isReportable) {
-                log.info("신고가 접수되었습니다. reporter: {}, reported: {}", reporterUserNumber, reportedUserNumber);
-                userBlockReportRepository.save(
-                        new UserBlockReport(
-                                reporterUserNumber,
-                                reportedUserNumber,
-                                reportReasonId,
-                                reportReasonExtra
-                        )
-                );
-                sameUserReportCount++;
-            }
-        } else { // 3. 타인 신고건이면 신고 바로 접수
+        if (sameUserReportCount == 0) {
+            log.info("신규 신고가 접수되었습니다. reporter: {}, reported: {}", reporterUserNumber, reportedUserNumber);
             userBlockReportRepository.save(
                     new UserBlockReport(
                             reporterUserNumber,
@@ -96,30 +84,53 @@ public class MemberBlockService {
                             reportReasonExtra
                     )
             );
-            sameUserReportCount++;
+            userReportCount++;
+        } else {
+            UserBlockReport lastReportBySameUser = reportsBySameUser.getLast();
+            if (lastReportBySameUser != null) {
+                boolean isReportable = canUseReport(sameUserReportCount, lastReportBySameUser.getRegTs());
+
+                if (isReportable) {
+                    log.info("신고가 접수되었습니다. reporter: {}, reported: {}", reporterUserNumber, reportedUserNumber);
+                    userBlockReportRepository.save(
+                            new UserBlockReport(
+                                    reporterUserNumber,
+                                    reportedUserNumber,
+                                    reportReasonId,
+                                    reportReasonExtra
+                            )
+                    );
+                    userReportCount++;
+                } else {
+                    log.info("이미 신고한 내역이 있습니다. 신고처리 할 수 없습니다.");
+                    return "이미 신고한 이력이 있습니다.";
+                }
+            }
         }
 
         // 4. 신고 내역 추산해서 정지 처리
-        if (sameUserReportCount < 3) {
-            log.info("신고건이 3건 이하입니다.");
-            return;
+        if (userReportCount < 5) {
+            log.info("신고건이 5건 이하입니다.");
+            return "정상 처리되엇습니다.";
         }
+
+        log.info("신고 접수건이 5건 이상입니다. 계정 정지를 진행합니다.");
 
         List<UserBlock> userBlocks = userBlockRepository.findAllByUserNumberOrderByRegTs(reportedUserNumber)
                 .stream().filter(UserBlock::isActive)
                 .toList();
 
-        /**
-         * 5회 이상 신고 & 접수내역 없으면 등록
-         * 5회 이상 신고 & 접수내역 있으면 pass
-         * 10회 신고 & 접수내역 없으면 등록
-         * 10회 신고 & 접수내역 있으면 block Type 업데이트 + block 기간 등록
+        /*
+          5회 이상 신고 & 접수내역 없으면 등록
+          5회 이상 신고 & 접수내역 있으면 pass
+          10회 신고 & 접수내역 없으면 등록
+          10회 신고 & 접수내역 있으면 block Type 업데이트 + block 기간 등록
          */
         int blockCountTarget = BlockType.BLOCK.getCount();
         int warnCountTarget = BlockType.WARN.getCount();
-        LocalDateTime blockPeriod = LocalDateTime.now().plusDays(90);
+        LocalDate blockPeriod = LocalDate.now().plusDays(90);
 
-        if (sameUserReportCount >= blockCountTarget && userBlocks.isEmpty()) {
+        if (userReportCount >= blockCountTarget && userBlocks.isEmpty()) {
             // 10회 신고 & 접수내역 없으면 등록
             UserBlock userBlock = new UserBlock(
                     reportedUserNumber,
@@ -129,7 +140,8 @@ public class MemberBlockService {
             );
             userBlockRepository.save(userBlock);
             saveUserStatusToBlock(reportedUserNumber);
-        } else if (sameUserReportCount >= blockCountTarget && userBlocks.size() == 1) {
+            log.info("계정을 정지합니다. userNumber: {}, blockPeriod: {}", reportedUserNumber, userBlock.getBlockPeriod());
+        } else if (userReportCount >= blockCountTarget && userBlocks.size() == 1) {
             // 10회 신고 & 접수내역 있으면 block Type 업데이트 + block 기간 등록
             UserBlock lastBlock = userBlocks.getLast();
             if (lastBlock.getBlockType() == BlockType.WARN) {
@@ -137,8 +149,9 @@ public class MemberBlockService {
                 lastBlock.setBlockPeriod(blockPeriod);
                 userBlockRepository.save(lastBlock);
                 saveUserStatusToBlock(reportedUserNumber);
+                log.info("계정을 정지합니다. userNumber: {}, blockPeriod: {}", reportedUserNumber, lastBlock.getBlockPeriod());
             }
-        } else if (sameUserReportCount >= warnCountTarget && userBlocks.isEmpty()) {
+        } else if (userReportCount >= warnCountTarget && userBlocks.isEmpty()) {
             // 5회 이상 신고 & 접수내역 없으면 등록
             UserBlock userBlock = new UserBlock(
                     reportedUserNumber,
@@ -146,8 +159,12 @@ public class MemberBlockService {
                     true,
                     null
             );
+            log.info("계정 정지를 경고합니다. userNumber: {}, blockPeriod: {}", reportedUserNumber, userBlock.getBlockPeriod());
             userBlockRepository.save(userBlock);
+            // TODO: 알림 발송
         }
+
+        return "정상 처리되었습니다.";
     }
 
     private void saveUserStatusToBlock(Integer userNumber) {
@@ -161,8 +178,8 @@ public class MemberBlockService {
     // lastReportTs 가 지금보다 {reportGapWeek}주 이전에 신고된 내역인지 확인
     private boolean canUseReport(int reportCount, LocalDateTime lastReportTs) {
         int reportGapWeek;
-        if (reportCount < 5) {
-            reportGapWeek = Math.max(reportCount - 1, 0);
+        if (reportCount < 4) {
+            reportGapWeek = Math.max(reportCount, 0);
         } else {
             reportGapWeek = 4;
         }

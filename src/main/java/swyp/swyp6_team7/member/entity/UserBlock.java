@@ -3,6 +3,7 @@ package swyp.swyp6_team7.member.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,7 +32,7 @@ public class UserBlock {
     private BlockType blockType;
 
     @Column(name = "block_period")
-    private LocalDateTime blockPeriod;
+    private LocalDate blockPeriod;
 
     @Column(name = "reg_ts", nullable = false, updatable = false)
     private LocalDateTime regTs;
@@ -44,7 +45,7 @@ public class UserBlock {
             Integer userNumber,
             BlockType blockType,
             Boolean isActive,
-            LocalDateTime blockPeriod
+            LocalDate blockPeriod
     ) {
         this.id = 0;
         this.userNumber = userNumber;
@@ -56,6 +57,6 @@ public class UserBlock {
     }
 
     public boolean isValidBlock() {
-        return isActive && blockPeriod.isAfter(LocalDateTime.now());
+        return isActive && blockPeriod.isAfter(LocalDate.now());
     }
 }
