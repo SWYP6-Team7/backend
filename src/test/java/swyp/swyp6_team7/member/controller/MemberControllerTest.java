@@ -8,12 +8,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,15 +32,6 @@ public class MemberControllerTest {
 
     @MockBean
     private MemberService memberService;
-
-    @MockBean
-    private UserLoginHistoryService userLoginHistoryService;
-
-    @MockBean
-    private JwtProvider jwtProvider;
-
-    @MockBean
-    private UserDetailsService userDetailsService;
 
     @Test
     @DisplayName("일반이메일 가입 성공테스트")
