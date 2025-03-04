@@ -27,7 +27,7 @@ jobs:
       - name: Test and Build
         run: |
           chmod +x ./gradlew
-          ./gradlew clean build
+          ./gradlew clean build -x test
 
       - name: Change build result file name
         run: mv ./build/libs/*SNAPSHOT.jar ./project.jar

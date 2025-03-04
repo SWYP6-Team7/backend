@@ -88,6 +88,9 @@ spring:
           user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
           user-name-attribute: sub
 
+  main:
+    lazy-initialization: true
+
 custom:
   admin-secret-key: your-secret-key
   jwt:
