@@ -29,7 +29,9 @@ jobs:
       - name: Run Tests with Gradle
         run: |
           chmod +x ./gradlew
-          ./gradlew clean test
+          ./gradlew clean test --no-daemon
         env:
           TESTCONTAINERS_RYUK_DISABLED: true  # Ryuk 비활성화로 실행 속도 향상
           TESTCONTAINERS_CHECKS_DISABLE: true # 불필요한 체크 비활성화
+          GRADLE_OPTS: "-Xmx4g"
+          JAVA_TOOL_OPTIONS: "-Xmx4g"

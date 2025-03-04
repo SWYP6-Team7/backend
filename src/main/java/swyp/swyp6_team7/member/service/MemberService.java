@@ -2,12 +2,9 @@ package swyp.swyp6_team7.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +15,6 @@ import swyp.swyp6_team7.member.dto.UserCreateResponse;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.profile.service.ProfileService;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 import swyp.swyp6_team7.tag.repository.UserTagPreferenceRepository;
@@ -28,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,7 +40,6 @@ public class MemberService {
 
     @Value("${custom.admin-secret-key}")
     private String adminSecretKey;
-
 
     @Transactional(readOnly = true)
     public Users findByUserNumber(Integer userNumber) {

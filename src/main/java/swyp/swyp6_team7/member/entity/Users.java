@@ -124,4 +124,8 @@ public class Users {
         return true;
     }
 
+    public boolean isBlocked() {
+        return userStatus == UserStatus.BLOCK;
+    }
+
 }
