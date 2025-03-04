@@ -56,6 +56,8 @@ public class MemberBlockService {
             int reportReasonId,
             String reportReasonExtra
     ) {
+        // TODO: reportedUserNumber, reason, extra Validation 진행
+
         // 1. 피신고자가 받은 모든 신고내역 확인
         List<UserBlockReport> reports = userBlockReportRepository.findAllByReportedUserNumberOrderByRegTs(reportedUserNumber);
 
@@ -201,14 +203,13 @@ public class MemberBlockService {
                 .stream().filter(UserBlock::isValidBlock)
                 .toList().getLast();
 
-        if (userBlock == null) {
-            user.setUserStatus(UserStatus.ABLE);
-            userRepository.save(user);
-            return new UserBlockDetailResponse(userNumber, false, null, null);
+        if (userBlock != null && userBlock.getBlockType() == BlockType.BLOCK) {
+            log.info("계정 정지 이력이 존재합니다.");
+            return new UserBlockDetailResponse(userNumber, true, null, userBlock.getBlockPeriod());
         }
 
         // TODO: 기간 지난 valid block 들 제거
         // TODO: 신고 사유 어떻게 할지
-        return new UserBlockDetailResponse(userNumber, true, null, userBlock.getBlockPeriod());
+        return new UserBlockDetailResponse(userNumber, false, null, null);
     }
 }

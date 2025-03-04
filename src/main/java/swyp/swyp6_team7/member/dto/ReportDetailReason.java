@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class ReportDetailReason {
     private Integer reportReasonId;
-    private String reportReasonName;
+    private String detailReason;
 
     public ReportDetailReason(Integer id, String reason) {
         this.reportReasonId = id;
-        this.reportReasonName = reason;
+        this.detailReason = reason;
     }
 }
