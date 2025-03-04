@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import swyp.swyp6_team7.auth.filter.DevAuthenticationFilter;
 import swyp.swyp6_team7.auth.jwt.JwtFilter;
 
 import java.util.List;
@@ -21,9 +22,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final DevAuthenticationFilter devAuthenticationFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    public SecurityConfig(JwtFilter jwtFilter, DevAuthenticationFilter devAuthenticationFilter) {
         this.jwtFilter = jwtFilter;
+        this.devAuthenticationFilter = devAuthenticationFilter;
     }
 
     @Bean
@@ -89,8 +92,9 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
+                .addFilterBefore(devAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
-
+        
         return http.build();
     }
 
@@ -103,7 +107,7 @@ public class SecurityConfig {
                 "https://www.moing.shop",
                 "https://www.moing.io",
                 "https://www.alpha.moing.io"
-                );
+        );
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
