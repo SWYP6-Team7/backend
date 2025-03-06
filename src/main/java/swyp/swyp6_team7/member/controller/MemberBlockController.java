@@ -51,10 +51,4 @@ public class MemberBlockController {
     ) {
         return ApiResponse.success(memberBlockService.getBlockDetail(userNumber));
     }
-
-    @Operation(summary = "신고 사유 문의")
-    @PostMapping("/request")
-    public ApiResponse<Boolean> request() {
-        return ApiResponse.success(true);
-    }
 }
