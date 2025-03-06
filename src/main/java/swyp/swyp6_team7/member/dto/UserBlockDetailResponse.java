@@ -14,7 +14,7 @@ public class UserBlockDetailResponse {
     private Integer userNumber;
     private boolean isBlocked;
     @Nullable
-    private String reason;
+    private String reason; // 현재는 사유 없어서 null
     @Nullable
     private LocalDate blockPeriod;
 }

@@ -47,7 +47,7 @@ public class CommunityPostLikeNotification extends Notification {
 
     @Override
     public String toString() {
-        return "TravelNotification{" +
+        return "CommunityPostLikeNotification{" +
                 "number=" + super.getNumber() +
                 ", createdAt=" + super.getCreatedAt() +
                 ", receiverNumber=" + super.getReceiverNumber() +
