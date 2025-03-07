@@ -1,8 +1,6 @@
 package swyp.swyp6_team7.auth.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.auth.provider.SocialLoginProvider;
 import swyp.swyp6_team7.member.entity.*;
@@ -30,27 +28,6 @@ public class SocialLoginService {
         this.socialLoginProviders = socialLoginProviders;
     }
 
-    @Transactional
-    public Users handleSocialLogin(String socialLoginId, String email) {
-        log.info("소셜 로그인 처리 시작: socialLoginId={}, email={}", socialLoginId, email);
-
-        try {
-            Optional<SocialUsers> optionalSocialUser = socialUserRepository.findBySocialLoginIdAndSocialEmail(socialLoginId, email);
-
-            if (optionalSocialUser.isEmpty()) {
-                log.warn("소셜 로그인 실패 - 데이터베이스에서 사용자 찾을 수 없음: socialLoginId={}, email={}", socialLoginId, email);
-                throw new IllegalArgumentException("User not found in the database with the given social_login_id and email.");
-            }
-
-            SocialUsers socialUser = optionalSocialUser.get();
-            log.info("소셜 로그인 성공: userNumber={}", socialUser.getUser().getUserNumber());
-            return socialUser.getUser();
-        } catch (Exception e) {
-            log.error("소셜 로그인 처리 중 오류 발생: socialLoginId={}, email={}", socialLoginId, email, e);
-            throw e;
-        }
-    }
-
     private SocialLoginProvider getProvider(String provider) {
         log.info("소셜 로그인 제공자 검색 시작: provider={}", provider);
 
@@ -62,8 +39,9 @@ public class SocialLoginService {
                     return new IllegalArgumentException("Unsupported provider: " + provider);
                 });
     }
+
     // 새로운 사용자를 저장하거나 기존 사용자 반환
-    private Users processUser(Map<String, String> userInfo){
+    private Users processUser(Map<String, String> userInfo) {
 
         String email = userInfo.get("email");
         log.info("사용자 처리 시작: email={}", email);
@@ -86,6 +64,7 @@ public class SocialLoginService {
         }
 
     }
+
     // SocialUsers 엔티티에 소셜 사용자 정보 저장
     private void saveSocialUser(Map<String, String> userInfo, Users user) {
         String socialLoginId = userInfo.get("socialNumber");
@@ -111,6 +90,7 @@ public class SocialLoginService {
             throw new RuntimeException("Failed to save social user information", e);
         }
     }
+
     // 새로운 Users 엔티티 생성
     private Users createUserFromInfo(Map<String, String> userInfo) {
         log.info("새 사용자 생성 시작: email={}", userInfo.get("email"));
@@ -152,6 +132,7 @@ public class SocialLoginService {
             throw new RuntimeException("Failed to create user", e);
         }
     }
+
     private AgeGroup convertToAgeGroup(String ageRange) {
         if (ageRange.startsWith("10")) {
             return AgeGroup.TEEN;
@@ -167,6 +148,7 @@ public class SocialLoginService {
             throw new IllegalArgumentException("유효하지 않은 연령대 값입니다: " + ageRange);
         }
     }
+
     public Optional<SocialUsers> findSocialUserByLoginId(String socialLoginId) {
         return socialUserRepository.findBySocialLoginId(socialLoginId);
     }
