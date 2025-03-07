@@ -11,9 +11,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.auth.service.JwtBlacklistService;
-import swyp.swyp6_team7.auth.service.LoginService;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
+import swyp.swyp6_team7.auth.service.LoginFacade;
 import swyp.swyp6_team7.auth.service.TokenService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
@@ -21,8 +20,6 @@ import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,7 +37,7 @@ public class LoginControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private LoginService loginService;
+    private LoginFacade loginService;
 
     @MockBean
     private UserLoginHistoryService userLoginHistoryService;
@@ -54,12 +51,6 @@ public class LoginControllerTest {
     @MockBean
     private TokenService tokenService;
 
-    @MockBean
-    private JwtProvider jwtProvider;
-
-    @MockBean
-    private JwtBlacklistService jwtBlacklistService;
-
     @Test
     @DisplayName("로그인 성공")
     public void testLoginSuccess() throws Exception {
@@ -68,11 +59,9 @@ public class LoginControllerTest {
         loginRequest.setEmail("test@example.com");
         loginRequest.setPassword("password");
 
-        Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put("accessToken", "mocked-access-token");
-        tokenMap.put("refreshToken", "mocked-refresh-token");
+        LoginTokenResponse tokenResponse = new LoginTokenResponse(1, "mocked-access-token", "mocked-refresh-token");
 
-        when(loginService.login(any(LoginRequestDto.class))).thenReturn(tokenMap);
+        when(loginService.login(any(LoginRequestDto.class))).thenReturn(tokenResponse);
         when(loginService.getUserNumberByEmail(eq("test@example.com"))).thenReturn(1);
         when(tokenService.getRefreshTokenValidity()).thenReturn(Duration.ofDays(7).getSeconds());
         Users user = new Users();

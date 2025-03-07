@@ -3,7 +3,6 @@ package swyp.swyp6_team7.auth.service;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,40 +25,39 @@ public class TokenService {
     private static final String REFRESH_TOKEN_STORE_PREFIX = "refreshToken:";
 
     private final JwtProvider jwtProvider;
-    @Qualifier("redisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
     private final UserRepository userRepository;
 
-    public long getRefreshTokenValidity(){
-        return 7*24*60*60; //초단위, 7일
+    public final long getRefreshTokenValidity() {
+        return 7 * 24 * 60 * 60; //초단위, 7일
     }
 
     //로그인 시 생성된 RefreshToken 저장
-    public void storeRefreshToken(Integer userNumber, String refreshToken){
+    public void storeRefreshToken(Integer userNumber, String refreshToken) {
         String key = REFRESH_TOKEN_STORE_PREFIX + userNumber;
         redisTemplate.opsForValue().set(key, refreshToken, Duration.ofSeconds(getRefreshTokenValidity()));
     }
 
     //로그아웃 또는 토큰 교체 시 저장된 RefreshToken 삭제
-    public void deleteRefreshToken(Integer userNumber){
+    public void deleteRefreshToken(Integer userNumber) {
         String key = REFRESH_TOKEN_STORE_PREFIX + userNumber;
         redisTemplate.delete(key);
     }
 
     // 분산 락을 사용해 Refresh Token으로 새로운 토큰 발급 (Token Rotation)
     public Map<String, String> refreshWithLock(String providedRefreshToken) {
-        log.info("refreshWithLock 메서드 호출: refreshToken={}",providedRefreshToken);
+        log.info("refreshWithLock 메서드 호출: refreshToken={}", providedRefreshToken);
 
         // JWT 검증 및 Refresh Token 디코딩
-        if(!jwtProvider.validateToken(providedRefreshToken)){
+        if (!jwtProvider.validateToken(providedRefreshToken)) {
             log.error("유효하지 않는 RefreshToken: {}", providedRefreshToken);
             throw new JwtException("유효하지 않은 RefreshToken입니다.");
         }
         Integer userNumber = jwtProvider.getUserNumber(providedRefreshToken);
 
         // Redis에 저장된 Refresh Token과 일치하는지 확인
-        String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_STORE_PREFIX+userNumber);
-        if(storedRefreshToken == null || !storedRefreshToken.equals(providedRefreshToken)){
+        String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_STORE_PREFIX + userNumber);
+        if (storedRefreshToken == null || !storedRefreshToken.equals(providedRefreshToken)) {
             throw new JwtException("저장된 Refresh Token과 일치하지 않습니다.");
         }
 
@@ -70,17 +68,17 @@ public class TokenService {
         String cachedAccessToken = redisTemplate.opsForValue().get(cacheKey);
         if (cachedAccessToken != null) {
             log.info("Redis 캐시에서 AccessToken 반환: {}", cachedAccessToken);
-            return Map.of("accessToken",cachedAccessToken,"refreshToken",providedRefreshToken);
+            return Map.of("accessToken", cachedAccessToken, "refreshToken", providedRefreshToken);
         }
 
         // 분산 락 획득 (동시 요청 방지)
         boolean lockAcquired = acquireLock(lockKey);
-        if(!lockAcquired){
+        if (!lockAcquired) {
             log.error("Lock 획득 실패: refreshToken={}", providedRefreshToken);
             throw new IllegalStateException("동시 요청으로 인해 처리 중단: " + providedRefreshToken);
         }
 
-        try{
+        try {
             // 사용자 조회
             Users user = userRepository.findByUserNumber(userNumber)
                     .orElseThrow(() -> {
@@ -93,7 +91,7 @@ public class TokenService {
             String newRefreshToken = jwtProvider.createRefreshToken(userNumber);
 
             // Redis에 새 Refresh Token 저장(이전 토큰은 폐기)
-            storeRefreshToken(userNumber,newRefreshToken);
+            storeRefreshToken(userNumber, newRefreshToken);
 
             // 새 Access Token을 캐시 처리
             long remainingValidity = jwtProvider.getRemainingValidity(newAccessToken);
@@ -105,13 +103,13 @@ public class TokenService {
             tokens.put("accessToken", newAccessToken);
             tokens.put("refreshToken", newRefreshToken);
             return tokens;
-        }
-        finally{
+        } finally {
             releaseLock(lockKey);
             log.info("Lock 해제 완료: lockKey={}", lockKey);
         }
     }
-    private boolean acquireLock(String lockKey){
+
+    private boolean acquireLock(String lockKey) {
         log.info("Lock 시도: lockKey={}", lockKey);
         boolean result = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED", Duration.ofSeconds(5)));
         if (result) {
@@ -122,7 +120,7 @@ public class TokenService {
         return result;
     }
 
-    private void releaseLock(String lockKey){
+    private void releaseLock(String lockKey) {
         log.info("Lock 해제 시도: lockKey={}", lockKey);
         redisTemplate.delete(lockKey);
         log.info("Lock 해제 완료: lockKey={}", lockKey);

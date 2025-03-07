@@ -66,12 +66,6 @@ public enum NotificationMessageType {
         }
     };
 
-//    ACCOUNT_BLOCK_WARN("신고 접수 경고") {
-//        public String getContent(String travelTitle) {
-//            return "신고가 3회 접수되었습니다. 신고에 대한 사유를 소명하시지 않으면, 회원님의 프로필에 신고 내용이 노출되며, 이애 따른 불이익이 존재할 수 있습니다.";
-//        }
-//    };
-
     private final String title;
 
     public abstract String getContent(String travelTitle);

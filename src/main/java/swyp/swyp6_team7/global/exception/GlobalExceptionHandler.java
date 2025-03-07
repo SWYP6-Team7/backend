@@ -53,6 +53,19 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(ResultType.UNAUTHORIZED, message);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(UserBlockException.class)
+    @ResponseBody
+    public ApiResponse<String> handleUserBlockException(UserBlockException e) {
+        log.error("User Block Exception: {}", e.getMessage());
+        ErrorMessage message = new ErrorMessage(
+                e.getMessage(),
+                e.getErrorCode().name()
+        );
+
+        return ApiResponse.error(ResultType.ACCESS_DENIED, message);
+    }
+
     @ResponseStatus(HttpStatus.OK)
     @ExceptionHandler(MoingApplicationException.class)
     @ResponseBody

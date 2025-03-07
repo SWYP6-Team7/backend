@@ -87,9 +87,9 @@ public class JwtFilter extends OncePerRequestFilter {
                         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
                             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
                             Users user = customUserDetails.getUser();
+                            // TODO: 제거해도 될듯
                             userLoginHistoryService.saveLoginHistory(user);  // 로그인 이력 저장
                         }
-
                     } catch (UsernameNotFoundException e) {
                         // 인증 실패 시 처리
                         // 로그를 남기거나 예외를 처리
