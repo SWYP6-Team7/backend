@@ -35,6 +35,7 @@ public class CommunityCustomRepositoryImplTest {
     private LikeRepository likeRepository;
 
 
+
     @Test
     @DisplayName("게시글 조회수 증가 테스트")
     void testIncrementViewCount() {
@@ -80,6 +81,8 @@ public class CommunityCustomRepositoryImplTest {
     @DisplayName("카테고리 필터링 테스트")
     void testSearchWithCategory() {
         // Given
+        Category category1 = categoryRepository.save(new Category("Test Category1"));
+        Category category2 = categoryRepository.save(new Category("Test Category2"));
         Community community1 = communityRepository.save(new Community(1, 1, "First Post", "First Content", LocalDateTime.now(), 0));
         Community community2 = communityRepository.save(new Community(2, 2, "Second Post", "Second Content", LocalDateTime.now(), 0));
 
@@ -89,13 +92,14 @@ public class CommunityCustomRepositoryImplTest {
                 2,    // 카테고리 번호
                 "REG_DATE_DESC"
         );
+        List<Category> categories = categoryRepository.findAll();
 
         // When: 카테고리 필터 검색 실행
         List<CommunitySearchDto> results = communityCustomRepository.search(condition);
 
         // Then: 결과 검증
         assertThat(results).hasSize(1);
-        results.forEach(dto -> assertThat(dto.getCategoryName()).isEqualTo("잡담"));
+        results.forEach(dto -> assertThat(dto.getCategoryName()).isEqualTo("Test Category2"));
     }
 
     @Test
@@ -119,6 +123,7 @@ public class CommunityCustomRepositoryImplTest {
 
         // When: 정렬 조건 검색 실행
         List<CommunitySearchDto> results = communityCustomRepository.search(condition);
+
 
         // Then: 결과 검증 (좋아요 순 정렬)
         assertThat(results).isNotEmpty();
