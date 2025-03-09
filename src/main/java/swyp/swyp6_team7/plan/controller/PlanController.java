@@ -1,14 +1,14 @@
-package swyp.swyp6_team7.Plan.controller;
+package swyp.swyp6_team7.plan.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.Plan.dto.PlanDetailDto;
-import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
-import swyp.swyp6_team7.Plan.dto.request.PlanUpdateRequest;
-import swyp.swyp6_team7.Plan.dto.response.PlanResponse;
-import swyp.swyp6_team7.Plan.service.PlanService;
+import swyp.swyp6_team7.plan.dto.PlanDetailDto;
+import swyp.swyp6_team7.plan.dto.request.PlanCreateRequest;
+import swyp.swyp6_team7.plan.dto.request.PlanUpdateRequest;
+import swyp.swyp6_team7.plan.dto.response.PlanResponse;
+import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 

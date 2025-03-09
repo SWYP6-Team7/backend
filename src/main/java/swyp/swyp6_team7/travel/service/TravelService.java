@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.Plan.service.PlanService;
+import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;

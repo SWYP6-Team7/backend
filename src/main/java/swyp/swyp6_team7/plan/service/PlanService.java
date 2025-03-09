@@ -1,18 +1,18 @@
-package swyp.swyp6_team7.Plan.service;
+package swyp.swyp6_team7.plan.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.Plan.dto.PlanDetailDto;
-import swyp.swyp6_team7.Plan.dto.request.AllPlanUpdateRequest;
-import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
-import swyp.swyp6_team7.Plan.dto.request.PlanUpdateRequest;
-import swyp.swyp6_team7.Plan.dto.request.SpotRequest;
-import swyp.swyp6_team7.Plan.entity.Plan;
-import swyp.swyp6_team7.Plan.entity.Spot;
-import swyp.swyp6_team7.Plan.repository.PlanRepository;
-import swyp.swyp6_team7.Plan.repository.SpotRepository;
+import swyp.swyp6_team7.plan.dto.PlanDetailDto;
+import swyp.swyp6_team7.plan.dto.request.AllPlanUpdateRequest;
+import swyp.swyp6_team7.plan.dto.request.PlanCreateRequest;
+import swyp.swyp6_team7.plan.dto.request.PlanUpdateRequest;
+import swyp.swyp6_team7.plan.dto.request.SpotRequest;
+import swyp.swyp6_team7.plan.entity.Plan;
+import swyp.swyp6_team7.plan.entity.Spot;
+import swyp.swyp6_team7.plan.repository.PlanRepository;
+import swyp.swyp6_team7.plan.repository.SpotRepository;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 

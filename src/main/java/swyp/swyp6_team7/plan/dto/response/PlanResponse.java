@@ -1,9 +1,9 @@
-package swyp.swyp6_team7.Plan.dto.response;
+package swyp.swyp6_team7.plan.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import swyp.swyp6_team7.Plan.dto.PlanDetailDto;
-import swyp.swyp6_team7.Plan.entity.Spot;
+import swyp.swyp6_team7.plan.dto.PlanDetailDto;
+import swyp.swyp6_team7.plan.entity.Spot;
 
 import java.util.List;
 

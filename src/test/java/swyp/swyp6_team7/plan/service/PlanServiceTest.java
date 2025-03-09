@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.Plan.service;
+package swyp.swyp6_team7.plan.service;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,13 +7,13 @@ import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import swyp.swyp6_team7.Plan.dto.PlanDetailDto;
-import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
-import swyp.swyp6_team7.Plan.dto.request.SpotRequest;
-import swyp.swyp6_team7.Plan.entity.Plan;
-import swyp.swyp6_team7.Plan.entity.Spot;
-import swyp.swyp6_team7.Plan.repository.PlanRepository;
-import swyp.swyp6_team7.Plan.repository.SpotRepository;
+import swyp.swyp6_team7.plan.dto.PlanDetailDto;
+import swyp.swyp6_team7.plan.dto.request.PlanCreateRequest;
+import swyp.swyp6_team7.plan.dto.request.SpotRequest;
+import swyp.swyp6_team7.plan.entity.Plan;
+import swyp.swyp6_team7.plan.entity.Spot;
+import swyp.swyp6_team7.plan.repository.PlanRepository;
+import swyp.swyp6_team7.plan.repository.SpotRepository;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.List;
