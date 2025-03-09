@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.location.parser;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -13,13 +14,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 @Component
+@RequiredArgsConstructor
 public class CityParser implements Parser<Location> {
 
     private final LocationDao locationDao;
-
-    public CityParser(LocationDao locationDao) {
-        this.locationDao = locationDao;
-    }
 
     @Override
     public Location parse(String line, LocationType locationType) {
