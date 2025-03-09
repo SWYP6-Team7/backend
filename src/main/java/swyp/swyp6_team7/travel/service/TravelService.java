@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.Plan.service.PlanService;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
@@ -39,6 +40,7 @@ import java.util.List;
 public class TravelService {
 
     public static final int TRAVEL_TAG_MAX_COUNT = 5;
+    public static final int TRAVEL_MAX_RANGE = 90;
 
     // TODO: 링크 수정
     private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
@@ -46,6 +48,7 @@ public class TravelService {
     private final TravelTagService travelTagService;
     private final TagService tagService;
     private final CommentService commentService;
+    private final PlanService planService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
@@ -55,16 +58,31 @@ public class TravelService {
 
     @Transactional
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
-        validateTravelDaysRange(request.getStartDate(), request.getEndDate());  // 여행 기간 검증
+        validateTravelDaysRange(request.getStartDate(), request.getEndDate());
 
-        Location location = getLocation(request.getLocationName());
-        List<Tag> tags = getTags(request.getTags());
+        // 일정 개수 검증
+        long travelDays = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
+        if (travelDays < request.getPlans().size()) {
+            throw new MoingApplicationException("여행 일정 개수는 여행 기간을 초과할 수 없습니다.");
+        }
 
-        Travel travel = Travel.create(loginUserNumber, location,
-                request.getStartDate(), request.getEndDate(), request.getTitle(), request.getDetails(),
-                request.getMaxPerson(), request.getGenderType(), request.getPeriodType(), tags);
+        try {
+            Location location = getLocation(request.getLocationName());
+            List<Tag> tags = getTags(request.getTags());
 
-        return travelRepository.save(travel);
+            Travel createdTravel = travelRepository.save(
+                    Travel.create(loginUserNumber, location,
+                            request.getStartDate(), request.getEndDate(), request.getTitle(), request.getDetails(),
+                            request.getMaxPerson(), request.getGenderType(), request.getPeriodType(), tags)
+            );
+
+            planService.createPlans(createdTravel.getNumber(), request.getPlans());    // 여행 일정 생성
+            return createdTravel;
+
+        } catch (Exception e) {
+            log.info("여행 생성 중 오류 발생: {}", e.getMessage());
+            throw new MoingApplicationException("여행 생성 과정에서 오류가 발생했습니다.");
+        }
     }
 
     private List<Tag> getTags(List<String> tagNames) {
@@ -89,10 +107,10 @@ public class TravelService {
     }
 
     private void validateTravelDaysRange(LocalDate startDate, LocalDate endDate) {
-        // 여행 기간이 90일을 초과하면 예외 발생
         long travelDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
-        if (travelDays > 90) {
+        // 여행 최대 기간을 초과하면 예외 발생
+        if (travelDays > TRAVEL_MAX_RANGE) {
             throw new MoingApplicationException("여행 기간은 90일을 초과할 수 없습니다.");
         }
     }
@@ -159,6 +177,8 @@ public class TravelService {
 
     @Transactional
     public Travel update(int travelNumber, TravelUpdateRequest request, int requestUserNumber) {
+        validateTravelDaysRange(request.getStartDate(), request.getEndDate());  // 여행 기간 검증
+
         Travel travel = travelRepository.findByNumber(travelNumber)
                 .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
 
@@ -167,7 +187,13 @@ public class TravelService {
             throw new IllegalArgumentException("여행 수정 권한이 없습니다.");
         }
 
-        validateTravelDaysRange(request.getStartDate(), request.getEndDate());  // 여행 기간 검증
+        // 여행 일정 개수 검증
+        long travelDays = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
+        int changedPlanSize = planService.getTravelPlanCount(travelNumber) + request.getPlanChanges().getPlanSizeChangeValue();
+        log.info("여행 기간={}, 기대 일정 개수={}", travelDays, changedPlanSize);
+        if (changedPlanSize > travelDays || changedPlanSize > TRAVEL_MAX_RANGE || changedPlanSize < 0) {
+            throw new MoingApplicationException("잘못된 여행 일정 개수입니다.");
+        }
 
         Location location = getLocation(request.getLocationName());
         List<String> requestTagsName = request.getTags().stream()
@@ -179,6 +205,14 @@ public class TravelService {
                 request.getTitle(), request.getDetails(), request.getMaxPerson(), request.getGenderType(),
                 request.getPeriodType(), travelTags
         );
+
+        try {
+            planService.updatePlans(updatedTravel.getNumber(), request.getPlanChanges()); // 여행 일정 수정
+            log.info("여행 일정 수정 완료: travelNumber={}", travelNumber);
+        } catch (Exception e) {
+            log.info("여행 일정 수정 중 오류 발생: {}", e.getMessage());
+            throw new MoingApplicationException("여행 일정 수정 과정에서 오류가 발생했습니다.");
+        }
 
         return updatedTravel;
     }

@@ -1,9 +1,11 @@
 package swyp.swyp6_team7.travel.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import swyp.swyp6_team7.Plan.dto.request.AllPlanUpdateRequest;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -30,5 +32,7 @@ public class TravelUpdateRequest {
     @NotNull
     @Builder.Default
     private List<String> tags = new ArrayList<>();
-
+    @Valid
+    @Builder.Default
+    private AllPlanUpdateRequest planChanges = new AllPlanUpdateRequest();
 }

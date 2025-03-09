@@ -1,12 +1,11 @@
 package swyp.swyp6_team7.travel.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.List;
 
 @Getter
 @Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TravelCreateRequest {
 
@@ -33,20 +33,9 @@ public class TravelCreateRequest {
     @NotNull
     @Builder.Default
     private List<String> tags = new ArrayList<>(); // 게시글 태그
-
-    public TravelCreateRequest(
-            String locationName, LocalDate startDate, LocalDate endDate, String title, String details,
-            int maxPerson, String genderType, String periodType, List<String> tags
-    ) {
-        this.locationName = locationName;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.title = title;
-        this.details = details;
-        this.maxPerson = maxPerson;
-        this.genderType = genderType;
-        this.periodType = periodType;
-        this.tags = tags;
-    }
+    @Valid
+    @Size(max = 90, message = "일정은 90개를 초과할 수 없습니다.")
+    @Builder.Default
+    private List<PlanCreateRequest> plans = new ArrayList<>(); // 여행 일정 정보
 
 }
