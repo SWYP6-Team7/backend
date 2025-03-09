@@ -8,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
+import swyp.swyp6_team7.Plan.service.PlanService;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.enrollment.domain.Enrollment;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
@@ -39,8 +41,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 @SpringBootTest
 class TravelServiceTest {
@@ -68,6 +72,9 @@ class TravelServiceTest {
 
     @MockBean
     private BookmarkRepository bookmarkRepository;
+
+    @MockBean
+    private PlanService planService;
 
     @BeforeTestClass
     void init() {
@@ -148,6 +155,65 @@ class TravelServiceTest {
             travelService.create(request, 1);
         }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 기간은 90일을 초과할 수 없습니다.");
+    }
+
+    @DisplayName("create: 여행 생성 시 여행 일정 생성 메서드를 호출할 수 있다.")
+    @Test
+    void createWithPlans() {
+        // given
+        Location location = locationRepository.save(createLocation("Seoul"));
+
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("Seoul")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 28))
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType(GenderType.MIXED.toString())
+                .periodType(PeriodType.ONE_WEEK.toString())
+                .tags(List.of("쇼핑"))
+                .build();
+
+        given(planService.createPlans(anyInt(), anyList()))
+                .willReturn(List.of());
+
+        // when
+        Travel createdTravel = travelService.create(request, 1);
+
+        // then
+        assertThat(travelRepository.findAll()).hasSize(1);
+        then(planService).should(times(1))
+                .createPlans(eq(createdTravel.getNumber()), any(List.class));
+    }
+
+    @DisplayName("create: 여행 기간보다 여행 일정 개수가 많으면 예외가 발생한다.")
+    @Test
+    void createWithTooManyPlans() {
+        // given
+        Location location = locationRepository.save(createLocation("Seoul"));
+
+        TravelCreateRequest request = TravelCreateRequest.builder()
+                .locationName("Seoul")
+                .startDate(LocalDate.of(2024, 12, 22))
+                .endDate(LocalDate.of(2024, 12, 22))
+                .title("여행 제목")
+                .details("여행 내용")
+                .maxPerson(2)
+                .genderType(GenderType.MIXED.toString())
+                .periodType(PeriodType.ONE_WEEK.toString())
+                .tags(List.of("쇼핑"))
+                .plans(List.of(
+                        new PlanCreateRequest(1, List.of()),
+                        new PlanCreateRequest(2, List.of())
+                ))
+                .build();
+
+        // when // then
+        assertThatThrownBy(() -> {
+            travelService.create(request, 1);
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("여행 일정 개수는 여행 기간을 초과할 수 없습니다.");
     }
 
     @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, 여행 상세 정보를 조회할 수 있다.")
@@ -316,6 +382,8 @@ class TravelServiceTest {
         Travel savedTravel = travelRepository.save(createTravel(hostUserNumber, location, TravelStatus.IN_PROGRESS));
 
         TravelUpdateRequest request = TravelUpdateRequest.builder()
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .tags(List.of())
                 .build();
 

@@ -12,6 +12,7 @@ import swyp.swyp6_team7.tag.domain.TravelTag;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -204,12 +205,15 @@ public class Travel {
         return false;
     }
 
-
     public boolean isTravelHostUser(int userNumber) {
         if (this.userNumber != userNumber) {
             return false;
         }
         return true;
+    }
+
+    public Long getTravelRange() {
+        return ChronoUnit.DAYS.between(startDate, endDate) + 1;
     }
 
     @Override

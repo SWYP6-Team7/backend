@@ -17,6 +17,8 @@ public interface TravelRepository extends JpaRepository<Travel, Integer>, Travel
 
     boolean existsTravelByNumber(Integer integer);
 
+    boolean existsTravelByNumberAndUserNumber(Integer number, Integer userNumber);
+
     @Query("SELECT t FROM Travel t JOIN FETCH t.deletedUser u WHERE u.userNumber = :deletedUserNumber")
     List<Travel> findByDeletedUserNumber(@Param("deletedUserNumber") Integer deletedUserNumber);
 
