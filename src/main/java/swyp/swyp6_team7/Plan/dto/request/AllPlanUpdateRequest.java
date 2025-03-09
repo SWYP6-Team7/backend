@@ -12,10 +12,6 @@ import java.util.List;
 
 @Getter
 public class AllPlanUpdateRequest {
-    //    List<PlanInfo> added;
-//    List<PlanInfo> updated;
-//    List<Integer> deleted;  // 삭제할 일정의 order 리스트
-
     @Builder.Default
     List<PlanInfo> added = new ArrayList<>();
     @Builder.Default

@@ -26,23 +26,23 @@ public class Spot {
     private Integer order;
 
     // 장소 위도 좌표
-    @Column(name = "spot_latitude", nullable = false)
+    @Column(name = "spot_latitude", nullable = false, length = 15)
     private String latitude;
 
     // 장소 경도 좌표
-    @Column(name = "spot_longitude", nullable = false)
+    @Column(name = "spot_longitude", nullable = false, length = 15)
     private String longitude;
 
     // 장소명
-    @Column(name = "spot_name", nullable = false)
+    @Column(name = "spot_name", nullable = false, length = 30)
     private String name;
 
     // 장소 카테고리
-    @Column(name = "spot_category")
+    @Column(name = "spot_category", length = 15)
     private String category;
 
     // 장소 시도
-    @Column(name = "spot_region")
+    @Column(name = "spot_region", length = 15)
     private String region;
 
     @Builder
