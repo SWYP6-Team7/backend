@@ -31,6 +31,7 @@ public class LoginController {
         String refreshToken = tokenResponse.getRefreshToken();
 
         String cookie = loginFacade.getCookie(refreshToken);
+        log.info("Cookie: {}", cookie);
         response.addHeader("Set-Cookie", cookie);
 
         // Access Token과 userId를 포함하는 JSON 응답 반환
