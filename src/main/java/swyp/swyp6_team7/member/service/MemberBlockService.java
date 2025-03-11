@@ -8,7 +8,11 @@ import swyp.swyp6_team7.member.dto.ReportDetailReason;
 import swyp.swyp6_team7.member.dto.ReportReasonResponse;
 import swyp.swyp6_team7.member.dto.UserBlockDetailResponse;
 import swyp.swyp6_team7.member.entity.*;
-import swyp.swyp6_team7.member.repository.*;
+import swyp.swyp6_team7.member.repository.ReportReasonRepository;
+import swyp.swyp6_team7.member.repository.UserBlockReportRepository;
+import swyp.swyp6_team7.member.repository.UserBlockRepository;
+import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.notification.service.UserBlockWarnNotificationService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +31,7 @@ public class MemberBlockService {
     private final UserBlockRepository userBlockRepository;
     private final UserBlockReportRepository userBlockReportRepository;
     private final ReportReasonRepository reportReasonRepository;
-    private final UserBlockExplanationRepository userBlockExplanationRepository;
+    private final UserBlockWarnNotificationService userBlockWarnNotificationService;
 
     public List<ReportReasonResponse> getAllReportReason() {
         List<ReportReason> reportReasons = reportReasonRepository.findAll();
@@ -49,6 +53,14 @@ public class MemberBlockService {
                 .collect(Collectors.toList());
     }
 
+    private void validateReport(int reportedUserNumber, int reportReasonId) {
+        userRepository.findById(reportedUserNumber)
+                .orElseThrow(() -> new IllegalArgumentException("신고할  회원 정보를 찾을 수 없습니다."));
+
+        reportReasonRepository.findById(reportReasonId)
+                .orElseThrow(() -> new IllegalArgumentException("등록된 신고 사유가 아닙니다."));
+    }
+
     @Transactional
     public String report(
             Integer reporterUserNumber,
@@ -56,7 +68,7 @@ public class MemberBlockService {
             int reportReasonId,
             String reportReasonExtra
     ) {
-        // TODO: reportedUserNumber, reason, extra Validation 진행
+        validateReport(reportedUserNumber, reportReasonId);
 
         // 1. 피신고자가 받은 모든 신고내역 확인
         List<UserBlockReport> reports = userBlockReportRepository.findAllByReportedUserNumberOrderByRegTs(reportedUserNumber);
@@ -117,7 +129,16 @@ public class MemberBlockService {
         }
 
         log.info("신고 접수건이 5건 이상입니다. 계정 정지를 진행합니다.");
+        processBlock(userReportCount, reportedUserNumber);
+        userBlockWarnNotificationService.createUserBlockWarnNotification(reportedUserNumber, BlockType.WARN.getCount());
 
+        return "정상 처리되었습니다.";
+    }
+
+    private void processBlock(
+            int userReportCount,
+            int reportedUserNumber
+    ) {
         List<UserBlock> userBlocks = userBlockRepository.findAllByUserNumberOrderByRegTs(reportedUserNumber)
                 .stream().filter(UserBlock::isActive)
                 .toList();
@@ -163,10 +184,7 @@ public class MemberBlockService {
             );
             log.info("계정 정지를 경고합니다. userNumber: {}, blockPeriod: {}", reportedUserNumber, userBlock.getBlockPeriod());
             userBlockRepository.save(userBlock);
-            // TODO: 알림 발송
         }
-
-        return "정상 처리되었습니다.";
     }
 
     private void saveUserStatusToBlock(Integer userNumber) {
@@ -208,8 +226,6 @@ public class MemberBlockService {
             return new UserBlockDetailResponse(userNumber, true, null, userBlock.getBlockPeriod());
         }
 
-        // TODO: 기간 지난 valid block 들 제거
-        // TODO: 신고 사유 어떻게 할지
         return new UserBlockDetailResponse(userNumber, false, null, null);
     }
 }

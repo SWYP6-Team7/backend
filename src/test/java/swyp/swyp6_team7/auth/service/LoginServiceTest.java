@@ -1,7 +1,5 @@
 package swyp.swyp6_team7.auth.service;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,19 +10,18 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.entity.UserRole;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class LoginServiceTest {
 
@@ -38,7 +35,7 @@ class LoginServiceTest {
     private JwtProvider jwtProvider;
 
     @InjectMocks
-    private LoginService loginService;
+    private LoginFacade loginService;
 
     @BeforeEach
     void setUp() {
@@ -69,11 +66,11 @@ class LoginServiceTest {
                 .thenReturn("access-token");
         when(jwtProvider.createRefreshToken(user.getUserNumber())).thenReturn("refresh-token");
 
-        Map<String, String> tokenMap = loginService.login(loginRequestDto);
+        LoginTokenResponse tokenResponse = loginService.login(loginRequestDto);
 
-        assertNotNull(tokenMap);
-        assertEquals("access-token", tokenMap.get("accessToken"));
-        assertEquals("refresh-token", tokenMap.get("refreshToken"));
+        assertNotNull(tokenResponse);
+        assertEquals("access-token", tokenResponse.getAccessToken());
+        assertEquals("refresh-token", tokenResponse.getRefreshToken());
     }
 
     @Test
