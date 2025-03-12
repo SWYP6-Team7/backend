@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import swyp.swyp6_team7.Plan.dto.request.AllPlanUpdateRequest;
+import swyp.swyp6_team7.plan.dto.request.AllPlanUpdateRequest;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

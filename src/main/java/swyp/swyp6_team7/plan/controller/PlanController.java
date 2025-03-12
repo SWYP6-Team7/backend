@@ -1,16 +1,19 @@
-package swyp.swyp6_team7.Plan.controller;
+package swyp.swyp6_team7.plan.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import swyp.swyp6_team7.Plan.dto.PlanDetailDto;
-import swyp.swyp6_team7.Plan.dto.request.PlanCreateRequest;
-import swyp.swyp6_team7.Plan.dto.request.PlanUpdateRequest;
-import swyp.swyp6_team7.Plan.dto.response.PlanResponse;
-import swyp.swyp6_team7.Plan.service.PlanService;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
+import swyp.swyp6_team7.plan.dto.PlanDetailDto;
+import swyp.swyp6_team7.plan.dto.request.PlanCreateRequest;
+import swyp.swyp6_team7.plan.dto.request.PlanUpdateRequest;
+import swyp.swyp6_team7.plan.dto.response.PlanPagingResponse;
+import swyp.swyp6_team7.plan.dto.response.PlanResponse;
+import swyp.swyp6_team7.plan.service.PlanService;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,13 +35,24 @@ public class PlanController {
     }
 
     // 일정 단건 조회
-    @GetMapping("/api/travel/{travelNumber}/plans")
+    @GetMapping("/api/travel/{travelNumber}/plan")
     public ApiResponse<PlanResponse> getPlan(
             @PathVariable(name = "travelNumber") Integer travelNumber,
             @RequestParam(name = "order") Integer order
     ) {
         PlanDetailDto planDetail = planService.findPlan(travelNumber, order);
         PlanResponse response = PlanResponse.from(planDetail);
+        return ApiResponse.success(response);
+    }
+
+    // 일정 페이징 조회
+    @GetMapping("/api/travel/{travelNumber}/plans")
+    public ApiResponse<PlanPagingResponse> getPlans(
+            @PathVariable(name = "travelNumber") Integer travelNumber,
+            @RequestParam(name = "cursor", required = false) Integer cursor,
+            @RequestParam(name = "size", defaultValue = "5") Integer size
+    ) {
+        PlanPagingResponse response = planService.getPlans(travelNumber, cursor, size);
         return ApiResponse.success(response);
     }
 
