@@ -14,5 +14,8 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     @Query("select s from Spot s where s.planId = :planId ORDER BY s.order ASC")
     List<Spot> findSpotsByPlanId(@Param("planId") Long planId);
 
+    @Query("select s from Spot s where s.planId in :plansId ORDER BY s.order ASC")
+    List<Spot> getSpotsByPlanIdIn(@Param("plansId") List<Long> plansId);
+
     void deleteSpotsByPlanId(Long planId);
 }

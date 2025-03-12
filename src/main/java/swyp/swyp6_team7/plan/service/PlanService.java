@@ -4,20 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.plan.dto.PlanDetailDto;
 import swyp.swyp6_team7.plan.dto.request.AllPlanUpdateRequest;
 import swyp.swyp6_team7.plan.dto.request.PlanCreateRequest;
 import swyp.swyp6_team7.plan.dto.request.PlanUpdateRequest;
 import swyp.swyp6_team7.plan.dto.request.SpotRequest;
+import swyp.swyp6_team7.plan.dto.response.PlanPagingResponse;
+import swyp.swyp6_team7.plan.dto.response.PlanResponse;
 import swyp.swyp6_team7.plan.entity.Plan;
 import swyp.swyp6_team7.plan.entity.Spot;
 import swyp.swyp6_team7.plan.repository.PlanRepository;
 import swyp.swyp6_team7.plan.repository.SpotRepository;
-import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Transactional
@@ -85,6 +89,29 @@ public class PlanService {
                     return PlanDetailDto.from(plan, spots);
                 })
                 .orElse(null);
+    }
+
+    // 일정 페이징 조회
+    @Transactional(readOnly = true)
+    public PlanPagingResponse getPlans(Integer travelNumber, Integer cursor, Integer size) {
+        List<Plan> plans = planRepository.getPlansWithNoOffsetPagination(travelNumber, cursor, size);
+
+        List<Long> plansId = plans.stream()
+                .map(Plan::getId)
+                .toList();
+
+        Map<Long, List<Spot>> spotMap = spotRepository.getSpotsByPlanIdIn(plansId).stream()
+                .collect(Collectors.groupingBy(Spot::getPlanId));
+
+        List<PlanResponse> planDetails = plans.stream()
+                .map(plan -> PlanDetailDto.from(plan, spotMap.get(plan.getId())))
+                .map(PlanResponse::from)
+                .toList();
+
+        // 다음 커서 설정 (현재 가져온 plan의 마지막 order)
+        Integer nextCursor = plans.size() < size ? null : plans.get(plans.size() - 1).getOrder();
+
+        return PlanPagingResponse.from(planDetails, nextCursor);
     }
 
     // 일정 단건 수정

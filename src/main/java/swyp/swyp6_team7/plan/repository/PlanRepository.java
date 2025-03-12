@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PlanRepository extends JpaRepository<Plan, Long> {
+public interface PlanRepository extends JpaRepository<Plan, Long>, PlanCustomRepository {
 
     Optional<Plan> findByTravelNumberAndOrder(Integer travelNumber, Integer order);
 
