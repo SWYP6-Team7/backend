@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
@@ -15,6 +14,7 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
+import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 import swyp.swyp6_team7.tag.service.TagService;
@@ -77,6 +77,8 @@ public class TravelService {
             );
 
             planService.createPlans(createdTravel.getNumber(), request.getPlans());    // 여행 일정 생성
+
+            log.info("여행 생성 완료: travelNumber={}", createdTravel.getNumber());
             return createdTravel;
 
         } catch (Exception e) {
@@ -214,6 +216,7 @@ public class TravelService {
             throw new MoingApplicationException("여행 일정 수정 과정에서 오류가 발생했습니다.");
         }
 
+        log.info("여행 수정 완료: travelNumber={}", updatedTravel.getNumber());
         return updatedTravel;
     }
 
@@ -227,8 +230,15 @@ public class TravelService {
             throw new IllegalArgumentException("여행 삭제 권한이 없습니다.");
         }
 
-        deleteRelatedComments(travel); //댓글 삭제
-        travel.delete();
+        try {
+            deleteRelatedComments(travel); //댓글 삭제
+            travel.delete();
+        } catch (Exception e) {
+            log.info("여행 삭제 중 오류 발생: {}", e.getMessage());
+            throw new MoingApplicationException("여행 삭제 과정에서 오류가 발생했습니다.");
+        }
+
+        log.info("여행 삭제 완료: travelNumber={}", travelNumber);
     }
 
     private void deleteRelatedComments(Travel travel) {

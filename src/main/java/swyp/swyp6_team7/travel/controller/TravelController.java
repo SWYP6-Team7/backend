@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.ClientIpAddressUtil;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
@@ -25,32 +23,28 @@ import swyp.swyp6_team7.travel.service.TravelViewCountService;
 @RestController
 public class TravelController {
 
-    private static final Logger logger = LoggerFactory.getLogger(TravelController.class);
     private final TravelService travelService;
     private final TravelViewCountService travelViewCountService;
 
+    // 여행 생성
     @PostMapping("/api/travel")
     public ApiResponse<TravelCreateResponse> create(
             @RequestBody @Valid TravelCreateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 생성 요청: userId={}", userNumber);
-
         Travel createdTravel = travelService.create(request, userNumber);
-        logger.info("Travel 생성 완료: userId={}, createdTravel={}", userNumber, createdTravel);
-
-        return ApiResponse.success(new TravelCreateResponse(createdTravel.getNumber()));
+        TravelCreateResponse response = new TravelCreateResponse(createdTravel.getNumber());
+        return ApiResponse.success(response);
     }
 
+    // 여행 조회
     @GetMapping("/api/travel/detail/{travelNumber}")
     public ApiResponse<TravelDetailResponse> getDetailsByNumber(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber,
             HttpServletRequest request
     ) {
-
-        // 여행 상세 정보
-        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber);
+        TravelDetailResponse travelDetails = travelService.getDetailsByNumber(travelNumber); // 여행 상세 정보
 
         // 로그인 사용자 추가 정보
         if (userNumber != null) {
@@ -74,30 +68,25 @@ public class TravelController {
         return ApiResponse.success(travelDetails);
     }
 
+    // 여행 수정
     @PutMapping("/api/travel/{travelNumber}")
     public ApiResponse<TravelUpdateResponse> update(
             @PathVariable("travelNumber") int travelNumber,
             @RequestBody @Valid TravelUpdateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 수정 요청: userId={}, travelNumber={}", userNumber, travelNumber);
-
         Travel updatedTravel = travelService.update(travelNumber, request, userNumber);
-        logger.info("Travel 수정 요청: userId={}, updatedTravel={}", userNumber, updatedTravel);
-
-        return ApiResponse.success(new TravelUpdateResponse(updatedTravel.getNumber()));
+        TravelUpdateResponse response = new TravelUpdateResponse(updatedTravel.getNumber());
+        return ApiResponse.success(response);
     }
 
+    // 여행 삭제
     @DeleteMapping("/api/travel/{travelNumber}")
     public ApiResponse<Void> delete(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber
     ) {
-        logger.info("Travel 삭제 요청: userId={}, travelNumber={}", userNumber, travelNumber);
-
         travelService.delete(travelNumber, userNumber);
-        logger.info("Travel 삭제 완료: userId={}, travelNumber={}", userNumber, travelNumber);
-
         return ApiResponse.success(null);
     }
 }
