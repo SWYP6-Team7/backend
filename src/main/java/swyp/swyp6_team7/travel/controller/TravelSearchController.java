@@ -2,8 +2,6 @@ package swyp.swyp6_team7.travel.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,9 +20,9 @@ import java.util.List;
 @RestController
 public class TravelSearchController {
 
-    private static final Logger logger = LoggerFactory.getLogger(TravelSearchController.class);
     private final TravelSearchService travelSearchService;
 
+    // 여행 검색
     @GetMapping("/api/travels/search")
     public ApiResponse<Page<TravelSearchDto>> search(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -49,11 +47,8 @@ public class TravelSearchController {
                 .tags(selectedTags)
                 .sortingType(selectedSortingType)
                 .build();
-        logger.info("Travel 조회 요청 - userId: {}, search condition: {}", userNumber, condition.toString());
 
         Page<TravelSearchDto> travels = travelSearchService.search(condition, userNumber);
-        logger.info("Travel 조회 완료 - userId: {}, result: {}", userNumber, travels.getPageable());
-
         return ApiResponse.success(travels);
     }
 

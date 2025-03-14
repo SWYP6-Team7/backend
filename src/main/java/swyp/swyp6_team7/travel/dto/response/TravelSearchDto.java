@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.domain.Travel;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +21,10 @@ public class TravelSearchDto {
     private int travelNumber;
     private String title;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private int userNumber;
     private String userName;
     private List<String> tags;
@@ -33,13 +38,15 @@ public class TravelSearchDto {
 
     @Builder
     public TravelSearchDto(
-            int travelNumber, String title, String location, int userNumber, String userName,
-            List<String> tags, int maxPerson, int nowPerson,
+            int travelNumber, String title, String location, LocalDate startDate, LocalDate endDate,
+            int userNumber, String userName, List<String> tags, int maxPerson, int nowPerson,
             LocalDateTime createdAt, String postStatus, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
         this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
@@ -59,6 +66,8 @@ public class TravelSearchDto {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
         this.location = travel.getLocationName();
+        this.startDate = travel.getStartDate();
+        this.endDate = travel.getEndDate();
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
@@ -79,9 +88,10 @@ public class TravelSearchDto {
                 "travelNumber=" + travelNumber +
                 ", title='" + title + '\'' +
                 ", location='" + location + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
-                ", location='" + location + '\'' +
                 ", tags=" + tags +
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +

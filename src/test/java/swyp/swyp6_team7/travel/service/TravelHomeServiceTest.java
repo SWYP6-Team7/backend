@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
@@ -24,6 +25,8 @@ import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,6 +64,9 @@ class TravelHomeServiceTest {
 
     @MockBean
     private BookmarkService bookmarkService;
+
+    @SpyBean
+    private Clock clockMock;
 
     @AfterEach
     void tearDown() {
@@ -149,13 +155,12 @@ class TravelHomeServiceTest {
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2, tag3));
         travelRepository.saveAll(List.of(travel1, travel2, travel3));
 
-        LocalDate requestDate = LocalDate.of(2024, 11, 6);
-
+        given(clockMock.instant()).willReturn(Instant.parse("2024-11-06T00:00:00Z"));
         given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
                 .willReturn(Arrays.asList("쇼핑", "자연", "먹방"));
 
         // when
-        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
+        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1);
 
         // then
         assertThat(result.getContent()).hasSize(3)
@@ -183,13 +188,12 @@ class TravelHomeServiceTest {
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
         travelRepository.saveAll(List.of(travel1, travel2));
 
-        LocalDate requestDate = LocalDate.of(2024, 11, 6);
-
+        given(clockMock.instant()).willReturn(Instant.parse("2024-11-06T00:00:00Z"));
         given(userTagPreferenceRepository.findPreferenceTagsByUserNumber(any(Integer.class)))
                 .willReturn(Arrays.asList("쇼핑", "자연"));
 
         // when
-        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1, requestDate);
+        Page<TravelRecommendForMemberDto> result = travelHomeService.getRecommendTravelsByMember(PageRequest.of(0, 5), 1);
 
         // then
         assertThat(result.getContent()).hasSize(2)
