@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForNonMemberDto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,6 +20,10 @@ public class TravelRecommendResponse {
     private int travelNumber;
     private String title;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private int userNumber;
     private String userName;
     private List<String> tags;
@@ -32,6 +37,8 @@ public class TravelRecommendResponse {
         this.travelNumber = dto.getTravelNumber();
         this.title = dto.getTitle();
         this.location = dto.getLocation();
+        this.startDate = dto.getStartDate();
+        this.endDate = dto.getEndDate();
         this.userNumber = dto.getUserNumber();
         this.userName = dto.getUserName();
         this.tags = dto.getTags();
@@ -45,6 +52,8 @@ public class TravelRecommendResponse {
         this.travelNumber = dto.getTravelNumber();
         this.title = dto.getTitle();
         this.location = dto.getLocation();
+        this.startDate = dto.getStartDate();
+        this.endDate = dto.getEndDate();
         this.userNumber = dto.getUserNumber();
         this.userName = dto.getUserName();
         this.tags = dto.getTags();

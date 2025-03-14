@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
@@ -15,6 +14,7 @@ import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
+import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
 import swyp.swyp6_team7.tag.service.TagService;
@@ -77,10 +77,12 @@ public class TravelService {
             );
 
             planService.createPlans(createdTravel.getNumber(), request.getPlans());    // 여행 일정 생성
+
+            log.info("여행 생성 완료: travelNumber={}", createdTravel.getNumber());
             return createdTravel;
 
         } catch (Exception e) {
-            log.info("여행 생성 중 오류 발생: {}", e.getMessage());
+            log.warn("여행 생성 중 오류 발생: {}", e.getMessage());
             throw new MoingApplicationException("여행 생성 과정에서 오류가 발생했습니다.");
         }
     }
@@ -119,8 +121,8 @@ public class TravelService {
 
         boolean travelExistence = travelRepository.existsTravelByNumber(travelNumber);
         if (!travelExistence) {
-            log.warn("해당하는 여행을 찾을 수 없습니다: travelNumber={}", travelNumber);
-            throw new IllegalArgumentException("해당하는 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber);
+            log.warn("존재하지 않는 여행 조회 요청: travelNumber={}", travelNumber);
+            throw new MoingApplicationException("해당하는 여행을 찾을 수 없습니다. travelNumber=" + travelNumber);
         }
 
         // 여행 상세 정보 조회
@@ -128,8 +130,8 @@ public class TravelService {
 
         // 여행 상태가 삭제인 경우 예외 처리
         if (travelDetail.getTravelStatus() == TravelStatus.DELETED) {
-            log.warn("Deleted 상태의 여행 콘텐츠는 상세 조회할 수 없습니다: travelNumber={}", travelNumber);
-            throw new IllegalArgumentException("Deleted 상태의 여행 콘텐츠입니다.");
+            log.warn("DELETED 상태 여행 상세 조회 요청: travelNumber={}", travelNumber);
+            throw new MoingApplicationException("삭제된 여행 콘텐츠입니다.");
         }
 
         // 주최자 프로필 이미지 (만약 못찾을 경우 default 프로필 이미지로 설정)
@@ -150,7 +152,7 @@ public class TravelService {
         // DRAFT 여부 체크
         if (postStatus.equals(TravelStatus.DRAFT.getName())) {
             if (hostNumber != requestUserNumber) {
-                log.warn("DRAFT 상태의 여행 조회 권한이 없습니다:  travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
+                log.warn("DRAFT 상태 여행 조회 권한이 없습니다:  travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
                 throw new IllegalArgumentException("DRAFT 상태의 여행 조회는 작성자만 가능합니다.");
             }
         }
@@ -180,11 +182,11 @@ public class TravelService {
         validateTravelDaysRange(request.getStartDate(), request.getEndDate());  // 여행 기간 검증
 
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
+                .orElseThrow(() -> new MoingApplicationException("해당하는 여행을 찾을 수 없습니다. travelNumber=" + travelNumber));
 
         if (travel.getUserNumber() != requestUserNumber) {
-            log.warn("여행 수정 권한이 없습니다: travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
-            throw new IllegalArgumentException("여행 수정 권한이 없습니다.");
+            log.warn("여행 수정 권한 없음: travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
+            throw new MoingApplicationException("여행 수정 권한이 없습니다.");
         }
 
         // 여행 일정 개수 검증
@@ -210,25 +212,33 @@ public class TravelService {
             planService.updatePlans(updatedTravel.getNumber(), request.getPlanChanges()); // 여행 일정 수정
             log.info("여행 일정 수정 완료: travelNumber={}", travelNumber);
         } catch (Exception e) {
-            log.info("여행 일정 수정 중 오류 발생: {}", e.getMessage());
+            log.warn("여행 일정 수정 중 오류 발생: {}", e.getMessage());
             throw new MoingApplicationException("여행 일정 수정 과정에서 오류가 발생했습니다.");
         }
 
+        log.info("여행 수정 완료: travelNumber={}", updatedTravel.getNumber());
         return updatedTravel;
     }
 
     @Transactional
     public void delete(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 여행을 찾을 수 없습니다. - travelNumber: " + travelNumber));
+                .orElseThrow(() -> new IllegalArgumentException("해당하는 여행을 찾을 수 없습니다. travelNumber=" + travelNumber));
 
         if (travel.getUserNumber() != requestUserNumber) {
-            log.warn("여행 삭제 권한이 없습니다: travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
+            log.warn("여행 삭제 권한 없음: travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
             throw new IllegalArgumentException("여행 삭제 권한이 없습니다.");
         }
 
-        deleteRelatedComments(travel); //댓글 삭제
-        travel.delete();
+        try {
+            deleteRelatedComments(travel); //댓글 삭제
+            travel.delete();
+        } catch (Exception e) {
+            log.warn("여행 삭제 중 오류 발생: {}", e.getMessage());
+            throw new MoingApplicationException("여행 삭제 과정에서 오류가 발생했습니다.");
+        }
+
+        log.info("여행 삭제 완료: travelNumber={}", travelNumber);
     }
 
     private void deleteRelatedComments(Travel travel) {

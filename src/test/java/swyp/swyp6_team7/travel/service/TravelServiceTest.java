@@ -260,8 +260,8 @@ class TravelServiceTest {
         // when // then
         assertThatThrownBy(() -> {
             travelService.getDetailsByNumber(targetTravelNumber);
-        }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당하는 여행을 찾을 수 없습니다. - travelNumber: " + targetTravelNumber);
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("해당하는 여행을 찾을 수 없습니다. travelNumber=" + targetTravelNumber);
     }
 
     @DisplayName("getDetailsByNumber: 여행 번호가 한 개 주어졌을 때, status가 Deleted라면 예외가 발생한다.")
@@ -276,8 +276,8 @@ class TravelServiceTest {
         // when // then
         assertThatThrownBy(() -> {
             travelService.getDetailsByNumber(savedTravel.getNumber());
-        }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Deleted 상태의 여행 콘텐츠입니다.");
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("삭제된 여행 콘텐츠입니다.");
     }
 
     @DisplayName("getTravelDetailMemberRelatedInfo: 로그인 유저는 여행 상세 조회 요청 시, 자신과 관련된 상세 정보를 가져올 수 있다.")
@@ -390,7 +390,7 @@ class TravelServiceTest {
         // when //then
         assertThatThrownBy(() -> {
             travelService.update(savedTravel.getNumber(), request, requestUserNumber);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 수정 권한이 없습니다.");
     }
 
