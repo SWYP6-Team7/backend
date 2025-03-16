@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.comment.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,10 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     //특정 게시글의 댓글 개수 전부 조회
     long countByRelatedTypeAndRelatedNumber(String relatedType, int relatedNumber);
 
+    @Modifying
+    @Query("delete from Comment c where c.relatedType = :relatedType and c.relatedNumber = :relatedNumber")
+    void deleteCommentsByRelatedTypeAndRelatedNumber(@Param("relatedType") String relatedType, @Param("relatedNumber") Integer relatedNumber);
+
     // 답글 개수 조회
     long countByRelatedTypeAndRelatedNumberAndParentNumber(String relatedType, int relatedNumber, int parentNumber);
 
@@ -29,9 +34,9 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     List<Comment> findByRelatedTypeAndRelatedNumberAndParentNumber(String relatedType, int relatedNumber, int parentNumber);
 
 
-
     //댓글 번호로 댓글 삭제
     void deleteByCommentNumber(int commentNumber);
+
     //댓글(혹은 답글) 한개 조회
     Optional<Comment> findByCommentNumber(int commentNumber);
 

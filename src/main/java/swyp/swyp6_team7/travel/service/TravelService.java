@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
-import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
-import swyp.swyp6_team7.comment.service.CommentService;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.repository.ImageRepository;
@@ -47,7 +45,6 @@ public class TravelService {
 
     private final TravelTagService travelTagService;
     private final TagService tagService;
-    private final CommentService commentService;
     private final PlanService planService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -192,7 +189,7 @@ public class TravelService {
         // 여행 일정 개수 검증
         long travelDays = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate()) + 1;
         int changedPlanSize = planService.getTravelPlanCount(travelNumber) + request.getPlanChanges().getPlanSizeChangeValue();
-        log.info("여행 기간={}, 기대 일정 개수={}", travelDays, changedPlanSize);
+        //log.info("여행 기간={}, 기대 일정 개수={}", travelDays, changedPlanSize);
         if (changedPlanSize > travelDays || changedPlanSize > TRAVEL_MAX_RANGE || changedPlanSize < 0) {
             throw new MoingApplicationException("잘못된 여행 일정 개수입니다.");
         }
@@ -223,16 +220,21 @@ public class TravelService {
     @Transactional
     public void delete(int travelNumber, int requestUserNumber) {
         Travel travel = travelRepository.findByNumber(travelNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당하는 여행을 찾을 수 없습니다. travelNumber=" + travelNumber));
+                .orElseThrow(() -> new MoingApplicationException("해당하는 여행을 찾을 수 없습니다. travelNumber=" + travelNumber));
 
         if (travel.getUserNumber() != requestUserNumber) {
             log.warn("여행 삭제 권한 없음: travelNumber={}, requestUser={}", travelNumber, requestUserNumber);
-            throw new IllegalArgumentException("여행 삭제 권한이 없습니다.");
+            throw new MoingApplicationException("여행 삭제 권한이 없습니다.");
+        }
+        if (travel.getStatus() == TravelStatus.DELETED) {
+            throw new MoingApplicationException("이미 삭제된 여행입니다.");
         }
 
         try {
-            deleteRelatedComments(travel); //댓글 삭제
-            travel.delete();
+            commentRepository.deleteCommentsByRelatedTypeAndRelatedNumber("travel", travel.getNumber()); // 댓글 전체 삭제
+            planService.deleteAllPlansAndRelatedSpots(travel.getNumber()); // 일정 전체 삭제
+            travel.delete(); // 여행 상태 DELETED 설정
+            log.info("여행 삭제 완료: travelNumber={}", travelNumber);
         } catch (Exception e) {
             log.warn("여행 삭제 중 오류 발생: {}", e.getMessage());
             throw new MoingApplicationException("여행 삭제 과정에서 오류가 발생했습니다.");
@@ -240,14 +242,6 @@ public class TravelService {
 
         log.info("여행 삭제 완료: travelNumber={}", travelNumber);
     }
-
-    private void deleteRelatedComments(Travel travel) {
-        List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber("travel", travel.getNumber());
-        for (Comment comment : comments) {
-            commentService.delete(comment.getCommentNumber(), travel.getUserNumber());
-        }
-    }
-
 
     public LocalDateTime getEnrollmentsLastViewedAt(int travelNumber) {
         if (!travelRepository.existsTravelByNumber(travelNumber)) {

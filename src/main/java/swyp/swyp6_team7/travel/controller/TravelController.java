@@ -82,11 +82,11 @@ public class TravelController {
 
     // 여행 삭제
     @DeleteMapping("/api/travel/{travelNumber}")
-    public ApiResponse<Void> delete(
+    public ApiResponse<String> delete(
             @PathVariable("travelNumber") int travelNumber,
             @RequireUserNumber Integer userNumber
     ) {
         travelService.delete(travelNumber, userNumber);
-        return ApiResponse.success(null);
+        return ApiResponse.success("여행이 삭제되었습니다.");
     }
 }

@@ -16,6 +16,9 @@ public interface PlanRepository extends JpaRepository<Plan, Long>, PlanCustomRep
 
     List<Plan> findAllByTravelNumberAndOrderIn(Integer travelNumber, List<Integer> order);
 
+    @Query("select p.id from Plan p where p.travelNumber = :travelNumber")
+    List<Long> getPlansIdByTravelNumber(@Param("travelNumber") Integer travelNumber);
+
     @Query("select count(*) from Plan p where p.travelNumber = :travelNumber")
     Integer getPlanCountByTravelNumber(@Param("travelNumber") Integer travelNumber);
 
