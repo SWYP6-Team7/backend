@@ -179,6 +179,18 @@ public class PlanService {
         log.info("여행 일정 삭제 완료: planId={}", plan.getId());
     }
 
+    // 여행 일정 및 장소 전체 삭제
+    public void deleteAllPlansAndRelatedSpots(Integer travelNumber) {
+        List<Long> plansId = planRepository.getPlansIdByTravelNumber(travelNumber);
+        try {
+            spotRepository.deleteSpotsByPlanIdIn(plansId); // 관련 장소 삭제
+            planRepository.deleteAllByIdInBatch(plansId); // 일정 삭제
+            log.info("일정 전체 삭제 완료: travelNumber={}", travelNumber);
+        } catch (Exception e) {
+            log.warn("일정 전체 삭제 중 오류 발생: {}", e.getMessage());
+            throw new MoingApplicationException("일정 삭제 도중 오류가 발생했습니다.");
+        }
+    }
 
     // 요청자가 여행 주최자인지 검증하는 메서드
     private void validateTravelHostUser(Integer travelNumber, Integer userNumber) {

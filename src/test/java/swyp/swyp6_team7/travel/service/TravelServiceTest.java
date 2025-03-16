@@ -427,7 +427,7 @@ class TravelServiceTest {
         // when //then
         assertThatThrownBy(() -> {
             travelService.delete(savedTravel.getNumber(), requestUserNumber);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 삭제 권한이 없습니다.");
     }
 
