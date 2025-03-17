@@ -74,7 +74,7 @@ public class ImageProfileService {
         return ImageDetailResponseDto.from(updatedProfileImage);
     }
 
-    private String getDefaultImageUrl(int defaultProfileImageNumber) {
+    public String getDefaultImageUrl(int defaultProfileImageNumber) {
         DefaultProfileImage defaultProfileImage = null;
         switch (defaultProfileImageNumber) {
             case 1:

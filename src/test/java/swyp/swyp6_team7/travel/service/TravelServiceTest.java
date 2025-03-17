@@ -220,7 +220,7 @@ class TravelServiceTest {
     @Test
     void getDetailsByNumber() {
         // given
-        String defaultProfileUrl = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
+        String defaultProfilePath = "/images/profile/default/defaultProfile.png";
         Users host = userRepository.save(createHostUser());
         Location location = locationRepository.save(createLocation("Seoul"));
         Travel savedTravel = travelRepository.save(createTravel(host.getUserNumber(), location, TravelStatus.IN_PROGRESS));
@@ -233,7 +233,7 @@ class TravelServiceTest {
         assertThat(travelDetails.getUserNumber()).isEqualTo(host.getUserNumber());
         assertThat(travelDetails.getUserAgeGroup()).isEqualTo(AgeGroup.TEEN.getValue());
         assertThat(travelDetails.getUserName()).isEqualTo("주최자 이름");
-        assertThat(travelDetails.getProfileUrl()).isEqualTo(defaultProfileUrl);
+        assertThat(travelDetails.getProfileUrl()).contains(defaultProfilePath);
         assertThat(travelDetails.getLocation()).isEqualTo("Seoul");
         assertThat(travelDetails.getStartDate()).isEqualTo(LocalDate.of(2024, 11, 22));
         assertThat(travelDetails.getEndDate()).isEqualTo(LocalDate.of(2024, 11, 28));

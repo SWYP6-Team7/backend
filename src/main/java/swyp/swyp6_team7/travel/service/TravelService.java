@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.travel.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.repository.ImageRepository;
+import swyp.swyp6_team7.image.service.ImageProfileService;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.repository.LocationRepository;
@@ -40,18 +42,23 @@ public class TravelService {
     public static final int TRAVEL_TAG_MAX_COUNT = 5;
     public static final int TRAVEL_MAX_RANGE = 90;
 
-    // TODO: 링크 수정
-    private final static String DEFAULT_PROFILE_IMAGE_URL = "https://moing-hosted-contents.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
-
     private final TravelTagService travelTagService;
     private final TagService tagService;
     private final PlanService planService;
+    private final ImageProfileService imageProfileService;
     private final TravelRepository travelRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
     private final ImageRepository imageRepository;
     private final LocationRepository locationRepository;
     private final CommentRepository commentRepository;
+
+    private static String defaultProfileImageUrl;
+
+    @PostConstruct
+    private void init() {
+        defaultProfileImageUrl = imageProfileService.getDefaultImageUrl(1);
+    }
 
     @Transactional
     public Travel create(TravelCreateRequest request, int loginUserNumber) {
@@ -133,7 +140,7 @@ public class TravelService {
 
         // 주최자 프로필 이미지 (만약 못찾을 경우 default 프로필 이미지로 설정)
         String hostProfileImageUrl = imageRepository.findUrlByRelatedUserNumber(travelDetail.getHostNumber())
-                .orElse(DEFAULT_PROFILE_IMAGE_URL);
+                .orElse(defaultProfileImageUrl);
 
         // enrollment 개수
         int enrollmentCount = enrollmentRepository.countByTravelNumber(travelNumber);
