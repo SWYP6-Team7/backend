@@ -5,6 +5,8 @@ import lombok.Setter;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Getter
@@ -13,6 +15,7 @@ public class ProfileViewResponse {
     private String email;
     private String name;
     private String gender;
+    private String userRegDate;
     private String ageGroup;
     private String[] preferredTags;
     private boolean userSocialTF;
@@ -23,6 +26,14 @@ public class ProfileViewResponse {
         this.gender = user.getUserGender().name();
         this.ageGroup = user.getUserAgeGroup().getValue();
         this.userSocialTF = user.getUserSocialTF();
+
+        // userRegDate 포매팅
+        if (user.getUserRegDate() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월");
+            this.userRegDate = user.getUserRegDate().format(formatter);
+        } else {
+            this.userRegDate = "";
+        }
 
         // 태그 목록을 가져와서 배열로 변환
         Set<UserTagPreference> tagPreferences = user.getTagPreferences();
