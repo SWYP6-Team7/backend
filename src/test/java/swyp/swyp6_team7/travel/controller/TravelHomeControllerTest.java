@@ -63,6 +63,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
                 .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].startDate").value("2024-12-06"))
+                .andExpect(jsonPath("$.success.content[0].endDate").value("2024-12-08"))
                 .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
                 .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
                 .andExpect(jsonPath("$.success.content[0].tags").isEmpty())
@@ -100,6 +102,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
                 .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].startDate").value("2024-12-06"))
+                .andExpect(jsonPath("$.success.content[0].endDate").value("2024-12-08"))
                 .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
                 .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
                 .andExpect(jsonPath("$.success.content[0].tags").isEmpty())
@@ -123,7 +127,7 @@ class TravelHomeControllerTest extends IntegrationTest {
         List<TravelRecommendForMemberDto> travels = Arrays.asList(travel2, travel1);
 
         Page<TravelRecommendForMemberDto> result = new PageImpl<>(travels, PageRequest.of(0, 5), travels.size());
-        given(travelHomeService.getRecommendTravelsByMember(any(PageRequest.class), anyInt(), any(LocalDate.class)))
+        given(travelHomeService.getRecommendTravelsByMember(any(PageRequest.class), anyInt()))
                 .willReturn(result);
 
         // when
@@ -131,13 +135,15 @@ class TravelHomeControllerTest extends IntegrationTest {
 
         // then
         then(travelHomeService).should(times(1))
-                .getRecommendTravelsByMember(any(PageRequest.class), anyInt(), any(LocalDate.class));
+                .getRecommendTravelsByMember(any(PageRequest.class), anyInt());
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success.content.size()").value(2))
                 .andExpect(jsonPath("$.success.content[0].travelNumber").value(11))
                 .andExpect(jsonPath("$.success.content[0].title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.content[0].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[0].startDate").value("2024-12-06"))
+                .andExpect(jsonPath("$.success.content[0].endDate").value("2024-12-08"))
                 .andExpect(jsonPath("$.success.content[0].userNumber").value(2))
                 .andExpect(jsonPath("$.success.content[0].userName").value("주최자명"))
                 .andExpect(jsonPath("$.success.content[0].tags[0]").value("자연"))
@@ -149,6 +155,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.content[1].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[1].startDate").value("2024-12-06"))
+                .andExpect(jsonPath("$.success.content[1].endDate").value("2024-12-08"))
                 .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
                 .andExpect(jsonPath("$.success.content[1].userName").value("주최자명"))
                 .andExpect(jsonPath("$.success.content[1].tags").isEmpty())
@@ -167,7 +175,7 @@ class TravelHomeControllerTest extends IntegrationTest {
         List<TravelRecommendForNonMemberDto> travels = Arrays.asList(travel2, travel1);
 
         Page<TravelRecommendForNonMemberDto> result = new PageImpl<>(travels, PageRequest.of(0, 5), travels.size());
-        given(travelHomeService.getRecommendTravelsByNonMember(any(PageRequest.class), any(LocalDate.class)))
+        given(travelHomeService.getRecommendTravelsByNonMember(any(PageRequest.class)))
                 .willReturn(result);
 
         // when
@@ -175,7 +183,7 @@ class TravelHomeControllerTest extends IntegrationTest {
 
         // then
         then(travelHomeService).should(times(1))
-                .getRecommendTravelsByNonMember(any(PageRequest.class), any(LocalDate.class));
+                .getRecommendTravelsByNonMember(any(PageRequest.class));
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success.content.size()").value(2))
@@ -192,6 +200,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .andExpect(jsonPath("$.success.content[1].travelNumber").value(10))
                 .andExpect(jsonPath("$.success.content[1].title").value("여행 제목"))
                 .andExpect(jsonPath("$.success.content[1].location").value("서울"))
+                .andExpect(jsonPath("$.success.content[1].startDate").value("2024-12-06"))
+                .andExpect(jsonPath("$.success.content[1].endDate").value("2024-12-08"))
                 .andExpect(jsonPath("$.success.content[1].userNumber").value(1))
                 .andExpect(jsonPath("$.success.content[1].userName").value("주최자명"))
                 .andExpect(jsonPath("$.success.content[1].tags").isEmpty())
@@ -206,6 +216,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .travelNumber(travelNumber)
                 .title("여행 제목")
                 .location("서울")
+                .startDate(LocalDate.of(2024,12,6))
+                .endDate(LocalDate.of(2024,12,8))
                 .userName("주최자명")
                 .userNumber(userNumber)
                 .tags(List.of())
@@ -221,6 +233,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .travelNumber(travelNumber)
                 .title("여행 제목")
                 .location("서울")
+                .startDate(LocalDate.of(2024,12,6))
+                .endDate(LocalDate.of(2024,12,8))
                 .userName("주최자명")
                 .userNumber(userNumber)
                 .tags(tags)
@@ -237,6 +251,8 @@ class TravelHomeControllerTest extends IntegrationTest {
                 .travelNumber(travelNumber)
                 .title("여행 제목")
                 .location("서울")
+                .startDate(LocalDate.of(2024,12,6))
+                .endDate(LocalDate.of(2024,12,8))
                 .userName("주최자명")
                 .userNumber(userNumber)
                 .tags(List.of())

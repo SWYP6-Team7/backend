@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.Plan.dto.request;
+package swyp.swyp6_team7.plan.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

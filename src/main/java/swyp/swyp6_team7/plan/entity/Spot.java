@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.Plan.entity;
+package swyp.swyp6_team7.plan.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
