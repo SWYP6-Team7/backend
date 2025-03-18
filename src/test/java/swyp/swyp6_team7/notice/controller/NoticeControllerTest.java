@@ -2,18 +2,14 @@ package swyp.swyp6_team7.notice.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.notice.dto.NoticeRequestDto;
 import swyp.swyp6_team7.notice.dto.NoticeResponseDto;
 import swyp.swyp6_team7.notice.service.NoticeService;
@@ -30,9 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("test")
 @TestPropertySource(properties = {
         "kakao.client-id=fake-client-id",
         "kakao.client-secret=fake-client-secret",
@@ -40,10 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "kakao.token-url=https://kauth.kakao.com/oauth/token",
         "kakao.user-info-url=https://kapi.kakao.com/v2/user/me"
 })
-public class NoticeControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
+public class NoticeControllerTest extends IntegrationTest {
 
     @MockBean
     private NoticeService noticeService;

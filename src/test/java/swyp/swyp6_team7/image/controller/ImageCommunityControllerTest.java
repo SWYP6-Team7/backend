@@ -1,48 +1,24 @@
 package swyp.swyp6_team7.image.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.image.dto.request.CommunityImageSaveRequest;
 import swyp.swyp6_team7.image.dto.request.CommunityImageUpdateRequest;
 import swyp.swyp6_team7.image.dto.response.ImageDetailResponseDto;
-import swyp.swyp6_team7.image.service.ImageCommunityService;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class ImageCommunityControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private ImageCommunityService imageCommunityService;
-
-
+class ImageCommunityControllerTest extends IntegrationTest {
     @DisplayName("uploadTempImage: 커뮤니티 이미지를 임시저장한다.")
     @Test
     void uploadTempImage() throws Exception {
@@ -62,8 +38,6 @@ class ImageCommunityControllerTest {
                 .url("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName.png")
                 .uploadDate(LocalDateTime.of(2024, 11, 24, 10, 0, 0))
                 .build();
-        given(imageCommunityService.uploadTempImage(any()))
-                .willReturn(response);
 
         // when
         ResultActions resultActions = mockMvc.perform(multipart("/api/community/images/temp")
@@ -98,9 +72,6 @@ class ImageCommunityControllerTest {
                 "https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName3.png");
         List<ImageDetailResponseDto> response = List.of(image1, image2);
 
-        given(imageCommunityService.saveCommunityImages(anyInt(), anyList(), anyList()))
-                .willReturn(response);
-
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/community/{postNumber}/images", postNumber)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -121,8 +92,6 @@ class ImageCommunityControllerTest {
                 .andExpect(jsonPath("$.success[1].key").value("baseFolder/community/temporary/storageName3.png"))
                 .andExpect(jsonPath("$.success[1].url").value("https://bucketName.s3.region.amazonaws.com/baseFolder/community/temporary/storageName3.png"))
                 .andExpect(jsonPath("$.success[1].uploadDate").value("2024년 11월 24일 10시 00분"));
-        then(imageCommunityService).should(times(1))
-                .saveCommunityImages(eq(postNumber), eq(deletedUrls), eq(tempUrls));
     }
 
     @DisplayName("getImages: 커뮤니티 게시글에 포함되는 이미지들을 조회한다.")
@@ -135,9 +104,6 @@ class ImageCommunityControllerTest {
                 "baseFolder/community/2/1/storageName2.png",
                 "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png");
         List<ImageDetailResponseDto> response = List.of(image);
-
-        given(imageCommunityService.getCommunityImages(anyInt()))
-                .willReturn(response);
 
         // when
         ResultActions resultActions = mockMvc.perform(get("/api/community/{postNumber}/images", postNumber));
@@ -170,9 +136,6 @@ class ImageCommunityControllerTest {
                 "https://bucketName.s3.region.amazonaws.com/baseFolder/community/2/1/storageName2.png");
         List<ImageDetailResponseDto> response = List.of(image);
 
-        given(imageCommunityService.updateCommunityImages(postNumber, 2, status, urls))
-                .willReturn(response);
-
         // when
         ResultActions resultActions = mockMvc.perform(put("/api/community/{postNumber}/images", postNumber)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -194,14 +157,12 @@ class ImageCommunityControllerTest {
     void deleteImages() throws Exception {
         // given
         int postNumber = 2;
-        doNothing().when(imageCommunityService).deleteCommunityImages(anyInt(), anyInt());
 
         // when
         ResultActions resultActions = mockMvc.perform(delete("/api/community/{postNumber}/images", postNumber));
 
         // then
         resultActions.andExpect(status().isOk());
-        then(imageCommunityService).should().deleteCommunityImages(postNumber, 2);
     }
 
     private ImageDetailResponseDto createdDetailResponse(long imageNumber, int relatedNumber, String key, String url) {

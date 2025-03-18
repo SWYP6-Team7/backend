@@ -47,8 +47,8 @@ public class MemberBlockController {
     @Operation(summary = "내 신고 상세")
     @GetMapping("/my/detail")
     public ApiResponse<UserBlockDetailResponse> myBlockDetail(
-            @RequireUserNumber Integer userNumber
+            @RequestParam String token
     ) {
-        return ApiResponse.success(memberBlockService.getBlockDetail(userNumber));
+        return ApiResponse.success(memberBlockService.getBlockDetail(token));
     }
 }

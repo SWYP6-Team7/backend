@@ -1,18 +1,14 @@
 package swyp.swyp6_team7.travel.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
 import swyp.swyp6_team7.travel.dto.request.TravelEnrollmentLastViewedRequest;
@@ -31,15 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class TravelEnrollmentControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+class TravelEnrollmentControllerTest extends IntegrationTest {
 
     @MockBean
     private EnrollmentService enrollmentService;

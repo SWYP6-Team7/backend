@@ -68,6 +68,7 @@ public class TravelService {
 
         try {
             Location location = getLocation(request.getLocationName());
+            log.info("Location: {}", location.getLocationName());
             List<Tag> tags = getTags(request.getTags());
 
             Travel createdTravel = travelRepository.save(

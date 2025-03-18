@@ -1,72 +1,56 @@
 package swyp.swyp6_team7.travel.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import swyp.swyp6_team7.config.RedisContainerConfig;
+import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.member.entity.AgeGroup;
-import swyp.swyp6_team7.mock.WithMockCustomUser;
+import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
-import swyp.swyp6_team7.travel.dto.TravelDetailLoginMemberRelatedDto;
 import swyp.swyp6_team7.travel.dto.request.TravelCreateRequest;
 import swyp.swyp6_team7.travel.dto.request.TravelUpdateRequest;
 import swyp.swyp6_team7.travel.dto.response.TravelDetailResponse;
-import swyp.swyp6_team7.travel.service.TravelService;
-import swyp.swyp6_team7.travel.service.TravelViewCountService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Import(
-        value = {RedisContainerConfig.class}
-)
-@SpringBootTest
-@AutoConfigureMockMvc
-class TravelControllerTest {
+class TravelControllerTest extends IntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private Users user;
+    private String accessToken;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private TravelService travelService;
-
-    @MockBean
-    private TravelViewCountService travelViewCountService;
+    @BeforeEach
+    public void setUp() {
+        user = createUser("test", "password");
+        System.out.println("User: " + user.getUserEmail());
+        LoginTokenResponse response = login("test@test.com", "password");
+        accessToken = response.getAccessToken();
+        System.out.println(accessToken);
+    }
 
     @DisplayName("create: 사용자는 여행 콘텐츠를 생성할 수 있다.")
-    @WithMockCustomUser(userNumber = 2)
+    @Transactional
     @Test
     public void create() throws Exception {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
-                .startDate(LocalDate.of(2024, 12, 22))
-                .endDate(LocalDate.of(2024, 12, 28))
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusWeeks(1))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(2)
@@ -75,32 +59,26 @@ class TravelControllerTest {
                 .tags(List.of("쇼핑"))
                 .build();
 
-        int travelNumber = 10;
-        Travel createdTravel = createTravel(travelNumber, 2);
-
-        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
-                .willReturn(createdTravel);
-
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/travel")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + accessToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.success.travelNumber").value(10));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
+                .andExpect(jsonPath("$.success.travelNumber").value(1));
     }
 
     @DisplayName("create: 여행 생성 요청 시 title 길이가 20자를 넘으면 예외가 발생한다.")
-    @WithMockCustomUser(userNumber = 2)
     @Test
+    @Transactional
     public void createWithValidateTitleLength() throws Exception {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
-                .startDate(LocalDate.of(2024, 12, 22))
-                .endDate(LocalDate.of(2024, 12, 28))
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusWeeks(1))
                 .title("*".repeat(21))
                 .details("여행 내용")
                 .maxPerson(2)
@@ -112,6 +90,7 @@ class TravelControllerTest {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/travel")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + accessToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
@@ -120,14 +99,14 @@ class TravelControllerTest {
     }
 
     @DisplayName("create: 여행 생성 요청 시 maxPerson의 값이 0보다 작으면 예외가 발생한다.")
-    @WithMockCustomUser(userNumber = 2)
     @Test
+    @Transactional
     public void createWithValidateMaxPerson() throws Exception {
         // given
         TravelCreateRequest request = TravelCreateRequest.builder()
                 .locationName("서울")
-                .startDate(LocalDate.of(2024, 12, 22))
-                .endDate(LocalDate.of(2024, 12, 28))
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusWeeks(1))
                 .title("여행 제목")
                 .details("여행 내용")
                 .maxPerson(-1)
@@ -139,6 +118,7 @@ class TravelControllerTest {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/travel")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + accessToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
@@ -148,19 +128,17 @@ class TravelControllerTest {
 
     @DisplayName("getDetailsByNumber: 비회원(비로그인) 사용자는 여행 상세 정보를 단건 조회할 수 있다.")
     @Test
+    @Transactional
     public void getDetailsByNumberWhenNonMember() throws Exception {
         // given
-        int travelNumber = 10;
+        int travelNumber = 1;
         int hostNumber = 1;
         TravelDetailResponse travelDetailResponse = createDetailResponse(travelNumber, hostNumber);
 
-        given(travelService.getDetailsByNumber(anyInt()))
-                .willReturn(travelDetailResponse);
-        doNothing().when(travelViewCountService)
-                .updateViewCount(anyInt(), anyString());
-
         // when
-        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
+        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber)
+                .header("Authorization", "Bearer " + accessToken)
+        );
 
         // then
         resultActions
@@ -186,32 +164,18 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.tags[1]").value("쇼핑"))
                 .andExpect(jsonPath("$.success.postStatus").value("진행중"))
                 .andExpect(jsonPath("$.success.loginMemberRelatedInfo").value(nullValue()));
-        then(travelService).should().getDetailsByNumber(travelNumber);
     }
 
     @DisplayName("getDetailsByNumber: 로그인 사용자는 여행 상세 단건 정보와 자신과 관련된 추가 정보를 함께 조회할 수 있다.")
-    @WithMockCustomUser(userNumber = 2)
+    @Transactional
     @Test
     public void getDetailsByNumberWhenMember() throws Exception {
         // given
-        int travelNumber = 10;
+        int travelNumber = 1;
         int hostNumber = 1;
-        TravelDetailResponse travelDetailResponse = createDetailResponse(travelNumber, hostNumber);
-        TravelDetailLoginMemberRelatedDto memberRelatedDto = TravelDetailLoginMemberRelatedDto.builder()
-                .isHostUser(false)
-                .enrollmentNumber(5L)
-                .isBookmarked(true)
-                .build();
-
-        given(travelService.getDetailsByNumber(anyInt()))
-                .willReturn(travelDetailResponse);
-        given(travelService.getTravelDetailMemberRelatedInfo(anyInt(), anyInt(), anyInt(), anyString()))
-                .willReturn(memberRelatedDto);
-        doNothing().when(travelViewCountService)
-                .updateViewCount(anyInt(), anyString());
-
         // when
-        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber));
+        ResultActions resultActions = mockMvc.perform(get("/api/travel/detail/{travelNumber}", travelNumber)
+                .header("Authorization", "Bearer " + accessToken));
 
         // then
         resultActions
@@ -239,12 +203,10 @@ class TravelControllerTest {
                 .andExpect(jsonPath("$.success.loginMemberRelatedInfo.hostUser").value(false))
                 .andExpect(jsonPath("$.success.loginMemberRelatedInfo.enrollmentNumber").value(5L))
                 .andExpect(jsonPath("$.success.loginMemberRelatedInfo.bookmarked").value(true));
-        then(travelService).should().getDetailsByNumber(travelNumber);
-        then(travelService).should().getTravelDetailMemberRelatedInfo(2, 10, 1, "진행중");
     }
 
     @DisplayName("update: 사용자는 자신이 작성한 여행 콘텐츠를 수정할 수 있다.")
-    @WithMockCustomUser(userNumber = 2)
+    @Transactional
     @Test
     public void update() throws Exception {
         // given
@@ -263,18 +225,15 @@ class TravelControllerTest {
         int travelNumber = 10;
         Travel updatedTravel = createTravel(travelNumber, 2);
 
-        given(travelService.create(any(TravelCreateRequest.class), anyInt()))
-                .willReturn(updatedTravel);
-
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/travel")
+                .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.success.travelNumber").value(10));
-        then(travelService.create(any(TravelCreateRequest.class), eq(2)));
     }
 
     private Travel createTravel(int travelNumber, int hostNumber) {
@@ -293,8 +252,8 @@ class TravelControllerTest {
                 .profileUrl("https://user-profile-url")
                 .createdAt(LocalDateTime.of(2024, 12, 06, 12, 0))
                 .location("서울")
-                .startDate(LocalDate.of(2024,11,22))
-                .endDate(LocalDate.of(2024,11,28))
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .title("여행 제목")
                 .details("여행 상세 내용")
                 .viewCount(10)

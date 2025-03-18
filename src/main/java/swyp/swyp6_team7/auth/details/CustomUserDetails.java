@@ -2,6 +2,7 @@ package swyp.swyp6_team7.auth.details;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 
 import java.util.Collection;
@@ -54,5 +55,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public UserStatus getUserStatus() {
+        return user.getUserStatus();
     }
 }

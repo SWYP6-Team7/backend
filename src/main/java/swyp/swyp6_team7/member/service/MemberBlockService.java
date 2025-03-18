@@ -2,8 +2,10 @@ package swyp.swyp6_team7.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.member.dto.ReportDetailReason;
 import swyp.swyp6_team7.member.dto.ReportReasonResponse;
 import swyp.swyp6_team7.member.dto.UserBlockDetailResponse;
@@ -16,10 +18,7 @@ import swyp.swyp6_team7.notification.service.UserBlockWarnNotificationService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,11 +26,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MemberBlockService {
 
+    private static final String tempTokenKey = "temp-token:";
+
     private final UserRepository userRepository;
     private final UserBlockRepository userBlockRepository;
     private final UserBlockReportRepository userBlockReportRepository;
     private final ReportReasonRepository reportReasonRepository;
     private final UserBlockWarnNotificationService userBlockWarnNotificationService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public List<ReportReasonResponse> getAllReportReason() {
         List<ReportReason> reportReasons = reportReasonRepository.findAll();
@@ -209,7 +211,13 @@ public class MemberBlockService {
         return isReportable;
     }
 
-    public UserBlockDetailResponse getBlockDetail(Integer userNumber) {
+    public UserBlockDetailResponse getBlockDetail(String token) {
+        String userNumberStr = redisTemplate.opsForValue().get(tempTokenKey + token);
+        if (userNumberStr == null) {
+            throw new MoingApplicationException("올바르지 않은 입력입니다.");
+        }
+        Integer userNumber = Integer.parseInt(userNumberStr);
+
         Users user = userRepository.findById(userNumber)
                 .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
 
@@ -227,5 +235,14 @@ public class MemberBlockService {
         }
 
         return new UserBlockDetailResponse(userNumber, false, null, null);
+    }
+
+    // 계정 정지된 유저의 로그인을 위한 임시 Token
+    public String getTempToken(Users user) {
+        String tempToken = UUID.randomUUID().toString();
+
+        redisTemplate.opsForValue().set(tempTokenKey + tempToken, user.getUserNumber().toString());
+
+        return tempToken;
     }
 }

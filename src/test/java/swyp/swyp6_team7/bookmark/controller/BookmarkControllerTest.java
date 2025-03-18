@@ -1,104 +1,73 @@
 package swyp.swyp6_team7.bookmark.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.bookmark.dto.BookmarkRequest;
 import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
-import swyp.swyp6_team7.bookmark.service.BookmarkService;
-import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
+import swyp.swyp6_team7.global.IntegrationTest;
+import swyp.swyp6_team7.member.entity.Users;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-public class BookmarkControllerTest {
+public class BookmarkControllerTest extends IntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private static String jwtToken;
 
-    @MockBean
-    private BookmarkService bookmarkService;
-
-    @MockBean
-    private JwtProvider jwtProvider;
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private String jwtToken;
-
-    @BeforeEach
-    void setUp() {
-        jwtToken = "Bearer test-token";
+    @BeforeAll
+    public void setUp() {
+        Users user = createUser("test", "password");
+        LoginTokenResponse tokenResponse = login("test@test.com", "password");
+        jwtToken = tokenResponse.getAccessToken();
     }
 
     @Test
     @DisplayName("북마크 추가 테스트")
-    @WithMockUser
+    @Transactional
     public void testAddBookmark() throws Exception {
+//        setUp();
         BookmarkRequest request = new BookmarkRequest();
         request.setTravelNumber(1);
 
-        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
-            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(1);
-
-            mockMvc.perform(post("/api/bookmarks")
-                            .header("Authorization", jwtToken)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk());
-
-            Mockito.verify(bookmarkService).addBookmark(any(BookmarkRequest.class));
-        }
+        mockMvc.perform(post("/api/bookmarks")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("북마크 삭제 테스트")
-    @WithMockUser
+    @Transactional
     public void testRemoveBookmark() throws Exception {
         // Given
+//        setUp();
         int travelNumber = 1;
 
-        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
-            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(1);
-
-            mockMvc.perform(delete("/api/bookmarks/{travelNumber}", travelNumber)
-                            .header("Authorization", jwtToken))
-                    .andExpect(status().isOk());
-
-            Mockito.verify(bookmarkService).removeBookmark(travelNumber, 1);
-        }
+        mockMvc.perform(delete("/api/bookmarks/{travelNumber}", travelNumber)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("사용자 북마크 목록 조회 테스트")
-    @WithMockUser
+    @Transactional
     void testGetBookmarks() throws Exception {
+//        setUp();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         LocalDateTime createdAt = LocalDateTime.parse("2024-10-02 21:56", dateTimeFormatter);
         BookmarkResponse response = new BookmarkResponse(
@@ -117,50 +86,33 @@ public class BookmarkControllerTest {
         PageRequest pageable = PageRequest.of(0, 5);
         Page<BookmarkResponse> pageResponse = new PageImpl<>(responses, pageable, responses.size());
 
-        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
-            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(1);
-
-            when(bookmarkService.getBookmarksByUser(anyInt(), anyInt(), anyInt())).thenReturn(pageResponse);
-
-            mockMvc.perform(get("/api/bookmarks")
-                            .header("Authorization", jwtToken)
-                            .param("page", "0")
-                            .param("size", "5"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success.content[0].travelNumber").value(1))
-                    .andExpect(jsonPath("$.success.content[0].title").value("제목"))
-                    .andExpect(jsonPath("$.success.content[0].userName").value("작성자"))
-                    .andExpect(jsonPath("$.success.page.size").value(5))
-                    .andExpect(jsonPath("$.success.page.number").value(0))
-                    .andExpect(jsonPath("$.success.page.totalElements").value(1))
-                    .andExpect(jsonPath("$.success.page.totalPages").value(1));
-
-            verify(bookmarkService).getBookmarksByUser(1, 0, 5);
-        }
+        mockMvc.perform(get("/api/bookmarks")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .param("page", "0")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success.content[0].travelNumber").value(1))
+                .andExpect(jsonPath("$.success.content[0].title").value("제목"))
+                .andExpect(jsonPath("$.success.content[0].userName").value("작성자"))
+                .andExpect(jsonPath("$.success.page.size").value(5))
+                .andExpect(jsonPath("$.success.page.number").value(0))
+                .andExpect(jsonPath("$.success.page.totalElements").value(1))
+                .andExpect(jsonPath("$.success.page.totalPages").value(1));
     }
 
     @Test
-    @WithMockUser
+    @Transactional
     @DisplayName("사용자의 북마크된 여행 번호 목록 조회 테스트")
     public void getBookmarkedTravelNumbers_ShouldReturnListOfTravelNumbers() throws Exception {
         // Given
-        String token = "Bearer test-token";
-        Integer userNumber = 1;
+//        setUp();
         List<Integer> travelNumbers = List.of(101, 102, 103);
-
-        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
-            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(1);
-
-            when(bookmarkService.getBookmarkedTravelNumbers(1)).thenReturn(travelNumbers);
-
-            mockMvc.perform(get("/api/bookmarks/travel-number")
-                            .header(HttpHeaders.AUTHORIZATION, token))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.success[0]").value(101))
-                    .andExpect(jsonPath("$.success[1]").value(102))
-                    .andExpect(jsonPath("$.success[2]").value(103));
-        }
+        mockMvc.perform(get("/api/bookmarks/travel-number")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success[0]").value(101))
+                .andExpect(jsonPath("$.success[1]").value(102))
+                .andExpect(jsonPath("$.success[2]").value(103));
     }
-
 }
 
