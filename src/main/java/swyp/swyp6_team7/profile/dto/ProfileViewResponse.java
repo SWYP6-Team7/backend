@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Getter
-@Setter
 public class ProfileViewResponse {
     private String email;
     private String name;
@@ -20,12 +19,23 @@ public class ProfileViewResponse {
     private String[] preferredTags;
     private boolean userSocialTF;
 
-    public ProfileViewResponse(Users user) {
+    private Double travelDistance;            // 계산된 여행 거리
+    private Integer visitedCountryCount;      // 방문한 국가 개수
+    private Integer travelBadgeCount;         // 획득한 여행 뱃지 개수
+
+    public ProfileViewResponse(Users user,
+                               Double travelDistance,
+                               Integer visitedCountryCount,
+                               Integer travelBadgeCount) {
         this.email = user.getUserEmail();
         this.name = user.getUserName();
         this.gender = user.getUserGender().name();
         this.ageGroup = user.getUserAgeGroup().getValue();
         this.userSocialTF = user.getUserSocialTF();
+
+        this.travelDistance = travelDistance != null ? travelDistance : 0.0;
+        this.visitedCountryCount = visitedCountryCount != null ? visitedCountryCount : 0;
+        this.travelBadgeCount = travelBadgeCount != null ? travelBadgeCount : 0;
 
         // userRegDate 포매팅
         if (user.getUserRegDate() != null) {
