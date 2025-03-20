@@ -12,6 +12,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserBlockDetailResponse {
     private Integer userNumber;
+    private String userEmail;
+    private String userName;
     private boolean isBlocked;
     @Nullable
     private String reason; // 현재는 사유 없어서 null

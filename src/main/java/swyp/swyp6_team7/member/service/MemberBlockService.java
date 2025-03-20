@@ -222,7 +222,7 @@ public class MemberBlockService {
                 .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
 
         if (!user.isBlocked()) {
-            return new UserBlockDetailResponse(userNumber, false, null, null);
+            return new UserBlockDetailResponse(userNumber, user.getUserEmail(), user.getUserName(), false, null, null);
         }
 
         UserBlock userBlock = userBlockRepository.findAllByUserNumberOrderByRegTs(userNumber)
@@ -231,10 +231,12 @@ public class MemberBlockService {
 
         if (userBlock != null && userBlock.getBlockType() == BlockType.BLOCK) {
             log.info("계정 정지 이력이 존재합니다.");
-            return new UserBlockDetailResponse(userNumber, true, null, userBlock.getBlockPeriod());
+            return new UserBlockDetailResponse(
+                    userNumber, user.getUserEmail(), user.getUserName(), true, null, userBlock.getBlockPeriod()
+            );
         }
 
-        return new UserBlockDetailResponse(userNumber, false, null, null);
+        return new UserBlockDetailResponse(userNumber, user.getUserEmail(), user.getUserName(), false, null, null);
     }
 
     // 계정 정지된 유저의 로그인을 위한 임시 Token
