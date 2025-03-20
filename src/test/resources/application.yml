@@ -148,3 +148,6 @@ server:
   servlet:
     encoding:
       force: true
+
+moing:
+  domain: https://localhost:8080

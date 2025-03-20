@@ -28,3 +28,6 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
+
+moing:
+  domain: https://localhost:8080

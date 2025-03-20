@@ -3,6 +3,7 @@ package swyp.swyp6_team7.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,6 +39,9 @@ public class LoginFacade {
     private final MemberService memberService;
     private final SocialLoginService socialLoginService;
     private final MemberBlockService memberBlockService;
+
+    @Value("${moing.domain}")
+    private String domain;
 
     public String getCookie(String refreshToken) {
         // 리프레시 토큰을 HttpOnly 쿠키로 설정 (TTL 7일)
@@ -82,8 +86,10 @@ public class LoginFacade {
         return new LoginTokenResponse(user, accessToken, refreshToken);
     }
 
-    public String getBlockToken(Users user) {
-        return memberBlockService.getTempToken(user);
+    public String getBlockRedirectUrl(Users user) {
+        String tempToken = memberBlockService.getTempToken(user);
+
+        return domain + "/block?token=" + tempToken;
     }
 
     public LoginTokenResponse login(LoginRequestDto loginRequestDto) {
