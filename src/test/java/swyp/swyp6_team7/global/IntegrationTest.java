@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,11 +14,13 @@ import org.springframework.web.context.WebApplicationContext;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
 import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.service.LoginFacade;
+import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
 import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
@@ -46,6 +49,12 @@ public class IntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private MemberService memberService;
+
+    @Value("${custom.admin-secret-key}")
+    private String adminSecretKey;
+
+    @Autowired
     private TravelRepository travelRepository;
 
     @Autowired
@@ -69,6 +78,21 @@ public class IntegrationTest {
         userRepository.save(user);
 
         return user;
+    }
+
+    protected void createAdminUser(
+            String userName,
+            String password
+    ) {
+        UserRequestDto requestDto = new UserRequestDto();
+        requestDto.setEmail(userName + "@test.com");
+        requestDto.setPassword(password);
+        requestDto.setName(userName);
+        requestDto.setGender("M");
+        requestDto.setAgegroup("TWENTY");
+        requestDto.setAdminSecretKey(adminSecretKey);
+
+        memberService.createAdmin(requestDto);
     }
 
     protected LoginTokenResponse login(

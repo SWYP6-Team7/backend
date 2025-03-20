@@ -213,7 +213,6 @@ public class MemberService {
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(userRequestDto.getPassword());
 
-
         // 성별 ENUM 변환
         Gender gender = Gender.valueOf(userRequestDto.getGender().toUpperCase());
 
@@ -227,7 +226,6 @@ public class MemberService {
 
         // 관리자 상태 및 역할 설정
         UserStatus status = UserStatus.ABLE;
-
 
         // 새로운 관리자 생성
         Users newAdmin = Users.builder()
@@ -259,7 +257,6 @@ public class MemberService {
         response.put("accessToken", token);
 
         return response;
-
     }
 
     public void validateEmail(String email) {
