@@ -14,12 +14,11 @@ import java.util.List;
 public class PlanCustomRepositoryImpl implements PlanCustomRepository {
 
     private final JPAQueryFactory queryFactory;
+    QPlan plan = QPlan.plan;
 
     public PlanCustomRepositoryImpl(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
-
-    QPlan plan = QPlan.plan;
 
     @Override
     public List<Plan> getPlansWithNoOffsetPagination(Integer travelNumber, Integer planOrder, Integer pageSize) {

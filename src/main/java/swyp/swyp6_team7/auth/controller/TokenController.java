@@ -1,6 +1,5 @@
 package swyp.swyp6_team7.auth.controller;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,9 +68,6 @@ public class TokenController {
                     newAccessToken
             );
             return ApiResponse.success(loginResponse);
-        } catch (ExpiredJwtException e) {
-            log.warn("만료된 Refresh Token 사용 시도: {}", refreshToken);
-            throw new MoingApplicationException("Refresh Token이 만료되었습니다. 다시 로그인 해주세요.");
         } catch (JwtException e) {
             log.error("유효하지 않은 Refresh Token 사용 시도: {}", refreshToken, e);
             throw new MoingApplicationException("Refresh Token이 유효하지 않습니다.");

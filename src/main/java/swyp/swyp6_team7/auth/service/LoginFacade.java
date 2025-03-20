@@ -18,6 +18,7 @@ import swyp.swyp6_team7.member.entity.SocialUsers;
 import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
+import swyp.swyp6_team7.member.service.MemberBlockService;
 import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
@@ -36,6 +37,7 @@ public class LoginFacade {
     private final UserLoginHistoryService userLoginHistoryService;
     private final MemberService memberService;
     private final SocialLoginService socialLoginService;
+    private final MemberBlockService memberBlockService;
 
     public String getCookie(String refreshToken) {
         // 리프레시 토큰을 HttpOnly 쿠키로 설정 (TTL 7일)
@@ -60,7 +62,7 @@ public class LoginFacade {
             throw new IllegalArgumentException("간편 로그인으로 가입된 계정입니다. 소셜 로그인으로 접속해 주세요.");
         }
 
-        checkUserIsBlocked(user);
+//        checkUserIsBlocked(user);
     }
 
     public LoginTokenResponse socialLogin(String socialLoginId, String email) {
@@ -77,7 +79,11 @@ public class LoginFacade {
 
         processUserLoginEvent(user);
 
-        return new LoginTokenResponse(user.getUserNumber(), accessToken, refreshToken);
+        return new LoginTokenResponse(user, accessToken, refreshToken);
+    }
+
+    public String getBlockToken(Users user) {
+        return memberBlockService.getTempToken(user);
     }
 
     public LoginTokenResponse login(LoginRequestDto loginRequestDto) {
@@ -100,7 +106,7 @@ public class LoginFacade {
 
         processUserLoginEvent(user);
 
-        return new LoginTokenResponse(user.getUserNumber(), accessToken, refreshToken);
+        return new LoginTokenResponse(user, accessToken, refreshToken);
     }
 
     private void processUserLoginEvent(Users user) {

@@ -1,45 +1,19 @@
 package swyp.swyp6_team7.enrollment.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
-import swyp.swyp6_team7.enrollment.service.EnrollmentService;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
-import swyp.swyp6_team7.notification.service.NotificationService;
 
-import java.time.LocalDate;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class EnrollmentControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private EnrollmentService enrollmentService;
-
-    @MockBean
-    private NotificationService notificationService;
-
+class EnrollmentControllerTest extends IntegrationTest {
 
     @DisplayName("create: 사용자는 여행 참가 신청을 할 수 있다.")
     @WithMockCustomUser
@@ -50,10 +24,6 @@ class EnrollmentControllerTest {
                 .travelNumber(1)
                 .message("여행 참가 희망")
                 .build();
-
-        doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
-
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -74,9 +44,6 @@ class EnrollmentControllerTest {
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
                 .message("여행 참가 희망")
                 .build();
-
-        doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
@@ -100,9 +67,6 @@ class EnrollmentControllerTest {
                 .message("*".repeat(1001))
                 .build();
 
-        doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
-
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -119,9 +83,6 @@ class EnrollmentControllerTest {
     @WithMockCustomUser
     @Test
     public void deleteWhenOwner() throws Exception {
-        // given
-        doNothing().when(enrollmentService).delete(any(Long.class), any(Integer.class));
-
         // when
         ResultActions resultActions = mockMvc.perform(delete("/api/enrollment/{enrollmentNumber}", 1));
 
@@ -136,9 +97,6 @@ class EnrollmentControllerTest {
     @WithMockCustomUser
     @Test
     void accept() throws Exception {
-        // given
-        doNothing().when(enrollmentService)
-                .accept(any(Long.class), any(Integer.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/acceptance", 1L)
@@ -155,9 +113,6 @@ class EnrollmentControllerTest {
     @WithMockCustomUser
     @Test
     void reject() throws Exception {
-        // given
-        doNothing().when(enrollmentService)
-                .accept(any(Long.class), any(Integer.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/rejection", 1L)

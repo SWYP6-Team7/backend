@@ -1,38 +1,17 @@
-
 package swyp.swyp6_team7.inquiry.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.Inquiry.controller.InquiryController;
-import swyp.swyp6_team7.Inquiry.dto.InquiryRequestDto;
 import swyp.swyp6_team7.Inquiry.InquiryType;
-import swyp.swyp6_team7.Inquiry.service.InquiryService;
+import swyp.swyp6_team7.Inquiry.dto.InquiryRequestDto;
+import swyp.swyp6_team7.global.IntegrationTest;
 
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class InquiryControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private InquiryService inquiryService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+class InquiryControllerTest extends IntegrationTest {
 
     @Test
     @DisplayName("1:1 문의 성공적으로 접수되는 경우")
@@ -44,9 +23,6 @@ class InquiryControllerTest {
                 "로그인 문제",
                 "로그인이 되지 않습니다."
         );
-
-
-        doNothing().when(inquiryService).sendInquiryEmail(Mockito.any(InquiryRequestDto.class));
 
         // When & Then
         mockMvc.perform(post("/api/inquiry/submit")
@@ -85,10 +61,6 @@ class InquiryControllerTest {
                 "서비스 문의",
                 "서비스 사용법을 알고 싶습니다."
         );
-
-
-        Mockito.doThrow(new RuntimeException("이메일 발송 실패"))
-                .when(inquiryService).sendInquiryEmail(Mockito.any(InquiryRequestDto.class));
 
         // When & Then
         mockMvc.perform(post("/api/inquiry/submit")

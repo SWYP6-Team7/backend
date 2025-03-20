@@ -40,7 +40,7 @@ public class SocialLoginController {
 
         // 액세스 토큰을 JSON 응답으로 반환
         LoginResponse loginResponse = new LoginResponse(
-                tokenResponse.getUserNumber(),
+                tokenResponse.getUser().getUserNumber(),
                 accessToken
         );
         return ApiResponse.success(loginResponse);

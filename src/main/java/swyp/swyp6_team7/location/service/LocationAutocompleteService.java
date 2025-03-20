@@ -1,13 +1,11 @@
 package swyp.swyp6_team7.location.service;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.repository.LocationRepository;
-import swyp.swyp6_team7.location.util.KoreanCharDecomposer;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
