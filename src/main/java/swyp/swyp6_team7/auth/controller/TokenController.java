@@ -11,14 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.auth.dto.LoginResponse;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.auth.service.TokenService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.exception.MoingAuthenticationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/token")
@@ -50,9 +49,9 @@ public class TokenController {
 
         try {
             // Refresh Token으로 새로운 Access Token과 Refresh Token(회전) 발급
-            Map<String, String> newTokens = tokenService.refreshWithLock(refreshToken);
-            String newAccessToken = newTokens.get("accessToken");
-            String newRefreshToken = newTokens.get("refreshToken");
+            LoginTokenResponse newTokens = tokenService.refreshWithLock(refreshToken);
+            String newAccessToken = newTokens.getAccessToken();
+            String newRefreshToken = newTokens.getRefreshToken();
 
             // 새로운 Refresh Token을 HttpOnly 쿠키로 갱신
             ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
@@ -65,7 +64,9 @@ public class TokenController {
 
             LoginResponse loginResponse = new LoginResponse(
                     jwtProvider.getUserNumber(newAccessToken),
-                    newAccessToken
+                    newTokens.getUser().getUserStatus(),
+                    newAccessToken,
+                    null
             );
             return ApiResponse.success(loginResponse);
         } catch (JwtException e) {
