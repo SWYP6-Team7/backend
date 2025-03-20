@@ -7,14 +7,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +44,7 @@ public class TokenService {
     }
 
     // 분산 락을 사용해 Refresh Token으로 새로운 토큰 발급 (Token Rotation)
-    public Map<String, String> refreshWithLock(String providedRefreshToken) {
+    public LoginTokenResponse refreshWithLock(String providedRefreshToken) {
         log.info("refreshWithLock 메서드 호출: refreshToken={}", providedRefreshToken);
 
         // JWT 검증 및 Refresh Token 디코딩
@@ -54,6 +53,11 @@ public class TokenService {
             throw new JwtException("유효하지 않은 RefreshToken입니다.");
         }
         Integer userNumber = jwtProvider.getUserNumber(providedRefreshToken);
+        Users user = userRepository.findByUserNumber(userNumber)
+                .orElseThrow(() -> {
+                    log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber);
+                });
 
         // Redis에 저장된 Refresh Token과 일치하는지 확인
         String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_STORE_PREFIX + userNumber);
@@ -68,7 +72,7 @@ public class TokenService {
         String cachedAccessToken = redisTemplate.opsForValue().get(cacheKey);
         if (cachedAccessToken != null) {
             log.info("Redis 캐시에서 AccessToken 반환: {}", cachedAccessToken);
-            return Map.of("accessToken", cachedAccessToken, "refreshToken", providedRefreshToken);
+            return new LoginTokenResponse(user, cachedAccessToken, providedRefreshToken);
         }
 
         // 분산 락 획득 (동시 요청 방지)
@@ -79,12 +83,6 @@ public class TokenService {
         }
 
         try {
-            // 사용자 조회
-            Users user = userRepository.findByUserNumber(userNumber)
-                    .orElseThrow(() -> {
-                        log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
-                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber);
-                    });
 
             // 새로운 Access Token과 Refresh Token(회전) 발급
             String newAccessToken = jwtProvider.createAccessToken(userNumber, List.of("ROLE_USER"));
@@ -98,11 +96,12 @@ public class TokenService {
             redisTemplate.opsForValue().set(cacheKey, newAccessToken, Duration.ofSeconds(remainingValidity));
             log.info("Redis에 새 Access Token  캐싱 완료: cacheKey={}, TTL={}초", cacheKey, remainingValidity);
 
-
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", newAccessToken);
-            tokens.put("refreshToken", newRefreshToken);
-            return tokens;
+            LoginTokenResponse tokenResponse = new LoginTokenResponse(
+                    user,
+                    newAccessToken,
+                    newRefreshToken
+            );
+            return tokenResponse;
         } finally {
             releaseLock(lockKey);
             log.info("Lock 해제 완료: lockKey={}", lockKey);

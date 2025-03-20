@@ -32,17 +32,13 @@ public class LoginController {
 
         Users user = tokenResponse.getUser();
         if (user.isBlocked()) {
-            String token = loginFacade.getBlockToken(user);
-            String redirectUrl = "https://www.alpha.moing.io/block?token=" + token;
+            String redirectUrl = loginFacade.getBlockRedirectUrl(user);
 
-            try {
-                response.sendRedirect(redirectUrl);
-            } catch (Exception e) {
-                log.error("정지된 유저의 화면 이동에 실패했습니다.");
-            }
             return ApiResponse.success(new LoginResponse(
                     user.getUserNumber(),
-                    null
+                    user.getUserStatus(),
+                    null,
+                    redirectUrl
             ));
         }
 
@@ -55,7 +51,9 @@ public class LoginController {
         // Access Token과 userId를 포함하는 JSON 응답 반환
         LoginResponse loginResponse = new LoginResponse(
                 user.getUserNumber(),
-                accessToken
+                user.getUserStatus(),
+                accessToken,
+                null
         );
         log.info("로그인 성공 - userNumber: {}", user.getUserNumber());
         return ApiResponse.success(loginResponse);
