@@ -79,6 +79,7 @@ public class LoginFacade {
         );
         String refreshToken = jwtProvider.createRefreshToken(user.getUserNumber());
         log.info("JWT 토큰 생성 완료: accessToken={}, refreshToken=****", accessToken);
+        tokenService.storeRefreshToken(user.getUserNumber(), refreshToken);
 
         processUserLoginEvent(user);
 
