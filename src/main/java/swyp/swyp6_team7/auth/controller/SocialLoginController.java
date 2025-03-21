@@ -27,10 +27,9 @@ public class SocialLoginController {
             HttpServletResponse response
     ) {
         String socialLoginId = loginRequest.getSocialLoginId();
-        String email = loginRequest.getEmail();
-        log.info("소셜 로그인 요청: socialLoginID={}, email={}", socialLoginId, email);
+        log.info("소셜 로그인 요청: socialLoginID={}", socialLoginId);
 
-        LoginTokenResponse tokenResponse = loginFacade.socialLogin(socialLoginId, email);
+        LoginTokenResponse tokenResponse = loginFacade.socialLogin(socialLoginId);
         String accessToken = tokenResponse.getAccessToken();
         String refreshToken = tokenResponse.getRefreshToken();
 
