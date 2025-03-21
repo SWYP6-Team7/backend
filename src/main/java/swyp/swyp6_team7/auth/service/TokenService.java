@@ -4,9 +4,7 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.member.entity.Users;
@@ -56,7 +54,7 @@ public class TokenService {
         Users user = userRepository.findByUserNumber(userNumber)
                 .orElseThrow(() -> {
                     log.error("사용자를 찾을 수 없음: userNumber={}", userNumber);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다. userNumber: " + userNumber);
+                    return new JwtException("사용자를 찾을 수 없습니다. userNumber: " + userNumber);
                 });
 
         // Redis에 저장된 Refresh Token과 일치하는지 확인
