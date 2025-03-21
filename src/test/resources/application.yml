@@ -140,7 +140,7 @@ cloud:
       bucket: bucket-name
       base-folder: images/
     region:
-      static: ap-northeast-2
+      static: region
     stack:
       auto: false
 
