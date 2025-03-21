@@ -59,6 +59,7 @@ public class TokenService {
 
         // Redis에 저장된 Refresh Token과 일치하는지 확인
         String storedRefreshToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_STORE_PREFIX + userNumber);
+        log.info("Stored RefreshToken: {}", storedRefreshToken);
         if (storedRefreshToken == null || !storedRefreshToken.equals(providedRefreshToken)) {
             throw new JwtException("저장된 Refresh Token과 일치하지 않습니다.");
         }

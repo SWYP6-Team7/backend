@@ -1,13 +1,11 @@
 package swyp.swyp6_team7.image.controller;
 
 import org.junit.jupiter.api.*;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
-import swyp.swyp6_team7.config.RedisContainerConfig;
 import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.image.dto.request.ImageUpdateByDefaultProfileRequest;
 import swyp.swyp6_team7.image.dto.request.TempDeleteRequestDto;
@@ -18,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
-@Import(RedisContainerConfig.class)
 class ImageProfileControllerTest extends IntegrationTest {
 
     private String accessToken;
