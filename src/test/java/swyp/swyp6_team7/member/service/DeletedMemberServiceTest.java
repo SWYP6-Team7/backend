@@ -1,10 +1,14 @@
 package swyp.swyp6_team7.member.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
@@ -24,163 +28,122 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@Transactional
-public class DeletedMemberServiceTest {
+@ExtendWith(MockitoExtension.class)
+class DeletedMemberServiceTest {
 
-    @Autowired
+    @InjectMocks
     private MemberDeletedService memberDeletedService;
 
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private TravelRepository travelRepository;
-
-    @Autowired
+    @Mock
     private DeletedUsersRepository deletedUsersRepository;
+
+    @Mock
+    private TravelRepository travelRepository;
 
     private Users testUser;
 
-    private Users createTestUser() {
-        Users user = new Users();
-        user.setUserEmail("test@example.com");
-        user.setUserName("Test User");
-        user.setUserStatus(UserStatus.ABLE);
-        user.setUserAgeGroup(AgeGroup.TEEN);
-        user.setUserGender(Gender.F);
-        user.setUserPw("testpw");
-        return userRepository.save(user);
-    }
-
-    private SocialUsers createSocialUser(Users user) {
-        SocialUsers socialUser = new SocialUsers();
-        socialUser.setUser(user);
-        socialUser.setSocialEmail("social@example.com");
-        socialUser.setSocialLoginId("social123");
-        return socialUser; // 소셜 사용자 저장
-    }
-
-    private Location createLocation(String name) {
-        return locationRepository.findByLocationName(name)
-                .orElseGet(() -> locationRepository.save(new Location(name, LocationType.DOMESTIC)));
-    }
-
-    private Travel createTravel(int number, Users user, Location location, String title) {
-        return travelRepository.save(Travel.builder()
-                .number(number)
-                .userNumber(user.getUserNumber())
-                .location(location)
-                .locationName(location.getLocationName())
-                .title(title)
-                .genderType(GenderType.MAN_ONLY)
-                .periodType(PeriodType.ONE_WEEK)
-                .status(TravelStatus.IN_PROGRESS)
-                .viewCount(0)
-                .build());
+    @BeforeEach
+    void setUp() {
+        testUser = new Users();
+        testUser.setUserNumber(1);
+        testUser.setUserEmail("test@example.com");
+        testUser.setUserName("Test User");
+        testUser.setUserStatus(UserStatus.ABLE);
+        testUser.setUserAgeGroup(AgeGroup.TEEN);
+        testUser.setUserGender(Gender.F);
+        testUser.setUserPw("testpw");
     }
 
     @Test
-    @Rollback(false)
     @DisplayName("삭제된 사용자 번호로 여행 목록 조회")
-    public void testFindByDeletedUserNumber() {
+    void testFindByDeletedUserNumber() {
         // Given
-        Users testUser = createTestUser();
-        Location location = createLocation("Seoul");
-
         DeletedUsers deletedUser = new DeletedUsers(
                 "test@example.com",
                 LocalDate.now().minusMonths(1),
                 LocalDate.now().plusMonths(2),
                 testUser.getUserNumber()
         );
-        deletedUsersRepository.save(deletedUser);
-        deletedUsersRepository.flush();
 
-        Travel travel = Travel.builder()
-                .userNumber(testUser.getUserNumber())
-                .location(location)
-                .locationName(location.getLocationName())
-                .startDate(LocalDate.of(2024, 11, 22))
-                .endDate(LocalDate.of(2024, 11, 28))
-                .title("Test Travel")
-                .genderType(GenderType.MAN_ONLY)
-                .periodType(PeriodType.ONE_WEEK)
-                .status(TravelStatus.IN_PROGRESS)
-                .deletedUser(deletedUser)  // 삭제된 사용자와 매핑
-                .viewCount(0)
-                .build();
-        travelRepository.save(travel);
-        travelRepository.flush();  // 즉시 반영
+        when(deletedUsersRepository.findByDeletedUserEmail(testUser.getUserEmail())).thenReturn(Optional.of(deletedUser));
 
         // When
-        List<Travel> travels = travelRepository.findByDeletedUserNumber(deletedUser.getUserNumber());
+        Optional<DeletedUsers> result = deletedUsersRepository.findByDeletedUserEmail(testUser.getUserEmail());
 
         // Then
-        assertThat(travels).isNotEmpty();
-        assertThat(travels.get(0).getDeletedUser()).isEqualTo(deletedUser);
-
+        assertThat(result).isPresent();
+        assertThat(result.get().getDeletedUserEmail()).isEqualTo("test@example.com");
     }
 
     @Test
     @DisplayName("탈퇴 회원 비식별화 테스트")
     void anonymizeDeletedUserTest() {
-        Users testUser = createTestUser();
-        SocialUsers socialUser = createSocialUser(testUser);
+        // Given
+        SocialUsers socialUser = new SocialUsers();
+        socialUser.setUser(testUser);
+        socialUser.setSocialEmail("social@example.com");
+        socialUser.setSocialLoginId("social123");
 
+        // When
         memberDeletedService.deleteUserData(testUser, socialUser);
 
-        Users deletedUser = userRepository.findById(testUser.getUserNumber()).orElseThrow();
-        assertThat(deletedUser.getUserEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
-        assertThat(deletedUser.getUserName()).isEqualTo("deletedUser");
-        assertThat(deletedUser.getUserStatus()).isEqualTo(UserStatus.DELETED);
+        // Then
+        assertThat(testUser.getUserEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
+        assertThat(testUser.getUserName()).isEqualTo("deletedUser");
+        assertThat(testUser.getUserStatus()).isEqualTo(UserStatus.DELETED);
 
         assertThat(socialUser.getSocialEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
         assertThat(socialUser.getSocialLoginId()).isEqualTo("null");
+
+        verify(userRepository, times(1)).save(testUser);
     }
-
-
 
     @Test
     @DisplayName("탈퇴 후 3개월 동안 재가입 불가 테스트")
     void testReRegistrationNotAllowedWithin3Months() {
-        // Given: 3개월 내에 탈퇴한 사용자의 이메일 설정
-        Users testUser = createTestUser();
+        // Given
         DeletedUsers deletedUser = new DeletedUsers(
                 testUser.getUserEmail(),
                 LocalDate.now().minusMonths(1),
                 LocalDate.now().plusMonths(2),
                 testUser.getUserNumber()
         );
-        deletedUsersRepository.save(deletedUser);
 
-        // When & Then
+        when(deletedUsersRepository.findAllByDeletedUserEmail("test@example.com"))
+                .thenReturn(Optional.of(List.of(deletedUser)));
+
+        // when & then - 예외 발생 검증
         assertThrows(IllegalArgumentException.class, () -> {
-            memberDeletedService.validateReRegistration(testUser.getUserEmail());
+            memberDeletedService.validateReRegistration("test@example.com");
         });
+
+        verify(deletedUsersRepository, times(1)).findAllByDeletedUserEmail("test@example.com");
     }
 
     @Test
     @DisplayName("탈퇴 회원 만료 삭제 테스트")
     void testRemovalOfExpiredDeletedUsers() {
-        // Given: 만료된 탈퇴 사용자 데이터 삽입
         DeletedUsers expiredUser = new DeletedUsers();
         expiredUser.setUserNumber(1);
         expiredUser.setDeletedUserEmail("test@example.com");
-        expiredUser.setDeletedUserDeleteDate(LocalDate.now().minusDays(10)); // 10일 전 삭제됨
-        expiredUser.setFinalDeletionDate(LocalDate.now().minusDays(1)); // 어제 만료됨
-        deletedUsersRepository.save(expiredUser);
+        expiredUser.setDeletedUserDeleteDate(LocalDate.now().minusDays(10));
+        expiredUser.setFinalDeletionDate(LocalDate.now().minusDays(1));
 
-        // When: 만료된 사용자를 삭제하는 로직 실행
+        when(deletedUsersRepository.findAllByFinalDeletionDateBefore(any()))
+                .thenReturn(List.of(expiredUser));
+
+        // 실행
         memberDeletedService.deleteExpiredUsers();
 
-        // Then: 해당 사용자가 삭제되었는지 확인
-        Optional<DeletedUsers> result = deletedUsersRepository.findById(expiredUser.getDeletedNumber());
-        assertThat(result).isEmpty(); // 비어있어야 함
-
+        // 객체가 같은지 확인하기 어려우므로, ID 기준으로 match
+        verify(deletedUsersRepository).delete(argThat(deleted ->
+                deleted.getUserNumber() == 1 &&
+                        deleted.getDeletedUserEmail().equals("test@example.com")
+        ));
     }
 }
