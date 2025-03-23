@@ -11,8 +11,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.test.context.support.WithMockUser;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
+import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.global.utils.auth.MemberAuthorizeUtil;
+import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 
@@ -33,6 +36,8 @@ public class TravelAppliedControllerTest extends IntegrationTest {
     private final String BEARER_TOKEN = "Bearer test-token";
     @MockBean
     private TravelAppliedService travelAppliedService;
+    @MockBean
+    private JwtProvider jwtProvider;
 
     @DisplayName("사용자가 신청한 여행 목록을 조회한다")
     @WithMockUser
@@ -41,11 +46,13 @@ public class TravelAppliedControllerTest extends IntegrationTest {
         // given
         String token = "Bearer test-token";
         Integer userNumber = 1;
+
+        when(jwtProvider.validateToken(Mockito.anyString())).thenReturn(true);
+
         Pageable pageable = PageRequest.of(0, 5);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
         LocalDateTime createdAt = LocalDateTime.parse("2024-10-02 21:56", dateTimeFormatter);
+
 
         TravelListResponseDto responseDto = TravelListResponseDto.builder()
                 .travelNumber(25)
@@ -89,6 +96,7 @@ public class TravelAppliedControllerTest extends IntegrationTest {
         // given
         int userNumber = 1;
         int travelNumber = 2;
+        when(jwtProvider.validateToken(Mockito.anyString())).thenReturn(true);
 
         try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
             mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);

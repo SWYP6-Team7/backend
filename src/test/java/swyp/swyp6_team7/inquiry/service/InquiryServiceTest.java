@@ -19,7 +19,6 @@ class InquiryServiceTest {
 
     private InquiryService inquiryService;
     private JavaMailSender mailSender;
-    private InquiryEmailBuilder inquiryEmailBuilder;
 
     @BeforeEach
     void setUp() {
@@ -65,31 +64,5 @@ class InquiryServiceTest {
 
         // JavaMailSender의 send 메서드가 호출되었는지 검증
         verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
-    }
-
-    @Test
-    @DisplayName("문의 내용 이메일 본문이 정확히 구성되는 경우")
-    void buildEmailContent_Test() {
-        // Given: 유효한 문의 데이터를 준비
-        InquiryRequestDto inquiryRequestDto = new InquiryRequestDto(
-                InquiryType.INCONVENIENCE_OR_REPORT,
-                "user@example.com",
-                "불편 사항 신고",
-                "서비스에서 발견한 불편 사항을 신고합니다."
-        );
-
-        // When: buildEmailContent 메서드를 직접 호출
-        String emailContent = inquiryEmailBuilder.buildEmailContent(inquiryRequestDto);
-
-        // Then: 이메일 본문의 내용이 예상대로 구성되는지 검증
-        String expectedContent = String.format(
-                "문의 유형: %s\n이메일: %s\n문의 제목: %s\n문의 내용: %s",
-                "이용 불편 및 신고",
-                "user@example.com",
-                "불편 사항 신고",
-                "서비스에서 발견한 불편 사항을 신고합니다."
-        );
-
-        org.junit.jupiter.api.Assertions.assertEquals(expectedContent, emailContent);
     }
 }

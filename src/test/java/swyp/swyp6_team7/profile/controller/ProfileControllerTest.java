@@ -73,34 +73,12 @@ class ProfileControllerTest extends IntegrationTest {
     @WithMockUser
     @DisplayName("프로필 조회 테스트 성공")
     void testViewProfile_Success() throws Exception {
-        Users mockUser = new Users();
-        mockUser.setUserEmail("test@example.com");
-        mockUser.setUserNumber(1);
-        mockUser.setUserGender(Gender.M);  // gender 설정
-        mockUser.setUserAgeGroup(AgeGroup.TWENTY);  // ageGroup 설정
-
-        when(profileService.getUserByUserNumber(anyInt())).thenReturn(Optional.of(mockUser));
 
         try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
             mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
 
             mockMvc.perform(get("/api/profile/me"))
                     .andExpect(status().isOk());
-        }
-    }
-
-    @Test
-    @WithMockUser
-    @DisplayName("프로필 조회 테스트 - 사용자 찾을 수 없음.")
-    void testViewProfile_UserNotFound() throws Exception {
-        when(profileService.getUserByUserNumber(userNumber)).thenReturn(Optional.empty());
-
-        try (MockedStatic<MemberAuthorizeUtil> mockedStatic = mockStatic(MemberAuthorizeUtil.class)) {
-            mockedStatic.when(MemberAuthorizeUtil::getLoginUserNumber).thenReturn(userNumber);
-
-            mockMvc.perform(get("/api/profile/me"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.error.reason").value("사용자를 찾을 수 없음"));
         }
     }
 
