@@ -2,17 +2,23 @@ package swyp.swyp6_team7.inquiry.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import swyp.swyp6_team7.Inquiry.InquiryType;
 import swyp.swyp6_team7.Inquiry.dto.InquiryRequestDto;
+import swyp.swyp6_team7.Inquiry.service.InquiryService;
 import swyp.swyp6_team7.global.IntegrationTest;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class InquiryControllerTest extends IntegrationTest {
 
+    @MockBean
+    private InquiryService inquiryService;
     @Test
     @DisplayName("1:1 문의 성공적으로 접수되는 경우")
     void submitInquiry_Success() throws Exception {
@@ -23,6 +29,7 @@ class InquiryControllerTest extends IntegrationTest {
                 "로그인 문제",
                 "로그인이 되지 않습니다."
         );
+        doNothing().when(inquiryService).sendInquiryEmail(any(InquiryRequestDto.class));
 
         // When & Then
         mockMvc.perform(post("/api/inquiry/submit")
@@ -61,6 +68,8 @@ class InquiryControllerTest extends IntegrationTest {
                 "서비스 문의",
                 "서비스 사용법을 알고 싶습니다."
         );
+
+        doThrow(new RuntimeException("메일 발송 실패")).when(inquiryService).sendInquiryEmail(any(InquiryRequestDto.class));
 
         // When & Then
         mockMvc.perform(post("/api/inquiry/submit")

@@ -59,38 +59,13 @@ public class CommunityController {
             @RequireUserNumber Integer userNumber
     ) {
         // TODO: Service layer 로 로직 이동
-
-        if (principal == null) {
-            log.info("비회원 커뮤니티 목록 조회 요청");
-        } else {
-            log.info("회원 커뮤니티 목록 조회 요청 - userNumber: {}", userNumber);
-        }
         PageRequest pageRequest = PageRequest.of(page, size);
 
-        Integer categoryNumber = null;
-        if (categoryName != null && !categoryName.equals("전체")) {
-            categoryNumber = categoryRepository.findByCategoryName(categoryName)
-                    .map(Category::getCategoryNumber)
-                    .orElse(null);
-            if (categoryNumber == null) {
-                log.warn("유효하지 않은 카테고리 이름: {}", categoryName);
-                return ApiResponse.success(Page.empty()); //빈 페이지 반환
-            }
-            log.info("커뮤니티 목록 조회 - 카테고리 이름: {}, 카테고리 번호: {}", categoryName, categoryNumber);
-        }
+        Integer categoryNumber = categoryRepository.findByCategoryName(categoryName)
+                .map(Category::getCategoryNumber)
+                .orElse(null);;
 
-        CommunitySearchSortingType sortingType;
-        try {
-            sortingType = CommunitySearchSortingType.of(sortingTypeName);
-            if (sortingTypeName == null || sortingTypeName.isEmpty()) {
-                log.error("정렬 기준이 null 또는 빈 문자열입니다.");
-                return ApiResponse.success(Page.empty());  // 빈 페이지 반환
-            }
-            log.info("커뮤니티 목록 조회 시 정렬 기준: {}", sortingType.getDescription());
-        } catch (IllegalArgumentException e) {
-            log.error("커뮤니티 목록 조회 시 잘못된 정렬 기준: {}", sortingTypeName, e);
-            return ApiResponse.success(Page.empty());  // 빈 페이지 반환
-        }
+        CommunitySearchSortingType sortingType = CommunitySearchSortingType.of(sortingTypeName);;
 
         // 검색 조건 설정
         CommunitySearchCondition condition = CommunitySearchCondition.builder()
@@ -116,7 +91,6 @@ public class CommunityController {
             throw new MoingApplicationException("조회 결과를 불러올 수 없습니다. 관리자에게 문의하세요.");
         }
     }
-
 
     //R
     @GetMapping("/posts/{postNumber}")
