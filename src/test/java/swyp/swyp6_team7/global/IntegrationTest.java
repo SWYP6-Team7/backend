@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -14,6 +15,10 @@ import org.springframework.web.context.WebApplicationContext;
 import swyp.swyp6_team7.auth.dto.LoginRequestDto;
 import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.service.LoginFacade;
+import swyp.swyp6_team7.config.RedisContainerConfig;
+import swyp.swyp6_team7.location.domain.Location;
+import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
@@ -21,14 +26,21 @@ import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberService;
+import swyp.swyp6_team7.travel.domain.GenderType;
+import swyp.swyp6_team7.travel.domain.PeriodType;
 import swyp.swyp6_team7.travel.domain.Travel;
+import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
+
+import java.time.LocalDate;
+import java.util.Optional;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Import(RedisContainerConfig.class)
 @ActiveProfiles("test")
 @Slf4j
 public class IntegrationTest {
@@ -59,6 +71,9 @@ public class IntegrationTest {
 
     @Autowired
     private LoginFacade loginFacade;
+
+    @Autowired
+    private LocationRepository locationRepository;
 
     protected Users createUser(
             String userName,
@@ -107,9 +122,36 @@ public class IntegrationTest {
         return tokenResponse;
     }
 
-    protected Travel createTravel(int hostNumber) {
+    protected Location createLocation(String locationName) {
+        Optional<Location> locationPrev = locationRepository.findByLocationName(locationName);
+        if (locationPrev.isPresent()) {
+            return locationPrev.get();
+        }
+
+        Location newLocation = Location.builder()
+                .locationName(locationName)
+                .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
+                .build();
+
+        return locationRepository.save(newLocation);
+    }
+
+    protected Travel createTravel(int hostNumber, String locationName) {
+        Location location = createLocation(locationName);
+
         Travel travel = Travel.builder()
                 .userNumber(hostNumber)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(7))
+                .locationName(locationName)
+                .location(location)
+                .title("여행 타이틀 " + hostNumber)
+                .details("여행 상세 " + hostNumber)
+                .viewCount(0)
+                .maxPerson(3)
+                .genderType(GenderType.MIXED)
+                .periodType(PeriodType.ONE_WEEK)
+                .status(TravelStatus.IN_PROGRESS)
                 .build();
 
         travelRepository.save(travel);

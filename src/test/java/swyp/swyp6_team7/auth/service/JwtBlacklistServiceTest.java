@@ -7,8 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
+import swyp.swyp6_team7.global.IntegrationTest;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
@@ -17,7 +17,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class JwtBlacklistServiceTest {
+public class JwtBlacklistServiceTest extends IntegrationTest {
+
 
     private JwtProvider jwtProvider;
     private JwtBlacklistService jwtBlacklistService;

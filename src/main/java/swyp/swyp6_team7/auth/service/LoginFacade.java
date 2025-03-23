@@ -24,7 +24,6 @@ import swyp.swyp6_team7.member.service.MemberService;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -69,9 +68,9 @@ public class LoginFacade {
 //        checkUserIsBlocked(user);
     }
 
-    public LoginTokenResponse socialLogin(String socialLoginId, String email) {
+    public LoginTokenResponse socialLogin(String socialLoginId) {
         // 소셜 사용자 정보 확인
-        Users user = getUserBySocialInfo(socialLoginId, email);
+        Users user = getUserBySocialInfo(socialLoginId);
 
         // JWT 토큰 생성
         String accessToken = jwtProvider.createAccessToken(
@@ -80,6 +79,7 @@ public class LoginFacade {
         );
         String refreshToken = jwtProvider.createRefreshToken(user.getUserNumber());
         log.info("JWT 토큰 생성 완료: accessToken={}, refreshToken=****", accessToken);
+        tokenService.storeRefreshToken(user.getUserNumber(), refreshToken);
 
         processUserLoginEvent(user);
 
@@ -137,7 +137,7 @@ public class LoginFacade {
 
     }
 
-    public Users getUserBySocialInfo(String socialLoginId, String email) {
+    public Users getUserBySocialInfo(String socialLoginId) {
         Optional<SocialUsers> socialUserOpt = socialLoginService.findSocialUserByLoginId(socialLoginId);
 
         if (socialUserOpt.isEmpty()) {
@@ -152,11 +152,6 @@ public class LoginFacade {
         if (user.getUserStatus() == UserStatus.DELETED) {
             log.info("소셜 로그인 실패 - 삭제된 계정: userNumber={}, email={}", user.getUserNumber(), user.getUserEmail());
             throw new MoingApplicationException("해당 계정은 탈퇴된 상태입니다. 자세한 사항은 관리자에 문의하세요.");
-        }
-
-        if (!Objects.equals(user.getUserEmail(), email)) {
-            log.info("소셜 로그인 실패 - 일치하지 않는 이메일. userNumber={}, email={}", user.getUserNumber(), user.getUserEmail());
-            throw new MoingApplicationException("계정 정보가 일치하지 않습니다. 이메일을 확인해주세요");
         }
 
         return user;

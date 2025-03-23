@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
 public class RedisContainerConfig {
 
     private static final int REDIS_PORT = 6379;
-    
+
     @Bean
     public GenericContainer<?> redisContainer() {
         GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse("redis:latest"))
