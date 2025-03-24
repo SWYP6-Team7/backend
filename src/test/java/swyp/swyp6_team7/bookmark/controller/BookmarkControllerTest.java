@@ -23,7 +23,7 @@ public class BookmarkControllerTest extends IntegrationTest {
         LoginTokenResponse tokenResponse = login("test@test.com", "password");
         jwtToken = tokenResponse.getAccessToken();
 
-        createTravel(user.getUserNumber(), "파리");
+        createTravel(1, "파리");
     }
 
     @Test
@@ -44,25 +44,6 @@ public class BookmarkControllerTest extends IntegrationTest {
     @DisplayName("사용자 북마크 목록 조회 테스트")
     @Order(2)
     void testGetBookmarks() throws Exception {
-//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-//
-//        LocalDateTime createdAt = LocalDateTime.parse("2024-10-02 21:56", dateTimeFormatter);
-//        BookmarkResponse response = new BookmarkResponse(
-//                1,
-//                "제목",
-//                "제주",
-//                1,
-//                "작성자",
-//                List.of("가성비", "핫플"),
-//                1,
-//                4,
-//                createdAt,
-//                true);
-//
-//        List<BookmarkResponse> responses = List.of(response);
-//        PageRequest pageable = PageRequest.of(0, 5);
-//        Page<BookmarkResponse> pageResponse = new PageImpl<>(responses, pageable, responses.size());
-
         mockMvc.perform(get("/api/bookmarks")
                         .header("Authorization", "Bearer " + jwtToken)
                         .param("page", "0")

@@ -17,6 +17,7 @@ public class LikeNotificationService {
     private final NotificationRepository notificationRepository;
 
     // Community Post Like 알림 생성
+    @Transactional
     public void createCommunityPostLikeNotification(Community targetPost) {
         CommunityPostLikeNotification notification = notificationRepository
                 .findCommunityPostLikeNotificationByPostNumber(targetPost.getPostNumber());
@@ -24,7 +25,7 @@ public class LikeNotificationService {
         // to 게시물 작성자
         // 기존 좋아요 알림이 있는 경우 -> 기존 데이터를 이용해 새로 알림을 생성
         CommunityPostLikeNotification newNotification;
-        if (notification == null){
+        if (notification == null) {
             newNotification = CommunityPostLikeNotification.create(targetPost, 1);
         } else {
             newNotification = CommunityPostLikeNotification.create(targetPost, notification.getNotificationCount() + 1);
