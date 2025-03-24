@@ -20,8 +20,6 @@ import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
-import java.security.Principal;
-
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -55,7 +53,6 @@ public class CommunityController {
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "categoryName", defaultValue = "전체") String categoryName,
             @RequestParam(name = "sortingTypeName", defaultValue = "최신순") String sortingTypeName,
-            Principal principal,
             @RequireUserNumber Integer userNumber
     ) {
         // TODO: Service layer 로 로직 이동
@@ -63,9 +60,14 @@ public class CommunityController {
 
         Integer categoryNumber = categoryRepository.findByCategoryName(categoryName)
                 .map(Category::getCategoryNumber)
-                .orElse(null);;
+                .orElse(null);
 
-        CommunitySearchSortingType sortingType = CommunitySearchSortingType.of(sortingTypeName);;
+        // 전체 요청이면 CategoryNumber 로 조회 X
+        if (categoryName.equals("전체")) {
+            categoryNumber = null;
+        }
+
+        CommunitySearchSortingType sortingType = CommunitySearchSortingType.of(sortingTypeName);
 
         // 검색 조건 설정
         CommunitySearchCondition condition = CommunitySearchCondition.builder()
