@@ -157,4 +157,8 @@ public class IntegrationTest {
         travelRepository.save(travel);
         return travel;
     }
+
+    protected void deleteTravel(int travelId) {
+        travelRepository.deleteById(travelId);
+    }
 }

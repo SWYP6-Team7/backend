@@ -8,6 +8,7 @@ import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.travel.domain.Travel;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EnrollmentControllerTest extends IntegrationTest {
 
     private static String jwtToken;
+    private static int travelId;
     private static String ownerJwtToken;
 
     @BeforeAll
@@ -30,7 +32,13 @@ class EnrollmentControllerTest extends IntegrationTest {
         LoginTokenResponse tokenResponse2 = login("enrollment@test.com", "password");
         ownerJwtToken = tokenResponse2.getAccessToken();
 
-        createTravel(user.getUserNumber(), "파리");
+        Travel travel = createTravel(user.getUserNumber(), "파리");
+        travelId = travel.getNumber();
+    }
+
+    @AfterAll
+    public void tearDown() {
+        deleteTravel(travelId);
     }
 
     @DisplayName("create: 사용자는 여행 참가 신청을 할 수 있다.")
@@ -39,7 +47,7 @@ class EnrollmentControllerTest extends IntegrationTest {
     public void create() throws Exception {
         // given
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
-                .travelNumber(1)
+                .travelNumber(travelId)
                 .message("여행 참가 희망")
                 .build();
         // when
@@ -83,7 +91,7 @@ class EnrollmentControllerTest extends IntegrationTest {
     public void createWithLongMessage() throws Exception {
         // given
         EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
-                .travelNumber(1)
+                .travelNumber(travelId)
                 .message("*".repeat(1001))
                 .build();
 
@@ -101,8 +109,7 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("delete: 신청자는 참가 신청을 삭제할 수 있다")
-    @Transactional
-    @Order(4)
+    @Order(6)
     @Test
     public void deleteWhenOwner() throws Exception {
         // when
@@ -120,7 +127,7 @@ class EnrollmentControllerTest extends IntegrationTest {
 
     @DisplayName("accept: 여행 참가 신청을 수락할 수 있다.")
     @Transactional
-    @Order(5)
+    @Order(4)
     @Test
     void accept() throws Exception {
         // when
@@ -137,7 +144,7 @@ class EnrollmentControllerTest extends IntegrationTest {
 
     @DisplayName("reject: 여행 참가 신청을 거절할 수 있다.")
     @Transactional
-    @Order(6)
+    @Order(5)
     @Test
     void reject() throws Exception {
 
