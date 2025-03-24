@@ -136,17 +136,17 @@ public class IntegrationTest {
         return locationRepository.save(newLocation);
     }
 
-    protected Travel createTravel(int hostNumber, String locationName) {
+    protected Travel createTravel(int userNumber, String locationName) {
         Location location = createLocation(locationName);
 
         Travel travel = Travel.builder()
-                .userNumber(hostNumber)
+                .userNumber(userNumber)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(7))
                 .locationName(locationName)
                 .location(location)
-                .title("여행 타이틀 " + hostNumber)
-                .details("여행 상세 " + hostNumber)
+                .title("여행 타이틀 " + userNumber)
+                .details("여행 상세 " + userNumber)
                 .viewCount(0)
                 .maxPerson(3)
                 .genderType(GenderType.MIXED)

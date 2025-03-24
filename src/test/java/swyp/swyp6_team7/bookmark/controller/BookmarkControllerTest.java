@@ -16,14 +16,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BookmarkControllerTest extends IntegrationTest {
 
     private static String jwtToken;
+    private static int userNumber;
 
     @BeforeAll
     public void setUp() {
-        Users user = createUser("test", "password");
-        LoginTokenResponse tokenResponse = login("test@test.com", "password");
+        Users user = createUser("travel", "password");
+        userNumber = user.getUserNumber();
+        LoginTokenResponse tokenResponse = login("travel@test.com", "password");
         jwtToken = tokenResponse.getAccessToken();
 
-        createTravel(1, "파리");
+        createTravel(user.getUserNumber(), "파리");
     }
 
     @Test
@@ -50,8 +52,8 @@ public class BookmarkControllerTest extends IntegrationTest {
                         .param("size", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success.content[0].travelNumber").value(1))
-                .andExpect(jsonPath("$.success.content[0].title").value("여행 타이틀 1"))
-                .andExpect(jsonPath("$.success.content[0].userName").value("test"))
+                .andExpect(jsonPath("$.success.content[0].title").value("여행 타이틀 " + userNumber))
+                .andExpect(jsonPath("$.success.content[0].userName").value("travel"))
                 .andExpect(jsonPath("$.success.page.size").value(5))
                 .andExpect(jsonPath("$.success.page.number").value(0))
                 .andExpect(jsonPath("$.success.page.totalElements").value(1))

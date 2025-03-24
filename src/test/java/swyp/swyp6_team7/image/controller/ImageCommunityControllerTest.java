@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.image.controller;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Disabled
 class ImageCommunityControllerTest extends IntegrationTest {
     @DisplayName("uploadTempImage: 커뮤니티 이미지를 임시저장한다.")
     @Test

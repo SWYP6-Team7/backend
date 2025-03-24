@@ -1,22 +1,40 @@
 package swyp.swyp6_team7.enrollment.controller;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.global.IntegrationTest;
-import swyp.swyp6_team7.mock.WithMockCustomUser;
+import swyp.swyp6_team7.member.entity.Users;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
 class EnrollmentControllerTest extends IntegrationTest {
 
+    private static String jwtToken;
+    private static String ownerJwtToken;
+
+    @BeforeAll
+    public void setUp() {
+        Users user = createUser("enrollment", "password");
+        Users newUser = createUser("enrollment2", "password2");
+        LoginTokenResponse tokenResponse = login("enrollment2@test.com", "password2");
+        jwtToken = tokenResponse.getAccessToken();
+
+        LoginTokenResponse tokenResponse2 = login("enrollment@test.com", "password");
+        ownerJwtToken = tokenResponse2.getAccessToken();
+
+        createTravel(user.getUserNumber(), "파리");
+    }
+
     @DisplayName("create: 사용자는 여행 참가 신청을 할 수 있다.")
-    @WithMockCustomUser
+    @Order(3)
     @Test
     public void create() throws Exception {
         // given
@@ -27,6 +45,7 @@ class EnrollmentControllerTest extends IntegrationTest {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + jwtToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
@@ -37,7 +56,7 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("create: 참가 대상 여행 번호가 없을 경우 예외가 발생한다.")
-    @WithMockCustomUser
+    @Order(1)
     @Test
     public void createWithoutTravelNumber() throws Exception {
         // given
@@ -48,6 +67,7 @@ class EnrollmentControllerTest extends IntegrationTest {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + jwtToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
@@ -58,7 +78,7 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("create: 참가 신청 메시지 길이가 1000자를 넘을 경우 예외가 발생한다.")
-    @WithMockCustomUser
+    @Order(2)
     @Test
     public void createWithLongMessage() throws Exception {
         // given
@@ -70,6 +90,7 @@ class EnrollmentControllerTest extends IntegrationTest {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header("Authorization", "Bearer " + jwtToken)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
@@ -80,11 +101,15 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("delete: 신청자는 참가 신청을 삭제할 수 있다")
-    @WithMockCustomUser
+    @Transactional
+    @Order(4)
     @Test
     public void deleteWhenOwner() throws Exception {
         // when
-        ResultActions resultActions = mockMvc.perform(delete("/api/enrollment/{enrollmentNumber}", 1));
+        ResultActions resultActions = mockMvc.perform(
+                delete("/api/enrollment/{enrollmentNumber}", 1)
+                        .header("Authorization", "Bearer " + jwtToken)
+        );
 
         // then
         resultActions
@@ -94,12 +119,13 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("accept: 여행 참가 신청을 수락할 수 있다.")
-    @WithMockCustomUser
+    @Transactional
+    @Order(5)
     @Test
     void accept() throws Exception {
-
         // when
         ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/acceptance", 1L)
+                .header("Authorization", "Bearer " + ownerJwtToken)
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         // then
@@ -110,12 +136,14 @@ class EnrollmentControllerTest extends IntegrationTest {
     }
 
     @DisplayName("reject: 여행 참가 신청을 거절할 수 있다.")
-    @WithMockCustomUser
+    @Transactional
+    @Order(6)
     @Test
     void reject() throws Exception {
 
         // when
         ResultActions resultActions = mockMvc.perform(put("/api/enrollment/{enrollmentNumber}/rejection", 1L)
+                .header("Authorization", "Bearer " + ownerJwtToken)
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         // then
