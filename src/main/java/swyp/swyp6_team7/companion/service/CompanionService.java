@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
 import swyp.swyp6_team7.companion.repository.CompanionRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.util.List;
@@ -18,14 +19,12 @@ public class CompanionService {
     private final TravelRepository travelRepository;
 
     public List<CompanionInfoDto> findCompanionsByTravelNumber(int travelNumber) {
-
         if (!travelRepository.existsTravelByNumber(travelNumber)) {
-            log.warn("Companion find - 존재하지 않는 여행 콘텐츠입니다. travelNumber: {}", travelNumber);
-            throw new IllegalArgumentException("존재하지 않는 여행 콘텐츠입니다.");
+            log.warn("존재하지 않는 여행 참가자 조회 요청: travelNumber={}", travelNumber);
+            throw new MoingApplicationException("해당 여행은 존재하지 않습니다. travelNumber=" + travelNumber);
         }
 
-        List<CompanionInfoDto> companions = companionRepository.findCompanionInfoByTravelNumber(travelNumber);
-        return companions;
+        return companionRepository.findCompanionInfoByTravelNumber(travelNumber);
     }
 
 }

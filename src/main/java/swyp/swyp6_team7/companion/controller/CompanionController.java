@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.travel.controller;
+package swyp.swyp6_team7.companion.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,17 +13,15 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-public class TravelCompanionController {
+public class CompanionController {
 
     private final CompanionService companionService;
 
+    // 여행 참가자 목록 조회
     @GetMapping("/api/travel/{travelNumber}/companions")
     public ApiResponse<TravelCompanionResponse> getTravelCompanions(@PathVariable("travelNumber") int travelNumber) {
-
         List<CompanionInfoDto> companions = companionService.findCompanionsByTravelNumber(travelNumber);
         TravelCompanionResponse response = TravelCompanionResponse.from(companions);
-
         return ApiResponse.success(response);
     }
-
 }

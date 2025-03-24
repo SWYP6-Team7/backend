@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.travel.controller;
+package swyp.swyp6_team7.companion.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -22,10 +22,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
-class TravelCompanionControllerTest {
+class CompanionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,6 +56,4 @@ class TravelCompanionControllerTest {
                 .andExpect(jsonPath("$.success.companions[0].ageGroup").value("10대"))
                 .andExpect(jsonPath("$.success.companions[0].profileUrl").value("profile-1"));
     }
-
-
 }
