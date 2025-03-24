@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.travel.service;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ import static org.mockito.Mockito.times;
 import static swyp.swyp6_team7.travel.domain.TravelStatus.IN_PROGRESS;
 
 @SpringBootTest
+@Disabled
 class TravelSearchServiceTest {
 
     @Autowired

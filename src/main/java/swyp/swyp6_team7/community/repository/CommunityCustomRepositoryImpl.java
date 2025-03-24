@@ -95,6 +95,7 @@ public class CommunityCustomRepositoryImpl implements CommunityCustomRepository 
                         .and(like.relatedType.eq("community")))
                 .where(
                         keywordContains(searchCondition.getKeyword()),
+                        // CategoryNumber가 null 이면 where 조건 X
                         categoryEquals(searchCondition.getCategoryNumber())
                 )
                 .groupBy(community.postNumber, categories.categoryName) // group by 적용
@@ -153,7 +154,7 @@ public class CommunityCustomRepositoryImpl implements CommunityCustomRepository 
                         .and(like.relatedType.eq("community")))
                 .where(
                         community.userNumber.eq(userNumber)
-                )                .groupBy(community.postNumber, categories.categoryName) // group by 적용
+                ).groupBy(community.postNumber, categories.categoryName) // group by 적용
                 .orderBy(getOrderBy(sortingType).toArray(new OrderSpecifier[0])) // 가변인자로 변환
                 .fetch();
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.category.domain.Category;
 import swyp.swyp6_team7.category.repository.CategoryRepository;
 import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
@@ -20,7 +21,7 @@ import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.category.domain.Category;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -90,7 +91,7 @@ public class CommunityService {
             // 좋아요 상태 가져오기 (비회원인 경우 좋아요 여부는 false로 처리)
             LikeReadResponseDto likeStatus = (userNumber != null)
                     ? LikeStatus.getLikeStatus(likeRepository, "community", postNumber, userNumber)
-                    : new LikeReadResponseDto("community",postNumber,false, 0);
+                    : new LikeReadResponseDto("community", postNumber, false, 0);
 
             // 게시글 작성자 프로필 이미지 url 가져오기
             String profileImageUrl = imageService.getImageDetail("profile", PostWriter.getUserNumber(), 0).getUrl();
@@ -137,7 +138,7 @@ public class CommunityService {
         if (response == null) {
             log.error("조회수 증가 후 상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
             throw new RuntimeException("게시글을 찾을 수 없습니다.");
-        } else{
+        } else {
             log.info("increaseView 메서드 결과: {}", response);
         }
         return response;

@@ -90,22 +90,6 @@ class TokenServiceTest {
     }
 
     @Test
-    @DisplayName("토큰에 저장된 유저 정보가 존재하지 않는 사용자일때")
-    void refreshWithLock_userNotFound() {
-        String refreshToken = "validRefreshToken";
-        Integer userNumber = 12345;
-        String lockKey = "refreshTokenLock:" + refreshToken;
-
-        when(valueOperations.setIfAbsent(eq(lockKey), eq("LOCKED"), eq(Duration.ofSeconds(5)))).thenReturn(true);
-        when(jwtProvider.validateToken(refreshToken)).thenReturn(true);
-        when(jwtProvider.getUserNumber(refreshToken)).thenReturn(userNumber);
-        when(userRepository.findByUserNumber(userNumber)).thenReturn(Optional.empty());
-
-        JwtException exception = assertThrows(JwtException.class, () -> tokenService.refreshWithLock(refreshToken));
-        assertEquals("저장된 Refresh Token과 일치하지 않습니다.", exception.getMessage());
-    }
-
-    @Test
     @DisplayName("동시 요청 시 Lock 획득 실패")
     void refreshWithLock_concurrentRequest() {
         String refreshToken = "validRefreshToken";

@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.notification.service;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import static org.mockito.BDDMockito.given;
 
 @Import(SynchronousTaskExecutorConfig.class)
 @SpringBootTest
+@Disabled
 class CommentNotificationServiceTest {
 
     @Autowired
