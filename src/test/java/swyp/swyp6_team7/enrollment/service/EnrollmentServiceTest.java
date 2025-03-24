@@ -14,6 +14,7 @@ import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentCustomRepositoryImpl;
 import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.member.entity.AgeGroup;
@@ -75,13 +76,12 @@ class EnrollmentServiceTest {
                 .message("여행 신청 본문")
                 .build();
         int requestUserNumber = 2;
-        LocalDate checkLocalDate = LocalDate.of(2024, 11, 10);
 
         given(travelRepository.findByNumber(any(Integer.class)))
                 .willReturn(Optional.of(targetTravel));
 
         // when
-        enrollmentService.create(request, requestUserNumber, checkLocalDate);
+        enrollmentService.create(request, requestUserNumber);
 
         // then
         assertThat(enrollmentRepository.findAll()).hasSize(1)
@@ -91,31 +91,6 @@ class EnrollmentServiceTest {
                 );
     }
 
-    /*
-    @DisplayName("create: 마감 날짜를 넘겨 참가 신청할 경우 예외가 발생한다.")
-    @Test
-    void createWhenNotAvailableForEnroll() {
-        // given
-        LocalDate dueDate = LocalDate.of(2024, 11, 11);
-        Travel targetTravel = createTravel(1, 2, dueDate, TravelStatus.IN_PROGRESS);
-
-        EnrollmentCreateRequest request = EnrollmentCreateRequest.builder()
-                .travelNumber(targetTravel.getNumber())
-                .message("여행 신청 본문")
-                .build();
-        int requestUserNumber = 2;
-        LocalDate checkLocalDate = LocalDate.of(2024, 11, 12);
-
-        given(travelRepository.findByNumber(any(Integer.class)))
-                .willReturn(Optional.of(targetTravel));
-
-        // when // then
-        assertThatThrownBy(() -> {
-            enrollmentService.create(request, requestUserNumber, checkLocalDate);
-        }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("참가 신청 할 수 없는 상태의 여행입니다.");
-    }
-*/
     @DisplayName("create: 여행 상태가 IN_PROGRESS가 아닌 경우 예외가 발생한다.")
     @Test
     void createWhenNotInProgressStatus() {
@@ -128,16 +103,15 @@ class EnrollmentServiceTest {
                 .message("여행 신청 본문")
                 .build();
         int requestUserNumber = 2;
-        LocalDate checkLocalDate = LocalDate.of(2024, 11, 12);
 
         given(travelRepository.findByNumber(any(Integer.class)))
                 .willReturn(Optional.of(targetTravel));
 
         // when // then
         assertThatThrownBy(() -> {
-            enrollmentService.create(request, requestUserNumber, checkLocalDate);
-        }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("참가 신청 할 수 없는 상태의 여행입니다.");
+            enrollmentService.create(request, requestUserNumber);
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("참가 신청 할 수 없는 여행 콘텐츠입니다.");
     }
 
     @DisplayName("delete: 신청자 본인은 여행 참가 신청을 취소할 수 있다.")
@@ -164,7 +138,7 @@ class EnrollmentServiceTest {
         // when // then
         assertThatThrownBy(() -> {
             enrollmentService.delete(savedEnrollment.getNumber(), 2);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 참가 신청 취소 권한이 없습니다.");
     }
 
@@ -214,7 +188,7 @@ class EnrollmentServiceTest {
         // when
         assertThatThrownBy(() -> {
             enrollmentService.accept(savedEnrollment.getNumber(), 3);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 참가 신청 수락 권한이 없습니다.");
     }
 
@@ -237,7 +211,7 @@ class EnrollmentServiceTest {
         // when
         assertThatThrownBy(() -> {
             enrollmentService.accept(savedEnrollment.getNumber(), hostUserNumber);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 참가 모집 인원이 마감되어 수락할 수 없습니다.");
     }
 
@@ -287,7 +261,7 @@ class EnrollmentServiceTest {
         // when
         assertThatThrownBy(() -> {
             enrollmentService.reject(savedEnrollment.getNumber(), 3);
-        }).isInstanceOf(IllegalArgumentException.class)
+        }).isInstanceOf(MoingApplicationException.class)
                 .hasMessage("여행 참가 신청 거절 권한이 없습니다.");
     }
 
@@ -338,8 +312,8 @@ class EnrollmentServiceTest {
         // when
         assertThatThrownBy(() -> {
             enrollmentService.findEnrollmentsByTravelNumber(targetTravel.getNumber(), 2);
-        }).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("여행 참가 신청 조회 권한이 없습니다.");
+        }).isInstanceOf(MoingApplicationException.class)
+                .hasMessage("여행 참가 신청 목록 조회에 대한 권한이 없습니다.");
     }
 
     private Enrollment createEnrollment(int userNumber, int travelNumber, String message, EnrollmentStatus status) {

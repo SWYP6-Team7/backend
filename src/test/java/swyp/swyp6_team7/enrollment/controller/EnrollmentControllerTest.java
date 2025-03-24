@@ -13,9 +13,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentCreateRequest;
 import swyp.swyp6_team7.enrollment.service.EnrollmentService;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
-import swyp.swyp6_team7.notification.service.NotificationService;
-
-import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -37,9 +34,6 @@ class EnrollmentControllerTest {
     @MockBean
     private EnrollmentService enrollmentService;
 
-    @MockBean
-    private NotificationService notificationService;
-
 
     @DisplayName("create: 사용자는 여행 참가 신청을 할 수 있다.")
     @WithMockCustomUser
@@ -52,7 +46,7 @@ class EnrollmentControllerTest {
                 .build();
 
         doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
+                .create(any(EnrollmentCreateRequest.class), any(Integer.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
@@ -76,7 +70,7 @@ class EnrollmentControllerTest {
                 .build();
 
         doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
+                .create(any(EnrollmentCreateRequest.class), any(Integer.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
@@ -101,7 +95,7 @@ class EnrollmentControllerTest {
                 .build();
 
         doNothing().when(enrollmentService)
-                .create(any(EnrollmentCreateRequest.class), any(Integer.class), any(LocalDate.class));
+                .create(any(EnrollmentCreateRequest.class), any(Integer.class));
 
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/enrollment")
@@ -169,5 +163,4 @@ class EnrollmentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value("여행 참가 신청을 거절했습니다."));
     }
-
 }
