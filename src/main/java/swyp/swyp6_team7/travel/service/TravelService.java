@@ -232,6 +232,7 @@ public class TravelService {
         }
 
         try {
+            // TODO: 북마크 삭제 추가
             commentRepository.deleteCommentsByRelatedTypeAndRelatedNumber("travel", travel.getNumber()); // 댓글 전체 삭제
             planService.deleteAllPlansAndRelatedSpots(travel.getNumber()); // 일정 전체 삭제
             travel.delete(); // 여행 상태 DELETED 설정
