@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.global.email.EmailSenderProcessor;
 import swyp.swyp6_team7.global.email.template.EmailVerificationCodeMessage;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.verify.dto.EmailVerifySession;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -21,15 +23,13 @@ import java.util.UUID;
 @Slf4j
 public class EmailVerifyService {
 
+    private static final String emailVerifyKey = "email-verification:";
+    private static final String sessionKey = "verify:session:";
     private final RedisTemplate<String, Object> jsonRedisTemplate;
     private final EmailSenderProcessor emailSenderProcessor;
     private final UserRepository userRepository;
-
     @Autowired
     private final ObjectMapper objectMapper;
-
-    private static final String emailVerifyKey = "email-verification:";
-    private static final String sessionKey = "verify:session:";
 
     private String generateSessionToken() {
         return UUID.randomUUID().toString();
@@ -37,7 +37,8 @@ public class EmailVerifyService {
 
     public String sendEmailVerification(String email) {
         // 이메일 중복 체크
-        if (userRepository.findByUserEmail(email).isPresent()) {
+        Optional<Users> user = userRepository.findByUserEmail(email);
+        if (user.isPresent() && !user.get().isDeleted()) {
             throw new MoingApplicationException("이미 사용 중인 이메일입니다.");
         }
 

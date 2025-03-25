@@ -120,8 +120,8 @@ public class Users {
     }
 
 
-    public boolean isEnabled() {
-        return true;
+    public boolean isDeleted() {
+        return userStatus == UserStatus.DELETED;
     }
 
     public boolean isBlocked() {
