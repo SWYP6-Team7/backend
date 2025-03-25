@@ -102,7 +102,6 @@ public class CommunityController {
     ) {
         //게시물 상세보기 데이터 가져오기
         CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
-
         return ApiResponse.success(detailResponse);
     }
 
@@ -115,23 +114,16 @@ public class CommunityController {
     ) {
         // 게시물 수정 동작 후 상세 정보 가져오기
         CommunityDetailResponseDto detailResponse = communityService.update(request, postNumber, userNumber);
-
         return ApiResponse.success(detailResponse);
     }
 
+    // 커뮤니티 게시글 삭제
     @DeleteMapping("/posts/{postNumber}")
-    public ApiResponse<Void> delete(
+    public ApiResponse<String> delete(
             @PathVariable(name = "postNumber") int postNumber,
             @RequireUserNumber Integer userNumber
     ) {
-
-        try {
-            communityService.delete(postNumber, userNumber);
-            // 성공 시 204
-            return ApiResponse.success(null);
-        } catch (Exception e) {
-            log.error("커뮤니티 게시물 삭제 중 오류 발생: {}", e.getMessage(), e);
-            throw new MoingApplicationException("커뮤니티 게시물 삭제 중 오류 발생." + e.getMessage());
-        }
+        communityService.delete(postNumber, userNumber);
+        return ApiResponse.success("커뮤니티 게시글이 삭제되었습니다.");
     }
 }

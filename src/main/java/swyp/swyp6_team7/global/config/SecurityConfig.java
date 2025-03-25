@@ -77,8 +77,8 @@ public class SecurityConfig {
                                 "/actuator/health", // Health check endpoint permission
                                 "/api/community/images/**",
                                 "/api/community/*/images",
-                                "/api/inquiry/submit"
-
+                                "/api/inquiry/submit",
+                                "/api/member/block/my/detail" // 내 계정 차단내용 조회
                         ).permitAll()
 
                         .requestMatchers(

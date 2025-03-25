@@ -18,12 +18,15 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Query("SELECT DISTINCT c FROM Comment c WHERE c.relatedType = :relatedType AND c.relatedNumber = :relatedNumber")
     List<Comment> findByRelatedTypeAndRelatedNumber(@Param("relatedType") String relatedType, @Param("relatedNumber") int relatedNumber);
 
+    @Query("SELECT c.commentNumber FROM Comment c WHERE c.relatedType = :relatedType AND c.relatedNumber = :relatedNumber")
+    List<Integer> findCommentNumbersByRelatedTypeAndRelatedNumber(@Param("relatedType") String relatedType, @Param("relatedNumber") Integer relatedNumber);
+
     boolean existsByCommentNumber(Integer commentNumber);
 
     //특정 게시글의 댓글 개수 전부 조회
     long countByRelatedTypeAndRelatedNumber(String relatedType, int relatedNumber);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from Comment c where c.relatedType = :relatedType and c.relatedNumber = :relatedNumber")
     void deleteCommentsByRelatedTypeAndRelatedNumber(@Param("relatedType") String relatedType, @Param("relatedNumber") Integer relatedNumber);
 

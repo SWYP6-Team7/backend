@@ -202,6 +202,23 @@ public class CommentService {
         }
     }
 
+    // 특정 게시물의 모든 댓글 및 관련 데이터 삭제(댓글, 댓글에 대한 좋아요)
+    @Transactional
+    public void deleteAllComments(String relatedType, Integer relatedNumber) {
+        try {
+            // 댓글에 대한 좋아요 삭제
+            List<Integer> commentNumbers = commentRepository.findCommentNumbersByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
+            likeRepository.deleteAllCommentLikesByRelatedNumberIn(commentNumbers);
+
+            // 모든 댓글 삭제(답글 포함)
+            commentRepository.deleteCommentsByRelatedTypeAndRelatedNumber("community", relatedNumber);
+
+        } catch (Exception e) {
+            log.error("게시물의 모든 댓글 데이터 삭제 중 오류 발생: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
+            throw new MoingApplicationException("게시물의 모든 댓글 삭제 도중 오류가 발생했습니다.");
+        }
+    }
+
     private List<CommentListReponseDto> convertToResponseDtos(List<Comment> comments, Integer userNumber) {
         List<CommentListReponseDto> responseDtos = new ArrayList<>();
         for (Comment comment : comments) { // TODO: N번 순회 안하게 수정
