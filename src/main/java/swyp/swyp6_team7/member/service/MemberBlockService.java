@@ -127,7 +127,7 @@ public class MemberBlockService {
         // 4. 신고 내역 추산해서 정지 처리
         if (userReportCount < 5) {
             log.info("신고건이 5건 이하입니다.");
-            return "정상 처리되엇습니다.";
+            return "정상 처리되었습니다.";
         }
 
         log.info("신고 접수건이 5건 이상입니다. 계정 정지를 진행합니다.");
