@@ -21,7 +21,7 @@ class S3KeyHandlerTest {
         given(s3ComponentMock.getBaseFolder()).willReturn("mock-base-folder/");
         given(s3ComponentMock.getBucket()).willReturn("bucket-name");
 
-        s3KeyHandler = new S3KeyHandler(s3ComponentMock);
+        s3KeyHandler = new S3KeyHandler(s3ComponentMock, "region");
     }
 
     @DisplayName("generateTempS3Key: 임시저장 S3 Key를 생성할 수 있다.")
