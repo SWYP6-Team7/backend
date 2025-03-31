@@ -1,7 +1,6 @@
 package swyp.swyp6_team7.auth.jwt;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,19 +63,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("JWT token has expired");
                 return;
-            } catch (JwtException e) {
-                // 토큰 만료 예외 처리
-                log.warn("JWT 토큰 유효하지 않음.", e);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid JWT token");
-                return;
             }
             if (userNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (jwtProvider.validateToken(token)) {
-                    if (jwtBlacklistService.isTokenBlacklisted(token)) {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is blacklisted");
-                        return;
-                    }
+                    // 토큰 블랙리스트 체크 (필요하다면)
+                    // if (jwtBlacklistService.isBlacklisted(token)) {
+                    //     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is blacklisted");
+                    //     return;
+                    // }
                     try {
                         var userDetails = userDetailsService.loadUserByUsername(String.valueOf(userNumber));
                         UsernamePasswordAuthenticationToken authToken =
@@ -94,7 +88,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
                             Users user = customUserDetails.getUser();
                             // TODO: 제거해도 될듯
-                            //userLoginHistoryService.saveLoginHistory(user);  // 로그인 이력 저장
+                            userLoginHistoryService.saveLoginHistory(user);  // 로그인 이력 저장
                         }
                     } catch (UsernameNotFoundException e) {
                         // 인증 실패 시 처리
