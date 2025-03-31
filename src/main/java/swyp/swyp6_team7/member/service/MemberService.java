@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.member.dto.UserCreateResponse;
@@ -91,15 +90,8 @@ public class MemberService {
         return newUser;
     }
 
-    public UserCreateResponse getUserCreateResponse(UserInfoDto userInfo) {
-        // JWT 발급
-        String token = jwtProvider.createToken(userInfo.getUserNumber(), List.of(userInfo.getUserRole().name()), 3600000);
-
-        return new UserCreateResponse(userInfo.getUserNumber(), userInfo.getUserEmail(), token);
-    }
-
     @Transactional
-    public UserInfoDto signUpV2(UserRequestDto request) {
+    public UserCreateResponse signUpV2(UserRequestDto request) {
         log.info("회원가입 요청 V2: email={}", request.getEmail());
 
         // 이메일 중복 체크
@@ -128,14 +120,10 @@ public class MemberService {
             userTagPreferenceRepository.saveAll(tagPreferences);
         }
 
-        return new UserInfoDto(
-                newUser.getUserNumber(),
-                newUser.getUserName(),
-                newUser.getUserEmail(),
-                newUser.getUserStatus(),
-                null,
-                newUser.getRole()
-        );
+        // JWT 발급
+        String token = jwtProvider.createToken(newUser.getUserNumber(), List.of(newUser.getRole().name()), 3600000);
+
+        return new UserCreateResponse(newUser.getUserNumber(), newUser.getUserEmail(), token);
     }
 
     public Map<String, Object> signUp(UserRequestDto userRequestDto) {

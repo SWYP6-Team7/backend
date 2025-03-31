@@ -11,8 +11,6 @@ import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.service.GoogleService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
-import swyp.swyp6_team7.member.dto.UserCreateResponse;
-import swyp.swyp6_team7.member.service.MemberService;
 
 import java.util.UUID;
 
@@ -22,18 +20,13 @@ import java.util.UUID;
 public class GoogleController {
 
     private final GoogleService googleService;
-    private final MemberService memberService;
-
     @Value("${google.client-id}")
     private String clientId;
     @Value("${google.redirect-uri}")
     private String redirectUri;
 
-    public GoogleController(
-            GoogleService googleService, MemberService memberService
-    ) {
+    public GoogleController(GoogleService googleService) {
         this.googleService = googleService;
-        this.memberService = memberService;
     }
 
     // 구글 로그인 리디렉션
@@ -58,7 +51,7 @@ public class GoogleController {
 
     // google 인증 후, 리다이렉트된 URI에서 코드를 처리
     @GetMapping("/login/oauth/google/callback")
-    public ApiResponse<UserCreateResponse> googleCallback(
+    public ApiResponse<UserInfoDto> googleCallback(
             @RequestParam("code") String code,
             @RequestParam(value = "state", required = false) String state,
             HttpSession session) {
@@ -74,7 +67,7 @@ public class GoogleController {
         try {
             UserInfoDto userInfo = googleService.processGoogleLogin(code);
             log.info("Google 로그인 처리 성공: userInfo={}", userInfo);
-            return ApiResponse.success(memberService.getUserCreateResponse(userInfo));
+            return ApiResponse.success(userInfo);
         } catch (Exception e) {
             log.error("Google 로그인 처리 중 오류 발생", e);
             throw e;

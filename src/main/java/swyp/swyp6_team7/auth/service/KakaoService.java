@@ -54,8 +54,7 @@ public class KakaoService {
                     user.getUserName(),
                     user.getUserEmail(),
                     user.getUserStatus(),
-                    userInfo.get("socialLoginId"),
-                    user.getRole()
+                    userInfo.get("socialLoginId")
             );
 
             log.info("Kakao 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
