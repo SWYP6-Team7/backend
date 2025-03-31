@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.community.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -15,8 +16,10 @@ import swyp.swyp6_team7.community.dto.response.CommunityListResponseDto;
 import swyp.swyp6_team7.community.dto.response.CommunitySearchCondition;
 import swyp.swyp6_team7.community.service.CommunityListService;
 import swyp.swyp6_team7.community.service.CommunityService;
+import swyp.swyp6_team7.community.service.CommunityViewCountService;
 import swyp.swyp6_team7.community.util.CommunitySearchSortingType;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.global.utils.ClientIpAddressUtil;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 
@@ -25,10 +28,11 @@ import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 @RestController
 @RequestMapping("/api/community")
 public class CommunityController {
-    private final CommunityService communityService;
-    private final CategoryRepository categoryRepository;
-    private final CommunityListService communityListService;
 
+    private final CommunityService communityService;
+    private final CommunityListService communityListService;
+    private final CommunityViewCountService communityViewCountService;
+    private final CategoryRepository categoryRepository;
 
     //C
     @PostMapping("/posts")
@@ -94,14 +98,26 @@ public class CommunityController {
         }
     }
 
-    //R
+    // 커뮤니티 게시글 단건 상세 조회
     @GetMapping("/posts/{postNumber}")
     public ApiResponse<CommunityDetailResponseDto> getDetail(
             @PathVariable(name = "postNumber") int postNumber,
-            @RequireUserNumber Integer userNumber
+            @RequireUserNumber Integer userNumber,
+            HttpServletRequest request
     ) {
-        //게시물 상세보기 데이터 가져오기
-        CommunityDetailResponseDto detailResponse = communityService.increaseView(postNumber, userNumber);
+        CommunityDetailResponseDto detailResponse = communityService.getCommunityDetail(postNumber, userNumber);
+
+        // userIdentifier: userNumber(로그인) / IP address + User agent(비로그인)
+        String userIdentifier;
+        if (userNumber != null) {
+            userIdentifier = userNumber.toString();
+        } else {
+            String ipAddress = ClientIpAddressUtil.getClientIp(request);
+            String userBrowser = request.getHeader("User-Agent");
+            userIdentifier = ipAddress + userBrowser;
+        }
+        communityViewCountService.updateViewCount(postNumber, userIdentifier);
+
         return ApiResponse.success(detailResponse);
     }
 

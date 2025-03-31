@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 public class TravelCompanionController {
 
+    // TODO: Companion 디렉토리로 이동
     private final CompanionService companionService;
 
     @GetMapping("/api/travel/{travelNumber}/companions")

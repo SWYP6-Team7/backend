@@ -7,6 +7,7 @@ import swyp.swyp6_team7.member.entity.AgeGroup;
 @Getter
 public class CompanionInfoDto {
 
+    // TODO: 클래스 이름 변경, CompanionResponse
     private Integer userNumber;
     private String userName;
     private String ageGroup;

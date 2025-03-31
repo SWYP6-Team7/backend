@@ -57,13 +57,8 @@ public class CommunityServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 조회수 증가 및 상세 조회 - 정상 케이스")
-    void testIncreaseView() {
-        doAnswer(invocation -> {
-            community.setViewCount(community.getViewCount() + 1);
-            return null;
-        }).when(communityCustomRepository).incrementViewCount(1);
-
+    @DisplayName("게시글 상세 조회 - 정상 케이스")
+    void testCommunityDetail() {
         when(communityRepository.findByPostNumber(1)).thenReturn(Optional.of(community));
         when(userRepository.findByUserNumber(1)).thenReturn(Optional.of(user));
         when(categoryRepository.findByCategoryNumber(1)).thenReturn(Optional.of(category));
@@ -73,33 +68,33 @@ public class CommunityServiceTest {
         when(imageService.getImageDetail("profile", 1, 0)).thenReturn(ImageDetailResponseDto.builder()
                 .imageNumber(1L).relatedType("profile").relatedNumber(1).url("http://example.com/image.jpg").build());
 
-        CommunityDetailResponseDto result = communityService.increaseView(1, 1);
+        CommunityDetailResponseDto result = communityService.getCommunityDetail(1, 1);
 
         assertNotNull(result);
         assertEquals("제목", result.getTitle());
         assertEquals("Tester", result.getPostWriter());
         assertEquals(20, result.getLikeCount());
         assertTrue(result.isLiked());
-        assertEquals(6, result.getViewCount());
+        assertEquals(5, result.getViewCount());
     }
 
     @Test
     @DisplayName("게시글 상세 조회 시 게시글 없음")
-    void testIncreaseViewPostNotFound() {
+    void testCommunityDetailPostNotFound() {
         when(communityRepository.findByPostNumber(1)).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> communityService.increaseView(1, 1));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> communityService.getCommunityDetail(1, 1));
 
         assertEquals("게시글을 찾을 수 없습니다. postNumber=1", exception.getMessage());
     }
 
     @Test
     @DisplayName("게시글 상세 조회 시 작성자 정보 없음")
-    void testIncreaseViewWriterNotFound() {
+    void testCommunityDetailViewWriterNotFound() {
         when(communityRepository.findByPostNumber(1)).thenReturn(Optional.of(community));
         when(userRepository.findByUserNumber(1)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> communityService.increaseView(1, 1));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> communityService.getCommunityDetail(1, 1));
 
         assertEquals("작성자를 찾을 수 없습니다. userNumber=1", exception.getMessage());
     }
