@@ -68,8 +68,7 @@ public class NaverService {
                     userInfo.get("socialID"),
                     user.getUserGender(),
                     user.getUserAgeGroup(),
-                    userInfo.get("provider"),
-                    user.getRole()
+                    userInfo.get("provider")
             );
 
             log.info("Naver 사용자 정보 수집 및 저장 완료: userInfo={}", userInfo);
