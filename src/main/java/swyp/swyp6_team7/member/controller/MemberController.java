@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
@@ -63,7 +64,8 @@ public class MemberController {
         log.info("회원 가입 요청 V2: {}", userRequestDto.getEmail());
         emailVerifyService.checkEmailVerified(userRequestDto.getSessionToken(), userRequestDto.getEmail());
 
-        return ApiResponse.success(memberService.signUpV2(userRequestDto));
+        UserInfoDto userInfo = memberService.signUpV2(userRequestDto);
+        return ApiResponse.success(memberService.getUserCreateResponse(userInfo));
     }
 
     // 이메일 중복 확인 엔드포인트

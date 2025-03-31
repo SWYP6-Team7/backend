@@ -12,6 +12,8 @@ import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.service.KakaoService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.member.dto.UserCreateResponse;
+import swyp.swyp6_team7.member.service.MemberService;
 
 import java.util.UUID;
 
@@ -21,13 +23,18 @@ import java.util.UUID;
 public class KakaoController {
 
     private final KakaoService kakaoService;
+    private final MemberService memberService;
     @Value("${kakao.client-id}")
     private String clientId;
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-    public KakaoController(KakaoService kakaoService) {
+    public KakaoController(
+            KakaoService kakaoService,
+            MemberService memberService
+    ) {
         this.kakaoService = kakaoService;
+        this.memberService = memberService;
     }
 
     // 카카오 로그인 리디렉션
@@ -52,7 +59,7 @@ public class KakaoController {
 
     // 카카오 인증 후, 리다이렉트된 URI에서 코드를 처리
     @GetMapping("/login/oauth/kakao/callback")
-    public ApiResponse<UserInfoDto> kakaoCallback(
+    public ApiResponse<UserCreateResponse> kakaoCallback(
             @RequestParam("code") String code,
             @RequestParam(value = "state", required = false) String state,
             HttpSession session) {
@@ -68,7 +75,7 @@ public class KakaoController {
         try {
             UserInfoDto userInfo = kakaoService.processKakaoLogin(code);
             log.info("Kakao 로그인 처리 성공: userInfo={}", userInfo);
-            return ApiResponse.success(userInfo);
+            return ApiResponse.success(memberService.getUserCreateResponse(userInfo));
         } catch (Exception e) {
             log.error("Kakao 로그인 처리 중 오류 발생", e);
             throw e;

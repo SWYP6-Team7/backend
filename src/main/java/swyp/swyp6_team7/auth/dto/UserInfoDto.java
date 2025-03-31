@@ -1,9 +1,11 @@
 package swyp.swyp6_team7.auth.dto;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
+import swyp.swyp6_team7.member.entity.UserRole;
 import swyp.swyp6_team7.member.entity.UserStatus;
 
 @Getter
@@ -14,17 +16,27 @@ public class UserInfoDto {
     private String userName;
     private String userEmail;
     private UserStatus userStatus;
+    @Nullable
     private String socialLoginId;
     private Gender gender;
     private AgeGroup ageGroup;
     private String provider;
+    private UserRole userRole;
 
-    public UserInfoDto(Integer userNumber, String userName, String userEmail, UserStatus userStatus, String socialLoginId) {
+    public UserInfoDto(
+            Integer userNumber,
+            String userName,
+            String userEmail,
+            UserStatus userStatus,
+            String socialLoginId,
+            UserRole userRole
+    ) {
         this.userNumber = userNumber;
         this.userName = userName;
         this.userEmail = userEmail;
         this.userStatus = userStatus;
         this.socialLoginId = socialLoginId;
+        this.userRole = userRole;
     }
 
     public UserInfoDto(
@@ -35,7 +47,8 @@ public class UserInfoDto {
             String socialLoginId,
             Gender gender,
             AgeGroup ageGroup,
-            String provider
+            String provider,
+            UserRole userRole
     ) {
         this.userNumber = userNumber;
         this.userName = userName;
@@ -45,6 +58,7 @@ public class UserInfoDto {
         this.gender = gender;
         this.ageGroup = ageGroup;
         this.provider = provider;
+        this.userRole = userRole;
     }
 
     @Override
