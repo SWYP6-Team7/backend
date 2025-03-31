@@ -53,7 +53,8 @@ public class GoogleService {
                     user.getUserName(),
                     user.getUserEmail(),
                     user.getUserStatus(),
-                    userInfo.get("socialLoginId")
+                    userInfo.get("socialLoginId"),
+                    user.getRole()
             );
 
             log.info("Google 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
@@ -131,7 +132,6 @@ public class GoogleService {
         }
     }
 
-    @Transactional
     private Users saveSocialUser(Map<String, String> userInfo) {
         String email = userInfo.get("email");
         String socialLoginId = userInfo.get("socialLoginId");

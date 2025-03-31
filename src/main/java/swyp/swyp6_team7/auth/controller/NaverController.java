@@ -13,6 +13,8 @@ import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.service.NaverService;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
+import swyp.swyp6_team7.member.dto.UserCreateResponse;
+import swyp.swyp6_team7.member.service.MemberService;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -23,13 +25,18 @@ import java.util.UUID;
 public class NaverController {
 
     private final NaverService naverService;
+    private final MemberService memberService;
     @Value("${naver.client-id}")
     private String clientId;
     @Value("${naver.redirect-uri}")
     private String redirectUri;
 
-    public NaverController(NaverService naverService) {
+    public NaverController(
+            NaverService naverService,
+            MemberService memberService
+    ) {
         this.naverService = naverService;
+        this.memberService = memberService;
     }
 
     // 네이버 로그인 리다이렉트 URL
@@ -54,7 +61,7 @@ public class NaverController {
 
     // 네이버 콜백 처리
     @GetMapping("/login/oauth/naver/callback")
-    public ApiResponse<UserInfoDto> naverCallback(
+    public ApiResponse<UserCreateResponse> naverCallback(
             @RequestParam("code") String code,
             @RequestParam("state") String state,
             HttpSession session
@@ -76,7 +83,7 @@ public class NaverController {
         try {
             UserInfoDto userInfo = naverService.processNaverLogin(code, state);
             log.info("Naver 로그인 처리 성공: userInfo={}", userInfo);
-            return ApiResponse.success(userInfo);
+            return ApiResponse.success(memberService.getUserCreateResponse(userInfo));
         } catch (Exception e) {
             log.error("Naver 로그인 처리 중 오류 발생", e);
             throw e;
