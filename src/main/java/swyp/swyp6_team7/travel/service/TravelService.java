@@ -92,6 +92,7 @@ public class TravelService {
                 .toList();
     }
 
+    // TODO: Location 디렉토리로 이동?
     private Location getLocation(String locationName) {
         Location location = locationRepository.findByLocationName(locationName)
                 .orElseGet(() -> {
@@ -233,11 +234,13 @@ public class TravelService {
 
         try {
             // TODO: 북마크 삭제 추가
+            // TODO: 댓글 Service의 삭제 메서드로 변경
             commentRepository.deleteCommentsByRelatedTypeAndRelatedNumber("travel", travel.getNumber()); // 댓글 전체 삭제
             planService.deleteAllPlansAndRelatedSpots(travel.getNumber()); // 일정 전체 삭제
             travel.delete(); // 여행 상태 DELETED 설정
             log.info("여행 삭제 완료: travelNumber={}", travelNumber);
         } catch (Exception e) {
+            // TODO: log.error로 변경
             log.warn("여행 삭제 중 오류 발생: {}", e.getMessage());
             throw new MoingApplicationException("여행 삭제 과정에서 오류가 발생했습니다.");
         }

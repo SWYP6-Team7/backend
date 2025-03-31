@@ -12,7 +12,6 @@ import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
 import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
-import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.service.ImageService;
@@ -36,7 +35,6 @@ public class CommunityService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
-    private final CommunityCustomRepository communityCustomRepository;
     private final ImageService imageService;
     private final CommentService commentService;
 
@@ -127,19 +125,14 @@ public class CommunityService {
         }
     }
 
-    //조회수를 올리면서 게시글 상세 조회를 동시에 처리하는 메소드
+    // 게시글 상세 조회
     @Transactional
-    public CommunityDetailResponseDto increaseView(int postNumber, Integer userNumber) {
-        //조회수 +1
-        communityCustomRepository.incrementViewCount(postNumber);
-
-        //게시물 상세보기 데이터 가져오기
+    public CommunityDetailResponseDto getCommunityDetail(int postNumber, Integer userNumber) {
         CommunityDetailResponseDto response = getDetail(postNumber, userNumber);
+
         if (response == null) {
-            log.error("조회수 증가 후 상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
-        } else {
-            log.info("increaseView 메서드 결과: {}", response);
+            log.error("상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
+            throw new MoingApplicationException("게시글을 찾을 수 없습니다.");
         }
         return response;
     }
