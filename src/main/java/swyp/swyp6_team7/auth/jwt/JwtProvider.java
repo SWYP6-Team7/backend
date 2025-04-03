@@ -67,7 +67,7 @@ public class JwtProvider {
         }
         if (jwtBlacklistService.isTokenBlacklisted(token)) {
             log.warn("블랙리스트에 등록된 토큰 검증 시도: {}", token);
-            return false;
+            throw new JwtException("블랙리스트에 등록된 토큰입니다.");
         }
         // JWT 가 유효한지 검증
         try {
