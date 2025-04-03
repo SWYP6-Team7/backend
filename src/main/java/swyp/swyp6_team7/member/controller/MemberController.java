@@ -107,12 +107,6 @@ public class MemberController {
             Integer userNumber = jwtProvider.getUserNumber(jwtToken);
             log.info("회원 번호 추출 완료: {}", userNumber);
 
-            if (jwtProvider.validateToken(jwtToken)) {
-                long expirationTime = jwtProvider.getExpiration(jwtToken);
-                jwtBlacklistService.addToBlacklist(jwtToken, expirationTime);
-                log.info("Access Token 블랙리스트 등록 완료: {}", jwtToken);
-            }
-
             // 클라이언트 측 Refresh Token 쿠키 삭제
             Cookie deleteCookie = new Cookie("refreshToken", null);
             deleteCookie.setMaxAge(0);
@@ -128,6 +122,11 @@ public class MemberController {
             // 회원 탈퇴 서비스 호출 (일반 회원과 소셜 회원 모두 처리)
             memberDeletedService.deleteUserData(user, socialUserOpt.orElse(null));
             log.info("회원 탈퇴 성공: 회원 번호 {}", userNumber);
+
+            long expirationTime = jwtProvider.getExpiration(jwtToken);
+            jwtBlacklistService.addToBlacklist(jwtToken, expirationTime);
+            log.info("Access Token 블랙리스트 등록 완료: {}", jwtToken);
+
             return ApiResponse.success(null); // 204 No Content
         } catch (IllegalArgumentException e) {
             log.error("회원 탈퇴 실패 - 회원을 찾을 수 없음");
