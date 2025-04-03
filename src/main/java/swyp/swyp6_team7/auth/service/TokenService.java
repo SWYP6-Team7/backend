@@ -69,7 +69,7 @@ public class TokenService {
 
         // 캐시된 Access Token이 있으면 재사용
         String cachedAccessToken = redisTemplate.opsForValue().get(cacheKey);
-        if (cachedAccessToken != null) {
+        if (cachedAccessToken != null && jwtProvider.validateToken(cachedAccessToken)) {
             log.info("Redis 캐시에서 AccessToken 반환: {}", cachedAccessToken);
             return new LoginTokenResponse(user, cachedAccessToken, providedRefreshToken);
         }
