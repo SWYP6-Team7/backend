@@ -8,7 +8,10 @@ import java.util.Optional;
 
 public interface SocialUserRepository extends JpaRepository<SocialUsers, Integer> {
     Optional<SocialUsers> findBySocialLoginId(String socialLoginId);
+
     Optional<SocialUsers> findBySocialLoginIdAndSocialEmail(String socialLoginId, String email);
+
     boolean existsBySocialLoginId(String socialLoginId);
+
     Optional<SocialUsers> findByUser(Users user);
 }

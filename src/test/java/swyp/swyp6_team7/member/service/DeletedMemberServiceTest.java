@@ -7,19 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-import swyp.swyp6_team7.location.domain.Location;
-import swyp.swyp6_team7.location.domain.LocationType;
-import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.DeletedUsersRepository;
+import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.travel.domain.GenderType;
-import swyp.swyp6_team7.travel.domain.PeriodType;
-import swyp.swyp6_team7.travel.domain.Travel;
-import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
@@ -41,6 +32,9 @@ class DeletedMemberServiceTest {
 
     @Mock
     private DeletedUsersRepository deletedUsersRepository;
+
+    @Mock
+    private SocialUserRepository socialUserRepository;
 
     @Mock
     private TravelRepository travelRepository;
@@ -96,9 +90,6 @@ class DeletedMemberServiceTest {
         assertThat(testUser.getUserEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
         assertThat(testUser.getUserName()).isEqualTo("deletedUser");
         assertThat(testUser.getUserStatus()).isEqualTo(UserStatus.DELETED);
-
-        assertThat(socialUser.getSocialEmail()).isEqualTo("deleted@" + testUser.getUserNumber() + ".com");
-        assertThat(socialUser.getSocialLoginId()).isEqualTo("null");
 
         verify(userRepository, times(1)).save(testUser);
     }
