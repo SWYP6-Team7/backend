@@ -20,6 +20,10 @@ public class TravelRecommendResponse {
     private int travelNumber;
     private String title;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private int userNumber;
     private String userName;
     private List<String> tags;
@@ -27,21 +31,20 @@ public class TravelRecommendResponse {
     private int maxPerson;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private boolean bookmarked;
 
     public TravelRecommendResponse(TravelRecommendForMemberDto dto) {
         this.travelNumber = dto.getTravelNumber();
         this.title = dto.getTitle();
         this.location = dto.getLocation();
+        this.startDate = dto.getStartDate();
+        this.endDate = dto.getEndDate();
         this.userNumber = dto.getUserNumber();
         this.userName = dto.getUserName();
         this.tags = dto.getTags();
         this.nowPerson = dto.getNowPerson();
         this.maxPerson = dto.getMaxPerson();
         this.createdAt = dto.getCreatedAt();
-        this.registerDue = dto.getRegisterDue();
         this.bookmarked = dto.isBookmarked();
     }
 
@@ -49,13 +52,14 @@ public class TravelRecommendResponse {
         this.travelNumber = dto.getTravelNumber();
         this.title = dto.getTitle();
         this.location = dto.getLocation();
+        this.startDate = dto.getStartDate();
+        this.endDate = dto.getEndDate();
         this.userNumber = dto.getUserNumber();
         this.userName = dto.getUserName();
         this.tags = dto.getTags();
         this.nowPerson = dto.getNowPerson();
         this.maxPerson = dto.getMaxPerson();
         this.createdAt = dto.getCreatedAt();
-        this.registerDue = dto.getRegisterDue();
         this.bookmarked = false;
     }
 

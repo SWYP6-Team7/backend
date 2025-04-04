@@ -139,12 +139,12 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(travelTag.tag, tag)
                 .where(
                         statusInProgress(),
-                        travel.dueDate.after(requestDate)
+                        travel.startDate.after(requestDate)
                 )
                 .groupBy(travel.number)
                 .orderBy(
                         matchingTagCount.desc(),
-                        travel.dueDate.asc()
+                        travel.title.asc()
                 )
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
@@ -171,7 +171,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                         .and(bookmark.travelNumber.eq(travel.number)))
                 .where(
                         travel.number.in(travels),
-                        travel.dueDate.after(requestDate)
+                        travel.startDate.after(requestDate)
                 )
                 .transform(groupBy(travel.number).list(
                         Projections.constructor(TravelRecommendForMemberDto.class,
@@ -191,7 +191,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .from(travel)
                 .where(
                         statusInProgress(),
-                        travel.dueDate.after(requestDate)
+                        travel.startDate.after(requestDate)
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
@@ -211,7 +211,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .leftJoin(bookmark).on(bookmark.travelNumber.eq(travel.number))
                 .where(
                         statusInProgress(),
-                        travel.dueDate.after(requestDate)
+                        travel.startDate.after(requestDate)
                 )
                 .groupBy(travel.number)
                 .orderBy(
@@ -235,7 +235,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                 .from(travel)
                 .where(
                         statusInProgress(),
-                        travel.dueDate.after(requestDate)
+                        travel.startDate.after(requestDate)
                 );
 
         return PageableExecutionUtils.getPage(content, pageRequest, countQuery::fetchOne);
@@ -389,7 +389,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
 
     private List<OrderSpecifier<?>> getOrderSpecifier(TravelSearchSortingType sortingType) {
         if (sortingType == null) {
-            return List.of(travel.dueDate.asc(), travel.createdAt.desc());
+            return List.of(travel.createdAt.desc());
         }
         switch (sortingType) {
             case RECOMMEND:
@@ -399,7 +399,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
             case CREATED_AT_ASC:
                 return List.of(travel.createdAt.asc());
             default:
-                return List.of(travel.dueDate.asc());
+                return List.of(travel.createdAt.desc());
         }
     }
 
@@ -416,7 +416,7 @@ public class TravelCustomRepositoryImpl implements TravelCustomRepository {
                     .otherwise(travels.size())
                     .asc();
         } else {
-            return travel.dueDate.asc();
+            return travel.createdAt.desc();
         }
     }
 }

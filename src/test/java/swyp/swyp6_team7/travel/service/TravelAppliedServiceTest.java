@@ -3,12 +3,10 @@ package swyp.swyp6_team7.travel.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
@@ -25,14 +23,13 @@ import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class TravelAppliedServiceTest {
@@ -68,7 +65,6 @@ public class TravelAppliedServiceTest {
                 .viewCount(100)
                 .maxPerson(5)
                 .genderType(GenderType.MIXED)
-                .dueDate(LocalDate.now().plusDays(10))
                 .periodType(PeriodType.THREE_WEEKS)
                 .status(TravelStatus.IN_PROGRESS)
                 .createdAt(LocalDateTime.now())
@@ -83,7 +79,6 @@ public class TravelAppliedServiceTest {
                 .viewCount(150)
                 .maxPerson(10)
                 .genderType(GenderType.MAN_ONLY)
-                .dueDate(LocalDate.now().plusDays(15))
                 .periodType(PeriodType.THREE_WEEKS)
                 .status(TravelStatus.IN_PROGRESS)
                 .createdAt(LocalDateTime.now())

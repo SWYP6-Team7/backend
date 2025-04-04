@@ -4,10 +4,11 @@ package swyp.swyp6_team7.auth.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import swyp.swyp6_team7.auth.dto.SignupRequestDto;
+import swyp.swyp6_team7.auth.dto.SocialUserSignUpResponse;
+import swyp.swyp6_team7.auth.dto.UserInfoDto;
 import swyp.swyp6_team7.auth.jwt.JwtProvider;
 import swyp.swyp6_team7.auth.provider.KakaoProvider;
 import swyp.swyp6_team7.member.entity.*;
@@ -18,7 +19,6 @@ import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 import swyp.swyp6_team7.tag.repository.TagRepository;
 import swyp.swyp6_team7.tag.repository.UserTagPreferenceRepository;
-import swyp.swyp6_team7.tag.service.TagService;
 
 import java.util.*;
 
@@ -40,23 +40,25 @@ public class KakaoService {
         return kakaoProvider.getUserInfoFromKakao(code);
     }
 
+    // TODO: Social Login Type 분기처리하기
     @Transactional
-    public Map<String, String> processKakaoLogin(String code) {
+    public UserInfoDto processKakaoLogin(String code) {
         log.info("Kakao 사용자 정보 수집 및 저장 시작: code={}", code);
 
         try {
             Map<String, String> userInfo = kakaoProvider.getUserInfoFromKakao(code);
             Users user = saveSocialUser(userInfo);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("userNumber", user.getUserNumber().toString());
-            response.put("userName", user.getUserName());
-            response.put("userEmail", user.getUserEmail());
-            response.put("userStatus", user.getUserStatus().toString());
-            response.put("socialLoginId", userInfo.get("socialLoginId"));
+            UserInfoDto userInfoResponse = new UserInfoDto(
+                    user.getUserNumber(),
+                    user.getUserName(),
+                    user.getUserEmail(),
+                    user.getUserStatus(),
+                    userInfo.get("socialLoginId")
+            );
 
             log.info("Kakao 사용자 정보 수집 및 저장 완료: userNumber={}", user.getUserNumber());
-            return response;
+            return userInfoResponse;
         } catch (Exception e) {
             log.error("Kakao 사용자 정보 수집 중 오류 발생", e);
             throw new RuntimeException("Failed to process Kakao login", e);
@@ -65,7 +67,7 @@ public class KakaoService {
     }
 
     @Transactional
-    public Map<String, String> completeSignup(@RequestBody SignupRequestDto signupData) {
+    public SocialUserSignUpResponse completeSignup(@RequestBody SignupRequestDto signupData) {
         log.info("Kakao 회원가입 완료 요청: userNumber={}", signupData.getUserNumber());
 
         try {
@@ -112,20 +114,23 @@ public class KakaoService {
                 log.info("사용자 선호 태그 저장 완료: userNumber={}, tagCount={}", user.getUserNumber(), tagPreferences.size());
             }
 
-            userRepository.save(user);
+            user = userRepository.save(user);
 
             Optional<SocialUsers> existingSocialUser = socialUserRepository.findByUser(user);
             String socialLoginId = existingSocialUser.map(SocialUsers::getSocialLoginId).orElse("N/A");
+
             if (existingSocialUser.isPresent()) {
                 SocialUsers socialUser = existingSocialUser.get();
                 socialUser.setSocialEmail(signupData.getEmail());
                 socialUserRepository.save(socialUser);
             }
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Signup complete");
-            response.put("socialLoginId", socialLoginId);
-            response.put("email", user.getUserEmail());
+            SocialUserSignUpResponse response = new SocialUserSignUpResponse(
+                    user.getUserNumber(),
+                    "Signup complete",
+                    socialLoginId,
+                    user.getUserEmail()
+            );
 
             log.info("Kakao 회원가입 완료 성공: userNumber={}", user.getUserNumber());
             return response;
@@ -135,7 +140,6 @@ public class KakaoService {
         }
     }
 
-    @Transactional
     private Users saveSocialUser(Map<String, String> userInfo) {
         String email = userInfo.getOrDefault("email", "unknown@" + UUID.randomUUID().toString().substring(0, 8) + ".email");
         String socialLoginId = userInfo.get("socialLoginId");

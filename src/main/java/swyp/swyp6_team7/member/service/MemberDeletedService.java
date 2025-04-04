@@ -7,14 +7,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.member.entity.*;
 import swyp.swyp6_team7.member.repository.DeletedUsersRepository;
+import swyp.swyp6_team7.member.repository.SocialUserRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
 import java.time.LocalDate;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -24,6 +24,7 @@ public class MemberDeletedService {
     private final DeletedUsersRepository deletedUsersRepository;
     private final TravelRepository travelRepository;
     private final UserRepository userRepository;
+    private final SocialUserRepository socialUserRepository;
 
     @Transactional
     public void deleteUserData(Users user, SocialUsers socialUser) {
@@ -44,6 +45,7 @@ public class MemberDeletedService {
             throw new IllegalStateException("회원 데이터 삭제 처리 중 오류가 발생했습니다.", e);
         }
     }
+
     private void anonymizeUser(Users user) {
         log.info("사용자 비식별화 처리 시작: userNumber={}", user.getUserNumber());
 
@@ -56,6 +58,7 @@ public class MemberDeletedService {
         log.info("사용자 비식별화 처리 완료: userNumber={}", user.getUserNumber());
 
     }
+
     private void anonymizeSocialUser(SocialUsers socialUser) {
         log.info("소셜 사용자 비식별화 처리 시작");
 
@@ -67,10 +70,9 @@ public class MemberDeletedService {
         Integer userNumber = user.getUserNumber();
         log.info("소셜 사용자 비식별화 처리 대상: userNumber={}", userNumber);
 
-        socialUser.setSocialEmail("deleted@" + userNumber + ".com");
-        socialUser.setSocialLoginId("null");
+        socialUserRepository.deleteById(socialUser.getSocialNumber());
 
-        log.info("사용자 비식별화 처리 완료: userNumber={}",userNumber);
+        log.info("사용자 비식별화 처리 완료: userNumber={}", userNumber);
     }
 
 
@@ -98,7 +100,6 @@ public class MemberDeletedService {
     }
 
 
-
     private void updateUserContentReferences(Integer userNumber, DeletedUsers deletedUser) {
         log.info("콘텐츠 참조 업데이트: userNumber={}", userNumber);
 
@@ -121,6 +122,7 @@ public class MemberDeletedService {
         for (DeletedUsers deletedUser : expiredUsers) {
             try {
                 userRepository.deleteById(deletedUser.getUserNumber());
+                // TODO: Social 유저도 삭제 되는지?
                 deletedUsersRepository.delete(deletedUser);
                 log.info("만료된 회원 삭제 성공: userNumber={}", deletedUser.getUserNumber());
             } catch (Exception e) {
@@ -129,6 +131,7 @@ public class MemberDeletedService {
         }
         log.info("만료된 회원 데이터 삭제 작업 완료");
     }
+
     public void validateReRegistration(String email) {
         log.info("재가입 제한 검증 요청: email={}", email);
         Optional<List<DeletedUsers>> deletedUsersOpt = deletedUsersRepository.findAllByDeletedUserEmail(email);

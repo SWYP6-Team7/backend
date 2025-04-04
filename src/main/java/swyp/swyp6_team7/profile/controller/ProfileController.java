@@ -1,11 +1,11 @@
 package swyp.swyp6_team7.profile.controller;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
@@ -23,7 +23,7 @@ public class ProfileController {
 
     // 프로필 수정 (이름, 자기소개, 선호 태그)
     @PutMapping("/update")
-    public ResponseEntity<?> updateProfile(
+    public ApiResponse<String> updateProfile(
             @RequestBody ProfileUpdateRequest request,
             @RequireUserNumber Integer userNumber
     ) {
@@ -32,21 +32,20 @@ public class ProfileController {
             profileService.updateProfile(userNumber, request);
 
             log.info("프로필 수정 완료 - userNumber: {}", userNumber);
-            return ResponseEntity.ok("프로필 업데이트 완료");
+            return ApiResponse.success("프로필 업데이트 완료");
         } catch (IllegalArgumentException e) {
             String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
             log.warn("Invalid request: {}", errorMessage);
-            return ResponseEntity.status(400).body(errorMessage);
+            throw new MoingApplicationException(errorMessage);
         } catch (Exception e) {
             log.error("프로필 수정 중 에러발생", e);
-            return ResponseEntity.status(500).body("프로필 수정 중 에러 발생");
+            throw e;
         }
     }
 
     //프로필 조회 (이름, 이메일, 연령대, 성별, 선호 태그, 자기소개)
     @GetMapping("/me")
-    public ResponseEntity<?> viewProfile(
-            HttpServletRequest request,
+    public ApiResponse<ProfileViewResponse> viewProfile(
             @RequireUserNumber Integer userNumber
     ) {
         try {
@@ -54,18 +53,17 @@ public class ProfileController {
             Optional<Users> userOpt = profileService.getUserByUserNumber(userNumber);
 
             if (userOpt.isEmpty()) {
-                return ResponseEntity.status(404).body("사용자를 찾을 수 없음");
+                throw new MoingApplicationException("사용자를 찾을 수 없음");
             }
 
-            return ResponseEntity.ok(new ProfileViewResponse(userOpt.get()));
+            return ApiResponse.success(new ProfileViewResponse(userOpt.get()));
         } catch (IllegalArgumentException e) {
             String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
             log.warn("Invalid request: {}", errorMessage);
-            return ResponseEntity.status(400).body(errorMessage);
+            throw new MoingApplicationException(errorMessage);
         } catch (Exception e) {
             log.error("Error fetching profile ", e);
-            return ResponseEntity.status(500).body("존재하지 않는 프로필 정보입니다.");
+            throw e;
         }
     }
-
 }

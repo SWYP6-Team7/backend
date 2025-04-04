@@ -15,6 +15,7 @@ import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
 import swyp.swyp6_team7.member.entity.UserStatus;
 import swyp.swyp6_team7.member.entity.Users;
+import swyp.swyp6_team7.member.repository.UserLoginHistoryRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
@@ -45,11 +46,14 @@ class CompanionServiceTest {
 
     @Autowired
     private TravelRepository travelRepository;
+    @Autowired
+    private UserLoginHistoryRepository userLoginHistoryRepository;
 
 
     @AfterEach
     void tearDown() {
         companionRepository.deleteAllInBatch();
+        userLoginHistoryRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         travelRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
@@ -100,8 +104,9 @@ class CompanionServiceTest {
                 .userNumber(3)
                 .maxPerson(2)
                 .location(location)
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .viewCount(0)
-                .dueDate(LocalDate.of(2024, 11, 16))
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(TravelStatus.IN_PROGRESS)

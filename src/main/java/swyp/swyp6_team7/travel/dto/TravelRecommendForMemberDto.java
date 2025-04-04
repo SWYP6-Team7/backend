@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.travel.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,32 +19,36 @@ public class TravelRecommendForMemberDto {
     private int travelNumber;
     private String title;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private int userNumber;
     private String userName;
     private List<String> tags;
     private int nowPerson;
     private int maxPerson;
     private LocalDateTime createdAt;
-    private LocalDate registerDue;
     private int preferredNumber;
     private boolean bookmarked;
 
     @Builder
     public TravelRecommendForMemberDto(
-            int travelNumber, String title, String location, int userNumber, String userName,
-            List<String> tags, int nowPerson, int maxPerson,
-            LocalDateTime createdAt, LocalDate registerDue, int preferredNumber, boolean isBookmarked
+            int travelNumber, String title, String location, LocalDate startDate, LocalDate endDate,
+            int userNumber, String userName, List<String> tags, int nowPerson, int maxPerson,
+            LocalDateTime createdAt, int preferredNumber, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
         this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
-        this.registerDue = registerDue;
         this.preferredNumber = preferredNumber;
         this.bookmarked = isBookmarked;
     }
@@ -56,13 +61,14 @@ public class TravelRecommendForMemberDto {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
         this.location = travel.getLocationName();
+        this.startDate = travel.getStartDate();
+        this.endDate = travel.getEndDate();
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
         this.nowPerson = companionCount;
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
-        this.registerDue = travel.getDueDate();
         this.bookmarked = isBookmarked;
     }
 
@@ -72,18 +78,18 @@ public class TravelRecommendForMemberDto {
 
     @Override
     public String toString() {
-        return "TravelRecommendDto{" +
+        return "TravelRecommendForMemberDto{" +
                 "travelNumber=" + travelNumber +
                 ", title='" + title + '\'' +
                 ", location='" + location + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
-                ", location='" + location + '\'' +
                 ", tags=" + tags +
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
-                ", registerDue=" + registerDue +
                 ", preferredNumber=" + preferredNumber +
                 ", bookmarked=" + bookmarked +
                 '}';

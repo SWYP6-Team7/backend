@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.tag.repository.UserTagPreferenceRepository;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForMemberDto;
 import swyp.swyp6_team7.travel.dto.TravelRecommendForNonMemberDto;
@@ -15,6 +16,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelRecentDto;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 import swyp.swyp6_team7.travel.util.TravelRecommendComparator;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +32,7 @@ public class TravelHomeService {
     private final TravelRepository travelRepository;
     private final UserTagPreferenceRepository userTagPreferenceRepository;
     private final BookmarkService bookmarkService;
+    private final Clock clock;
 
     public Page<TravelRecentDto> getTravelsSortedByCreatedAt(PageRequest pageRequest, Integer loginUserNumber) {
         Page<TravelRecentDto> result = travelRepository.findAllSortedByCreatedAt(pageRequest);
@@ -52,13 +55,14 @@ public class TravelHomeService {
         return result;
     }
 
-    public Page<TravelRecommendForMemberDto> getRecommendTravelsByMember(PageRequest pageRequest, Integer loginUserNumber, LocalDate requestDate) {
+    public Page<TravelRecommendForMemberDto> getRecommendTravelsByMember(PageRequest pageRequest, Integer loginUserNumber) {
         // 사용자 선호 태그
         List<String> preferredTags = userTagPreferenceRepository.findPreferenceTagsByUserNumber(loginUserNumber);
 
         try {
             // 조회
-            Page<TravelRecommendForMemberDto> result = travelRepository.findAllByPreferredTags(pageRequest, loginUserNumber, preferredTags, requestDate);
+            LocalDate nowDate = LocalDate.now(clock);
+            Page<TravelRecommendForMemberDto> result = travelRepository.findAllByPreferredTags(pageRequest, loginUserNumber, preferredTags, nowDate);
 
             // 태그 매칭 개수 기반 정렬
             List<TravelRecommendForMemberDto> travels = new ArrayList<>(result.getContent());
@@ -67,18 +71,18 @@ public class TravelHomeService {
             return new PageImpl(travels, pageRequest, result.getTotalElements());
         } catch (Exception e) {
             log.warn("로그인 사용자 추천 여행 목록 조회 실패: {}", e);
-            throw new IllegalArgumentException("로그인 사용자 추천 여행 목록 조회 실패");
+            throw new MoingApplicationException("로그인 사용자 추천 여행 목록 조회 중 오류가 발생했습니다.");
         }
     }
 
-    public Page<TravelRecommendForNonMemberDto> getRecommendTravelsByNonMember(PageRequest pageRequest, LocalDate requestDate) {
+    public Page<TravelRecommendForNonMemberDto> getRecommendTravelsByNonMember(PageRequest pageRequest) {
         // 조회: 북마크 개수 많은 순서, 제목 사전순 정렬
         try {
-            Page<TravelRecommendForNonMemberDto> result = travelRepository.findAllSortedByBookmarkNumberAndTitle(pageRequest, requestDate);
-            return result;
+            LocalDate nowDate = LocalDate.now(clock);
+            return travelRepository.findAllSortedByBookmarkNumberAndTitle(pageRequest, nowDate);
         } catch (Exception e) {
             log.warn("비로그인 사용자 추천 여행 목록 조회 실패: {}", e);
-            throw new IllegalArgumentException("비로그인 사용자 추천 여행 목록 조회 실패");
+            throw new MoingApplicationException("비로그인 사용자 추천 여행 목록 조회 중 오류가 발생했습니다.");
         }
     }
 

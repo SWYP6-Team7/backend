@@ -17,6 +17,8 @@ public interface TravelRepository extends JpaRepository<Travel, Integer>, Travel
 
     boolean existsTravelByNumber(Integer integer);
 
+    boolean existsTravelByNumberAndUserNumber(Integer number, Integer userNumber);
+
     @Query("SELECT t FROM Travel t JOIN FETCH t.deletedUser u WHERE u.userNumber = :deletedUserNumber")
     List<Travel> findByDeletedUserNumber(@Param("deletedUserNumber") Integer deletedUserNumber);
 
@@ -28,7 +30,7 @@ public interface TravelRepository extends JpaRepository<Travel, Integer>, Travel
     void updateEnrollmentsLastViewedAtByNumber(@Param("travelNumber") int travelNumber, @Param("lastViewedAt") LocalDateTime lastViewedAt);
 
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE Travel t SET t.viewCount = t.viewCount + 1 WHERE t.number = :travelNumber")
-    void updateViewCountPlusOneByTravelNumber(@Param("travelNumber") int travelNumber);
+    @Query("UPDATE Travel t SET t.viewCount = t.viewCount + :newViewCount WHERE t.number = :travelNumber")
+    void combineViewCountByTravelNumber(@Param("travelNumber") int travelNumber, @Param("newViewCount") int newViewCount);
 
 }

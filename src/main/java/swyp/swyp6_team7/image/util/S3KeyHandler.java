@@ -1,7 +1,7 @@
 package swyp.swyp6_team7.image.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import swyp.swyp6_team7.image.s3.FileFolder;
 import swyp.swyp6_team7.image.s3.S3Component;
@@ -11,16 +11,12 @@ import swyp.swyp6_team7.image.s3.S3Component;
 @Component
 public class S3KeyHandler {
 
-    // todo: AmazonS3로부터 regionName 가져오기(설정값 사용하도록)
-    private final static String S3_REGION = "ap-northeast-2";
-
     private final String baseFolder;
     private final String s3UrlPrefix;
 
-    @Autowired
-    public S3KeyHandler(S3Component s3Component) {
-        this.baseFolder = s3Component.getBaseFolder(); //베이스 폴더 가져오기
-        this.s3UrlPrefix = "https://" + s3Component.getBucket() + ".s3." + S3_REGION + ".amazonaws.com/";
+    public S3KeyHandler(S3Component s3Component, @Value("${cloud.aws.region.static}") String s3Region) {
+        this.baseFolder = s3Component.getBaseFolder();
+        this.s3UrlPrefix = "https://" + s3Component.getBucket() + ".s3." + s3Region + ".amazonaws.com/";
     }
 
 

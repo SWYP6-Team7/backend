@@ -1,5 +1,6 @@
 package swyp.swyp6_team7.location.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -14,16 +15,12 @@ import java.io.InputStream;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class LocationService {
     private final CsvReader<Location> csvReader;
     private final LocationDao locationDao;
     private final CityParser cityParser;
 
-    public LocationService(CsvReader csvReader, LocationDao locationDao, CityParser cityParser) {
-        this.csvReader = csvReader;
-        this.locationDao = locationDao;
-        this.cityParser = cityParser;
-    }
 
     public void importCities(InputStream inputStream, LocationType locationType) throws IOException {
         List<Location> cities = csvReader.readByLine(inputStream, cityParser, locationType);
@@ -45,5 +42,4 @@ public class LocationService {
             importCities(internationalStream, LocationType.INTERNATIONAL);
         }
     }
-
 }

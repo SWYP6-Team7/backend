@@ -21,6 +21,10 @@ public class TravelSearchDto {
     private int travelNumber;
     private String title;
     private String location;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     private int userNumber;
     private String userName;
     private List<String> tags;
@@ -28,28 +32,27 @@ public class TravelSearchDto {
     private int maxPerson;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate registerDue;
     private String postStatus;
     private boolean bookmarked;
 
 
     @Builder
     public TravelSearchDto(
-            int travelNumber, String title, String location, int userNumber, String userName,
-            List<String> tags, int maxPerson, int nowPerson,
-            LocalDateTime createdAt, LocalDate registerDue, String postStatus, boolean isBookmarked
+            int travelNumber, String title, String location, LocalDate startDate, LocalDate endDate,
+            int userNumber, String userName, List<String> tags, int maxPerson, int nowPerson,
+            LocalDateTime createdAt, String postStatus, boolean isBookmarked
     ) {
         this.travelNumber = travelNumber;
         this.title = title;
         this.location = location;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
         this.nowPerson = nowPerson;
         this.maxPerson = maxPerson;
         this.createdAt = createdAt;
-        this.registerDue = registerDue;
         this.postStatus = postStatus;
         this.bookmarked = isBookmarked;
     }
@@ -63,13 +66,14 @@ public class TravelSearchDto {
         this.travelNumber = travel.getNumber();
         this.title = travel.getTitle();
         this.location = travel.getLocationName();
+        this.startDate = travel.getStartDate();
+        this.endDate = travel.getEndDate();
         this.userNumber = userNumber;
         this.userName = userName;
         this.tags = tags;
         this.nowPerson = companionCount;
         this.maxPerson = travel.getMaxPerson();
         this.createdAt = travel.getCreatedAt();
-        this.registerDue = travel.getDueDate();
         this.postStatus = travel.getStatus().getName();
         this.bookmarked = false;
     }
@@ -84,14 +88,14 @@ public class TravelSearchDto {
                 "travelNumber=" + travelNumber +
                 ", title='" + title + '\'' +
                 ", location='" + location + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", userNumber=" + userNumber +
                 ", userName='" + userName + '\'' +
-                ", location='" + location + '\'' +
                 ", tags=" + tags +
                 ", nowPerson=" + nowPerson +
                 ", maxPerson=" + maxPerson +
                 ", createdAt=" + createdAt +
-                ", registerDue=" + registerDue +
                 ", postStatus='" + postStatus + '\'' +
                 ", bookmarked=" + bookmarked +
                 '}';

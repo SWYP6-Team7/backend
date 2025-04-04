@@ -1,76 +1,47 @@
 package swyp.swyp6_team7.auth.controller;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import swyp.swyp6_team7.auth.details.CustomUserDetails;
-import swyp.swyp6_team7.auth.jwt.JwtProvider;
-import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.member.service.MemberService;
-import swyp.swyp6_team7.member.service.UserLoginHistoryService;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
+import swyp.swyp6_team7.global.IntegrationTest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import org.springframework.security.core.GrantedAuthority;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "kakao.client-id=fake-client-id",
-        "kakao.client-secret=fake-client-secret",
-        "kakao.redirect-uri=http://localhost:8080/login/oauth2/code/kakao",
-        "kakao.token-url=https://kauth.kakao.com/oauth/token",
-        "kakao.user-info-url=https://kapi.kakao.com/v2/user/me"
-})
-public class LogoutControllerTest {
+public class LogoutControllerTest extends IntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private MemberService memberService;
-
-    @MockBean
-    private UserLoginHistoryService userLoginHistoryService;
-    @MockBean
-    private JwtProvider jwtProvider;
+    private String userName = "test";
+    private String email = "test@test.com";
+    private String password = "password";
 
     @Test
+    @DisplayName("로그아웃 성공 테스트 - 인증 정보 존재")
+    @Transactional
     public void testLogoutSuccess() throws Exception {
-        Users user = new Users();
-        user.setUserEmail("test@example.com");
+        // 테스트용 사용자 생성
+        createUser(userName, password);
+        // 로그인 시도
+        LoginTokenResponse response = login(email, password);
 
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String accessToken = response.getAccessToken();
 
-        Mockito.when(memberService.getUserByEmail("test@example.com")).thenReturn(user);
-
+        // 로그아웃 요청 실행. Authorization 헤더와 함께 refreshToken 쿠키 삭제가 수행됨.
         mockMvc.perform(post("/api/logout")
-                        .header("Authorization", "Bearer mocked-jwt-token"))
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string("로그아웃 성공"));
+                .andExpect(jsonPath("$.success").value("로그아웃 성공"))
+                // refreshToken 쿠키가 maxAge=0으로 설정되어 삭제됨을 검증
+                .andExpect(cookie().maxAge("refreshToken", 0));
     }
 
     @Test
-    public void testLogoutFailureNoUserLoggedIn() throws Exception {
-        // When & Then
-        mockMvc.perform(post("/api/logout"))
+    @DisplayName("로그아웃 실패 테스트 - 인증 정보 없음")
+    void testLogoutFailureNoAuth() throws Exception {
+        mockMvc.perform(post("/api/logout")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
     }
 }

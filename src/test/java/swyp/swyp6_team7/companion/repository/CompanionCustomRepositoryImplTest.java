@@ -100,8 +100,9 @@ class CompanionCustomRepositoryImplTest {
                 .userNumber(3)
                 .maxPerson(2)
                 .location(location)
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .viewCount(0)
-                .dueDate(LocalDate.of(2024, 11, 16))
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(TravelStatus.IN_PROGRESS)
@@ -127,5 +128,4 @@ class CompanionCustomRepositoryImplTest {
                 .url(url)
                 .build();
     }
-
 }

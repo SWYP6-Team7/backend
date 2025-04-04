@@ -67,7 +67,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -96,7 +96,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -124,7 +124,7 @@ class EnrollmentCustomRepositoryImplTest {
 
         Location location = locationRepository.save(createLocation());
         Travel travel = travelRepository.save(
-                createTravel(3, 2, location, LocalDate.of(2024, 11, 12), TravelStatus.IN_PROGRESS)
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
 
         Enrollment enrollment1 = createEnrollment(travel.getNumber(), user1.getUserNumber(), EnrollmentStatus.PENDING);
@@ -138,6 +138,26 @@ class EnrollmentCustomRepositoryImplTest {
         // then
         assertThat(userNumbers).hasSize(1)
                 .contains(user1.getUserNumber());
+    }
+
+    @DisplayName("특정 여행에 대해 특정 사용자의 대기 상태 신청 번호를 가져올 수 있다.")
+    @Test
+    void findPendingEnrollmentNumberByTravelNumberAndUserNumber() {
+        // given
+        Users user = userRepository.save(createUser("user1"));
+        Location location = locationRepository.save(createLocation());
+        Travel travel = travelRepository.save(
+                createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
+        );
+
+        Enrollment enrollment1 = enrollmentRepository.save(createEnrollment(travel.getNumber(), user.getUserNumber(), EnrollmentStatus.PENDING));
+        Enrollment enrollment2 = enrollmentRepository.save(createEnrollment(travel.getNumber(), user.getUserNumber(), EnrollmentStatus.PENDING));
+
+        // when
+        Long result = enrollmentRepository.findPendingEnrollmentByTravelNumberAndUserNumber(travel.getNumber(), user.getUserNumber());
+
+        // then
+        assertThat(result).isEqualTo(enrollment2.getNumber());
     }
 
     private Enrollment createEnrollment(int travelNumber, int userNumber, EnrollmentStatus status) {
@@ -166,13 +186,14 @@ class EnrollmentCustomRepositoryImplTest {
                 .build();
     }
 
-    private Travel createTravel(int hostUserNumber, int maxPerson, Location location, LocalDate dueDate, TravelStatus status) {
+    private Travel createTravel(int hostUserNumber, int maxPerson, Location location, TravelStatus status) {
         return Travel.builder()
                 .userNumber(hostUserNumber)
                 .maxPerson(maxPerson)
                 .location(location)
+                .startDate(LocalDate.of(2024, 11, 22))
+                .endDate(LocalDate.of(2024, 11, 28))
                 .viewCount(0)
-                .dueDate(dueDate)
                 .genderType(GenderType.MIXED)
                 .periodType(PeriodType.ONE_WEEK)
                 .status(status)
@@ -189,5 +210,4 @@ class EnrollmentCustomRepositoryImplTest {
                 .userStatus(UserStatus.ABLE)
                 .build();
     }
-
 }

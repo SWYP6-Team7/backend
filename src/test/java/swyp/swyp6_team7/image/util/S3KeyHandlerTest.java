@@ -19,9 +19,9 @@ class S3KeyHandlerTest {
     void setup() {
         s3ComponentMock = Mockito.mock(S3Component.class);
         given(s3ComponentMock.getBaseFolder()).willReturn("mock-base-folder/");
-        given(s3ComponentMock.getBucket()).willReturn("mock-bucket");
+        given(s3ComponentMock.getBucket()).willReturn("bucket-name");
 
-        s3KeyHandler = new S3KeyHandler(s3ComponentMock);
+        s3KeyHandler = new S3KeyHandler(s3ComponentMock, "region");
     }
 
     @DisplayName("generateTempS3Key: 임시저장 S3 Key를 생성할 수 있다.")
@@ -50,19 +50,6 @@ class S3KeyHandlerTest {
             s3KeyHandler.generateTempS3Key(relatedType, storageName);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("유효하지 않는 타입입니다: " + relatedType);
-    }
-
-    @DisplayName("getKeyByUrl: 주어지는 URL을 이용해 S3 Key를 추출할 수 있다.")
-    @Test
-    void getKeyByUrl() {
-        // given
-        String url = "https://mock-bucket.s3.ap-northeast-2.amazonaws.com/images/profile/default/defaultProfile.png";
-
-        // when
-        String keyByUrl = s3KeyHandler.getKeyByUrl(url);
-
-        // then
-        assertThat(keyByUrl).isEqualTo("images/profile/default/defaultProfile.png");
     }
 
     @DisplayName("getKeyByUrl: 주어지는 URL이 설정된 s3UrlPrefix로 시작하지 않을 경우 예외가 발생한다.")

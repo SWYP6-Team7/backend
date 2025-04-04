@@ -121,7 +121,6 @@ public class BookmarkService {
                                         currentApplicants,
                                         travel.getMaxPerson(),
                                         travel.getCreatedAt(),
-                                        travel.getDueDate(),
                                         true
                                 );
                             }).orElse(null); // 삭제된 여행에 대한 북마크는 null 반환

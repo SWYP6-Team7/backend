@@ -3,6 +3,7 @@ spring:
     include:
       - credentials
       - s3
+      - test
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:test;mode=mysql
@@ -88,6 +89,9 @@ spring:
           user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
           user-name-attribute: sub
 
+  main:
+    lazy-initialization: true
+
 custom:
   admin-secret-key: your-secret-key
   jwt:
@@ -126,12 +130,24 @@ google:
   client-name: Google
   provider: Google
 
+redis:
+  host: localhost
+  port: 6379
+  
 cloud:
   aws:
     s3:
       bucket: bucket-name
       base-folder: images/
     region:
-      static: ap-northeast-2
+      static: region
     stack:
       auto: false
+
+server:
+  servlet:
+    encoding:
+      force: true
+
+moing:
+  domain: https://localhost:8080

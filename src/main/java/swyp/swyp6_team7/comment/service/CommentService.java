@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.comment.domain.Comment;
@@ -17,14 +16,14 @@ import swyp.swyp6_team7.comment.dto.response.CommentListReponseDto;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
-
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.notification.service.NotificationService;
+import swyp.swyp6_team7.notification.service.CommentNotificationService;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
@@ -43,7 +42,7 @@ public class CommentService {
     private final TravelRepository travelRepository;
     private final CommunityRepository communityRepository;
     private final ImageRepository imageRepository;
-    private final NotificationService notificationService;
+    private final CommentNotificationService commentNotificationService;
 
     // Create
     @Transactional
@@ -64,11 +63,15 @@ public class CommentService {
                 relatedType,
                 relatedNumber
         ));
-
-        //create notification to Host and Enrolled Users
-        notificationService.createCommentNotifications(userNumber, relatedType, relatedNumber);
         log.info("댓글 생성 성공 - 댓글 번호: {}, 사용자 번호: {}, 관련 타입: {}, 관련 번호: {}",
                 savedComment.getCommentNumber(), userNumber, relatedType, relatedNumber);
+
+        // 댓글 알림 전송
+        if (relatedType.equals("travel")) {
+            commentNotificationService.createTravelCommentNotification(userNumber, relatedNumber);
+        } else if (relatedType.equals("community")) {
+            commentNotificationService.createCommunityCommentNotification(userNumber, relatedNumber);
+        }
 
         return savedComment;
     }
@@ -91,11 +94,13 @@ public class CommentService {
         } else if ("community".equals(relatedType)) {
             exists = communityRepository.existsByPostNumber(relatedNumber);
         } else {
-            throw new IllegalArgumentException("유효하지 않은 게시물 종류입니다. 게시물 타입: " + relatedType);
+            log.error("유효하지 않은 게시물 종류입니다. 게시물 종류 : {}", relatedType);
+            throw new MoingApplicationException("유효하지 않은 요청입니다.");
         }
 
         if (!exists) {
-            throw new IllegalArgumentException("존재하지 않는 게시물입니다. 게시물 타입: " + relatedType + ", 게시물 번호: " + relatedNumber);
+            log.error("게시물이 존재하지 않습니다. 게시물 타입 : {}, 게시물 번호 : {}", relatedType, relatedNumber);
+            throw new MoingApplicationException("유효하지 않은 요청입니다.");
         }
     }
 
@@ -125,12 +130,10 @@ public class CommentService {
     }
 
     //댓글 목록 조회 (페이징)
-    @Transactional
     public Page<CommentListReponseDto> getListPage(PageRequest pageRequest, String relatedType, int relatedNumber, Integer userNumber) {
 
         validateRelatedPostExists(relatedType, relatedNumber);
 
-        //List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
         if (comments.isEmpty()) {
             log.info("댓글이 없습니다: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
@@ -184,6 +187,7 @@ public class CommentService {
             throw new RuntimeException("댓글 삭제 실패: " + e.getMessage());
         }
     }
+
     private void deleteReplies(Comment comment) {
         List<Comment> replies = commentRepository.findByRelatedTypeAndRelatedNumberAndParentNumber(
                 comment.getRelatedType(), comment.getRelatedNumber(), comment.getCommentNumber());
@@ -197,9 +201,27 @@ public class CommentService {
             }
         }
     }
+
+    // 특정 게시물의 모든 댓글 및 관련 데이터 삭제(댓글, 댓글에 대한 좋아요)
+    @Transactional
+    public void deleteAllComments(String relatedType, Integer relatedNumber) {
+        try {
+            // 댓글에 대한 좋아요 삭제
+            List<Integer> commentNumbers = commentRepository.findCommentNumbersByRelatedTypeAndRelatedNumber(relatedType, relatedNumber);
+            likeRepository.deleteAllCommentLikesByRelatedNumberIn(commentNumbers);
+
+            // 모든 댓글 삭제(답글 포함)
+            commentRepository.deleteCommentsByRelatedTypeAndRelatedNumber("community", relatedNumber);
+
+        } catch (Exception e) {
+            log.error("게시물의 모든 댓글 데이터 삭제 중 오류 발생: relatedType={}, relatedNumber={}", relatedType, relatedNumber);
+            throw new MoingApplicationException("게시물의 모든 댓글 삭제 도중 오류가 발생했습니다.");
+        }
+    }
+
     private List<CommentListReponseDto> convertToResponseDtos(List<Comment> comments, Integer userNumber) {
         List<CommentListReponseDto> responseDtos = new ArrayList<>();
-        for (Comment comment : comments) {
+        for (Comment comment : comments) { // TODO: N번 순회 안하게 수정
             Optional<Users> user = userRepository.findByUserNumber(comment.getUserNumber());
             String commentWriter = user.map(Users::getUserName).orElse("unknown");
 
@@ -228,11 +250,11 @@ public class CommentService {
 
         // 존재하는 댓글인지 확인
         Comment comment = commentRepository.findByCommentNumber(commentNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다. 댓글 번호: " + commentNumber));
+                .orElseThrow(() -> new MoingApplicationException("해당 댓글을 찾을 수 없습니다. 댓글 번호: " + commentNumber));
 
         // 요청한 사용자(=로그인 중인 사용자)가 댓글 작성자인지 확인
         if (comment.getUserNumber() != userNumber) {
-            throw new IllegalArgumentException("댓글 작성자가 아닙니다.");
+            throw new MoingApplicationException("댓글 작성자가 아닙니다.");
         }
     }
 
@@ -320,7 +342,7 @@ public class CommentService {
     //답글 작성 여부 가져오기
     private Boolean getCommented(Comment comment, Integer userNumber) {
 
-        if(userNumber == null){
+        if (userNumber == null) {
             return false;
         }
 

@@ -28,9 +28,9 @@ public class TravelDetailLoginMemberRelatedDto {
         this.hostUser = true;
     }
 
-    public void setEnrollmentNumber(Enrollment enrollment) {
-        if (enrollment != null) {
-            this.enrollmentNumber = enrollment.getNumber();
+    public void setEnrollmentNumber(Long enrollmentNumber) {
+        if (enrollmentNumber != null) {
+            this.enrollmentNumber = enrollmentNumber;
         }
     }
 

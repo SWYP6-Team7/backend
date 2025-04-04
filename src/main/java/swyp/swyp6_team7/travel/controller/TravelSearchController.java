@@ -2,15 +2,12 @@ package swyp.swyp6_team7.travel.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.travel.dto.TravelSearchCondition;
 import swyp.swyp6_team7.travel.dto.response.TravelSearchDto;
@@ -23,11 +20,11 @@ import java.util.List;
 @RestController
 public class TravelSearchController {
 
-    private static final Logger logger = LoggerFactory.getLogger(TravelSearchController.class);
     private final TravelSearchService travelSearchService;
 
+    // 여행 검색
     @GetMapping("/api/travels/search")
-    public ResponseEntity<Page<TravelSearchDto>> search(
+    public ApiResponse<Page<TravelSearchDto>> search(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "5") int size,
             @RequestParam(name = "keyword", required = false) String keyword,
@@ -50,13 +47,9 @@ public class TravelSearchController {
                 .tags(selectedTags)
                 .sortingType(selectedSortingType)
                 .build();
-        logger.info("Travel 조회 요청 - userId: {}, search condition: {}", userNumber, condition.toString());
 
         Page<TravelSearchDto> travels = travelSearchService.search(condition, userNumber);
-        logger.info("Travel 조회 완료 - userId: {}, result: {}", userNumber, travels.getPageable());
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(travels);
+        return ApiResponse.success(travels);
     }
 
 }

@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.repository.TagRepository;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

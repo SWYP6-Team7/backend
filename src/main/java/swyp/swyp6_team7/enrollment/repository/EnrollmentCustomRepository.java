@@ -12,6 +12,8 @@ public interface EnrollmentCustomRepository {
 
     List<Integer> findUserNumbersByTravelNumberAndStatus(int travelNumber, EnrollmentStatus status);
 
+    Long findPendingEnrollmentByTravelNumberAndUserNumber(int travelNumber, int userNumber);
+
     List<Tuple> findEnrollmentsByUserNumber(int userNumber);
 
 }

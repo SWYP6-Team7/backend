@@ -5,12 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import swyp.swyp6_team7.auth.filter.DevAuthenticationFilter;
 import swyp.swyp6_team7.auth.jwt.JwtFilter;
 
 import java.util.List;
@@ -21,9 +23,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final DevAuthenticationFilter devAuthenticationFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    public SecurityConfig(JwtFilter jwtFilter, DevAuthenticationFilter devAuthenticationFilter) {
         this.jwtFilter = jwtFilter;
+        this.devAuthenticationFilter = devAuthenticationFilter;
     }
 
     @Bean
@@ -32,7 +36,7 @@ public class SecurityConfig {
         http
                 .cors(httpSecurityCorsConfigurer ->
                         httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함
                 .authorizeHttpRequests(auth -> auth
 
@@ -73,8 +77,8 @@ public class SecurityConfig {
                                 "/actuator/health", // Health check endpoint permission
                                 "/api/community/images/**",
                                 "/api/community/*/images",
-                                "/api/inquiry/submit"
-
+                                "/api/inquiry/submit",
+                                "/api/member/block/my/detail" // 내 계정 차단내용 조회
                         ).permitAll()
 
                         .requestMatchers(
@@ -89,6 +93,7 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
+                .addFilterBefore(devAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
 
         return http.build();
@@ -103,12 +108,11 @@ public class SecurityConfig {
                 "https://www.moing.shop",
                 "https://www.moing.io",
                 "https://www.alpha.moing.io"
-                );
+        );
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

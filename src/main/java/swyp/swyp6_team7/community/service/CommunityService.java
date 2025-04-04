@@ -4,25 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import swyp.swyp6_team7.category.domain.Category;
 import swyp.swyp6_team7.category.repository.CategoryRepository;
-import swyp.swyp6_team7.comment.domain.Comment;
 import swyp.swyp6_team7.comment.repository.CommentRepository;
 import swyp.swyp6_team7.comment.service.CommentService;
 import swyp.swyp6_team7.community.domain.Community;
 import swyp.swyp6_team7.community.dto.request.CommunityCreateRequestDto;
 import swyp.swyp6_team7.community.dto.request.CommunityUpdateRequestDto;
 import swyp.swyp6_team7.community.dto.response.CommunityDetailResponseDto;
-import swyp.swyp6_team7.community.repository.CommunityCustomRepository;
 import swyp.swyp6_team7.community.repository.CommunityRepository;
+import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.service.ImageService;
 import swyp.swyp6_team7.likes.dto.response.LikeReadResponseDto;
 import swyp.swyp6_team7.likes.repository.LikeRepository;
 import swyp.swyp6_team7.likes.util.LikeStatus;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
-import swyp.swyp6_team7.category.domain.Category;
+
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -30,13 +29,13 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @Service
 public class CommunityService {
-    private final CategoryRepository categoryRepository;
+
     private final CommunityRepository communityRepository;
+    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final ImageService imageService;
-    private final CommunityCustomRepository communityCustomRepository;
     private final CommentService commentService;
 
 
@@ -90,7 +89,7 @@ public class CommunityService {
             // 좋아요 상태 가져오기 (비회원인 경우 좋아요 여부는 false로 처리)
             LikeReadResponseDto likeStatus = (userNumber != null)
                     ? LikeStatus.getLikeStatus(likeRepository, "community", postNumber, userNumber)
-                    : new LikeReadResponseDto("community",postNumber,false, 0);
+                    : new LikeReadResponseDto("community", postNumber, false, 0);
 
             // 게시글 작성자 프로필 이미지 url 가져오기
             String profileImageUrl = imageService.getImageDetail("profile", PostWriter.getUserNumber(), 0).getUrl();
@@ -126,19 +125,14 @@ public class CommunityService {
         }
     }
 
-    //조회수를 올리면서 게시글 상세 조회를 동시에 처리하는 메소드
+    // 게시글 상세 조회
     @Transactional
-    public CommunityDetailResponseDto increaseView(int postNumber, Integer userNumber) {
-        //조회수 +1
-        communityCustomRepository.incrementViewCount(postNumber);
-
-        //게시물 상세보기 데이터 가져오기
+    public CommunityDetailResponseDto getCommunityDetail(int postNumber, Integer userNumber) {
         CommunityDetailResponseDto response = getDetail(postNumber, userNumber);
+
         if (response == null) {
-            log.error("조회수 증가 후 상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
-            throw new RuntimeException("게시글을 찾을 수 없습니다.");
-        } else{
-            log.info("increaseView 메서드 결과: {}", response);
+            log.error("상세 조회 실패: postNumber={}, userNumber={}", postNumber, userNumber);
+            throw new MoingApplicationException("게시글을 찾을 수 없습니다.");
         }
         return response;
     }
@@ -182,33 +176,33 @@ public class CommunityService {
     //게시글 삭제
     @Transactional
     public void delete(int postNumber, int userNumber) {
-        try {
-            log.info("게시글 삭제 요청: postNumber={}, userNumber={}", postNumber, userNumber);
+        // 삭제할 게시글이 존재하는지 확인
+        Community community = communityRepository.findByPostNumber(postNumber)
+                .orElseThrow(() -> new MoingApplicationException("해당 게시글을 찾을 수 없습니다."));
 
-            // 삭제할 게시글이 존재하는지 확인
-            Community community = communityRepository.findByPostNumber(postNumber)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다: " + postNumber));
-            // 본인 게시글인지 확인
-            if (community.getUserNumber() != userNumber) {
-                throw new IllegalArgumentException("본인 게시물이 아닙니다. userNumber=" + userNumber);
-            }
-            //좋아요 기록 삭제
+        // 본인 게시글인지 확인
+        if (community.getUserNumber() != userNumber) {
+            throw new MoingApplicationException("게시글에 대한 삭제 권한이 없습니다.");
+        }
+
+        try {
+            // 좋아요 삭제
             likeRepository.deleteByRelatedTypeAndRelatedNumber("community", postNumber);
-            //댓글 삭제
-            List<Comment> comments = commentRepository.findByRelatedTypeAndRelatedNumber("community", postNumber);
-            for (Comment comment : comments) {
-                commentService.delete(comment.getCommentNumber(), userNumber);
-            }
-            //게시글 이미지 삭제
+
+            // 댓글 삭제
+            commentService.deleteAllComments("community", postNumber);
+
+            // 게시글 이미지 삭제
             imageService.deleteImage("community", postNumber);
+
             // 게시글 삭제
             communityRepository.delete(community);
-            log.info("게시글 삭제 완료: postNumber={}, userNumber={}", postNumber, userNumber);
+            log.info("커뮤니티 게시글 삭제 완료: postNumber={}", postNumber);
+
         } catch (Exception e) {
-            log.error("게시글 삭제 중 오류 발생: postNumber={}, userNumber={}", postNumber, userNumber, e);
-            throw new RuntimeException("게시글 삭제에 실패했습니다.", e);
+            log.error("커뮤니티 게시글 삭제 중 오류 발생: postNumber={}, {}", postNumber, e.getMessage());
+            throw new MoingApplicationException("커뮤니티 게시글 삭제 도중 오류가 발생했습니다.");
         }
     }
-
 
 }

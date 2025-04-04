@@ -12,24 +12,21 @@ import swyp.swyp6_team7.bookmark.dto.BookmarkResponse;
 import swyp.swyp6_team7.bookmark.entity.Bookmark;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.location.domain.Location;
+import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.travel.domain.Travel;
 import swyp.swyp6_team7.travel.domain.TravelStatus;
 import swyp.swyp6_team7.travel.repository.TravelRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
-import swyp.swyp6_team7.location.domain.LocationType;
 
 public class BookmarkServiceTest {
 
@@ -63,7 +60,6 @@ public class BookmarkServiceTest {
                 .number(101)
                 .location(travelLocation)
                 .locationName(travelLocation.getLocationName())
-                .dueDate(LocalDate.now().plusDays(5))
                 .build();
         Bookmark oldestBookmark = new Bookmark(1, 1, LocalDateTime.now().minusDays(10));
 
@@ -94,7 +90,6 @@ public class BookmarkServiceTest {
                 .number(101)
                 .location(travelLocation)
                 .locationName(travelLocation.getLocationName())
-                .dueDate(LocalDate.now().plusDays(5))
                 .build();
 
 
@@ -149,7 +144,6 @@ public class BookmarkServiceTest {
                 .locationName(travelLocation.getLocationName())
                 .title("Sample Travel")
                 .createdAt(LocalDateTime.now().minusDays(5))
-                .dueDate(LocalDate.now().plusDays(5))
                 .maxPerson(4)
                 .build();
 

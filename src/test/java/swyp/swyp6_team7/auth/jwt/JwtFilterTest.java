@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import swyp.swyp6_team7.auth.service.JwtBlacklistService;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.member.service.UserLoginHistoryService;
 
@@ -31,6 +32,9 @@ public class JwtFilterTest {
 
     @Mock
     private JwtProvider jwtProvider;
+
+    @Mock
+    private JwtBlacklistService jwtBlacklistService;
 
     @Mock
     private UserDetailsService userDetailsService;
@@ -49,26 +53,27 @@ public class JwtFilterTest {
 
     @Test
     public void testValidToken() throws ServletException, IOException {
-        // Given: Mock HTTP request with valid token
+        // Given: 유효한 토큰이 담긴 요청
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer validToken");
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        // Mock JwtProvider behavior
+        // Mocking 설정
         when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
+        when(jwtBlacklistService.isTokenBlacklisted("validToken")).thenReturn(false);
 
-        // Mock UserDetailsService behavior
         UserDetails userDetails = mock(UserDetails.class);
         when(userDetailsService.loadUserByUsername("1")).thenReturn(userDetails);
 
-        // When: Executing the filter
+        // When: 필터 실행
         jwtFilter.doFilterInternal(request, response, filterChain);
 
-        // Then: Verify filter chain continues and authentication is set in SecurityContext
+        // Then: 필터 체인이 계속 진행되고 SecurityContext에 인증 정보가 설정되어야 함
         verify(filterChain, times(1)).doFilter(request, response);
-        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        UsernamePasswordAuthenticationToken authentication =
+                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;
         assert authentication.getPrincipal().equals(userDetails);
     }
@@ -108,23 +113,21 @@ public class JwtFilterTest {
 
     @Test
     public void testUserNotFound() throws ServletException, IOException {
-        // Given: Mock HTTP request with valid token
+        // Given: 유효한 토큰이지만, 해당 사용자를 찾을 수 없는 경우
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer validToken");
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        // Mock JwtProvider behavior
         when(jwtProvider.getUserNumber("validToken")).thenReturn(1);
         when(jwtProvider.validateToken("validToken")).thenReturn(true);
-
-        // Mock UserDetailsService behavior
+        when(jwtBlacklistService.isTokenBlacklisted("validToken")).thenReturn(false);
         when(userDetailsService.loadUserByUsername("1")).thenThrow(new UsernameNotFoundException("User not found"));
 
-        // When: Executing the filter
+        // When: 필터 실행
         jwtFilter.doFilterInternal(request, response, filterChain);
 
-        // Then: Verify response status is UNAUTHORIZED and filter chain does not continue
+        // Then: 응답 상태가 UNAUTHORIZED(401)로 설정되고 필터 체인은 진행되지 않아야 함
         assert response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED;
         verify(filterChain, never()).doFilter(request, response);
     }

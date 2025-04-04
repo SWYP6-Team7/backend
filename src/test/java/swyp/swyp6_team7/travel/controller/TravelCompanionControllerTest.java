@@ -4,16 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
 import swyp.swyp6_team7.companion.service.CompanionService;
+import swyp.swyp6_team7.global.IntegrationTest;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.mock.WithMockCustomUser;
-import swyp.swyp6_team7.travel.dto.response.TravelCompanionResponse;
 
 import java.util.List;
 
@@ -23,10 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-@SpringBootTest
-@AutoConfigureMockMvc
-class TravelCompanionControllerTest {
+class TravelCompanionControllerTest extends IntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,11 +47,11 @@ class TravelCompanionControllerTest {
         // then
         resultActions
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalCount").value(1))
-                .andExpect(jsonPath("$.companions[0].userNumber").value(1))
-                .andExpect(jsonPath("$.companions[0].userName").value("유저1"))
-                .andExpect(jsonPath("$.companions[0].ageGroup").value("10대"))
-                .andExpect(jsonPath("$.companions[0].profileUrl").value("profile-1"));
+                .andExpect(jsonPath("$.success.totalCount").value(1))
+                .andExpect(jsonPath("$.success.companions[0].userNumber").value(1))
+                .andExpect(jsonPath("$.success.companions[0].userName").value("유저1"))
+                .andExpect(jsonPath("$.success.companions[0].ageGroup").value("10대"))
+                .andExpect(jsonPath("$.success.companions[0].profileUrl").value("profile-1"));
     }
 
 
