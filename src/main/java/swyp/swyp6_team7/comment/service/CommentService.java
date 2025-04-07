@@ -67,10 +67,14 @@ public class CommentService {
                 savedComment.getCommentNumber(), userNumber, relatedType, relatedNumber);
 
         // 댓글 알림 전송
-        if (relatedType.equals("travel")) {
-            commentNotificationService.createTravelCommentNotification(userNumber, relatedNumber);
-        } else if (relatedType.equals("community")) {
-            commentNotificationService.createCommunityCommentNotification(userNumber, relatedNumber);
+        try {
+            if (relatedType.equals("travel")) {
+                commentNotificationService.createTravelCommentNotification(userNumber, relatedNumber);
+            } else if (relatedType.equals("community")) {
+                commentNotificationService.createCommunityCommentNotification(userNumber, relatedNumber);
+            }
+        } catch (Exception e) {
+            log.error("댓글 알림 생성 중 오류 발생: {}", e);
         }
 
         return savedComment;

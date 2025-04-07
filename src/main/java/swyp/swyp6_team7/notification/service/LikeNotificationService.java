@@ -9,7 +9,6 @@ import swyp.swyp6_team7.notification.entity.CommunityPostLikeNotification;
 import swyp.swyp6_team7.notification.repository.NotificationRepository;
 
 @Slf4j
-@Transactional
 @RequiredArgsConstructor
 @Service
 public class LikeNotificationService {
