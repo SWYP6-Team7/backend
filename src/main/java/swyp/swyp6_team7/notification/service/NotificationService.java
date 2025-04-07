@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
@@ -31,7 +30,6 @@ public class NotificationService {
     private final EnrollmentRepository enrollmentRepository;
     private final BookmarkRepository bookmarkRepository;
 
-    @Async
     public void createEnrollNotification(Travel targetTravel, int enrollUserNumber) {
         // to 주최자
         Notification newNotificationToHost = NotificationMaker.travelEnrollmentMessageToHost(targetTravel);
@@ -44,21 +42,18 @@ public class NotificationService {
         log.info("여행 참가 신청 요청자 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
-    @Async
     public void createAcceptNotification(Travel targetTravel, int enrollUserNumber) {
         Notification newNotification = NotificationMaker.travelAcceptMessage(targetTravel, enrollUserNumber);
         Notification createdNotification = notificationRepository.save(newNotification);
         log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
-    @Async
     public void createRejectNotification(Travel targetTravel, int enrollUserNumber) {
         Notification newNotification = NotificationMaker.travelRejectMessage(targetTravel, enrollUserNumber);
         Notification createdNotification = notificationRepository.save(newNotification);
         log.info("여행 참가 신청 수락 알림 - receiverNumber: {}, notificationNumber: {}", enrollUserNumber, createdNotification.getNumber());
     }
 
-    @Async
     public void createCompanionClosedNotification(Travel targetTravel) {
         List<Notification> createdNotifications = new ArrayList<>();
 
