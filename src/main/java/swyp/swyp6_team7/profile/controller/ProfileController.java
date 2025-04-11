@@ -8,7 +8,7 @@ import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.profile.dto.OtherUserProfileResponse;
+import swyp.swyp6_team7.profile.dto.TargetUserProfileResponse;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
 import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
 import swyp.swyp6_team7.profile.service.ProfileService;
@@ -82,14 +82,14 @@ public class ProfileController {
     }
 
     // 상대방 프로필 조회
-    @GetMapping("/{otherUserNumber}")
-    public ApiResponse<OtherUserProfileResponse> viewOtherUserProfile(
+    @GetMapping("/{targetUserNumber}")
+    public ApiResponse<TargetUserProfileResponse> viewOtherUserProfile(
             @RequireUserNumber Integer userNumber,
-            @PathVariable Integer otherUserNumber
+            @PathVariable("targetUserNumber") Integer targetUserNumber
     ){
         try {
-            log.info("상대방 프로필 조회 요청 - 요청자 userNumber: {}, 대상 otherUserNumber: {}", userNumber, otherUserNumber);
-            OtherUserProfileResponse response = profileService.getOtherUserProfile(otherUserNumber);
+            log.info("상대방 프로필 조회 요청 - 요청자 userNumber: {}, 대상 otherUserNumber: {}", userNumber, targetUserNumber);
+            TargetUserProfileResponse response = profileService.getOtherUserProfile(targetUserNumber);
             return ApiResponse.success(response);
         } catch (IllegalArgumentException e) {
             String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";

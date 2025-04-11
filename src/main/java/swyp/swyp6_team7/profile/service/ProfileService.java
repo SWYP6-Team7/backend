@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.profile.dto.OtherUserProfileResponse;
+import swyp.swyp6_team7.profile.dto.TargetUserProfileResponse;
 import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
 import swyp.swyp6_team7.profile.repository.UserProfileRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
@@ -90,8 +90,8 @@ public class ProfileService {
         }
     }
 
-    // 상대방 프로필 조회 메서드 (OtherUserProfileResponse 사용)
-    public OtherUserProfileResponse getOtherUserProfile(Integer userNumber) {
+    // 상대방 프로필 조회 메서드 (TargetUserProfileResponse 사용)
+    public TargetUserProfileResponse getOtherUserProfile(Integer userNumber) {
         try {
             log.info("상대방 프로필 조회 시작 - userNumber: {}", userNumber);
             Users user = userRepository.findUserWithTags(userNumber)
@@ -108,13 +108,11 @@ public class ProfileService {
             Boolean recentlyReported = false;    // 최근 신고 여부
             Integer totalReportCount = 0;        // 누적 신고 횟수
 
-            return new OtherUserProfileResponse(
+            return new TargetUserProfileResponse(
                     user,
                     travelDistance,
                     visitedCountryCount,
                     travelBadgeCount,
-                    createdTravelCount,
-                    participatedTravelCount,
                     recentlyReported,
                     totalReportCount);
         } catch (Exception e) {

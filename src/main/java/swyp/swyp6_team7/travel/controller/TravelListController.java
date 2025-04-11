@@ -28,9 +28,9 @@ public class TravelListController {
             @RequireUserNumber Integer userNumber
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<TravelListResponseDto> travelList = travelListService.getTravelListByUser(userNumber, pageable);
+        Page<TravelListResponseDto> createdTravelList = travelListService.getTravelListByUser(userNumber, pageable);
 
-        return ApiResponse.success(travelList);
+        return ApiResponse.success(createdTravelList);
     }
 
     // 동행이 맺어진 여행 리스트
@@ -43,9 +43,9 @@ public class TravelListController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         // 여행 목록 조회
-        Page<TravelListResponseDto> appliedTrips = travelAppliedService.getAppliedTripsByUser(userNumber, pageable);
+        Page<TravelListResponseDto> appliedTravelList = travelAppliedService.getAppliedTripsByUser(userNumber, pageable);
 
-        return ApiResponse.success(appliedTrips);
+        return ApiResponse.success(appliedTravelList);
     }
 
     // 사용자가 특정 여행에 대한 참가 취소
