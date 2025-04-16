@@ -6,6 +6,7 @@ import swyp.swyp6_team7.location.domain.Continent;
 import swyp.swyp6_team7.profile.dto.VisitedCountryLogResponse;
 import swyp.swyp6_team7.profile.repository.VisitedCountryLogRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,18 +19,40 @@ public class VisitedCountryLogService {
     public VisitedCountryLogResponse getVisitedCountriesByUser(Integer userNumber) {
         List<Tuple> rawResult = visitedCountryLogRepository.findVisitedCountriesWithContinentByUser(userNumber);
 
-        Map<Continent, List<String>> grouped = rawResult.stream()
+        // Map<continent, Map<countryName, List<startDate>>>
+        Map<Continent, Map<String, List<LocalDate>>> grouped = rawResult.stream()
                 .collect(Collectors.groupingBy(
-                        tuple -> tuple.get(1, Continent.class), // continent
-                        Collectors.mapping(tuple -> tuple.get(0, String.class), Collectors.toList()) // country_name
+                        tuple -> tuple.get(1, Continent.class),
+                        Collectors.groupingBy(
+                                tuple -> tuple.get(0, String.class),
+                                Collectors.mapping(
+                                        tuple -> tuple.get(2, LocalDate.class),
+                                        Collectors.toList()
+                                )
+                        )
                 ));
 
-        long totalCount = grouped.values().stream().flatMap(List::stream).distinct().count();
+        // Map<continent, List<CountryVisits>>로 변환
+        Map<Continent, List<VisitedCountryLogResponse.CountryVisits>> result =
+                grouped.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                entry -> entry.getValue().entrySet().stream()
+                                        .map(e -> VisitedCountryLogResponse.CountryVisits.builder()
+                                                .countryName(e.getKey())
+                                                .visitDates(e.getValue())
+                                                .build())
+                                        .toList()
+                        ));
+
+        int totalCount = result.values().stream()
+                .mapToInt(List::size)
+                .sum();
 
         return VisitedCountryLogResponse.builder()
                 .userNumber(userNumber)
-                .visitedCountriesCount((int) totalCount)
-                .visitedCountriesByContinent(grouped)
+                .visitedCountriesCount(totalCount)
+                .visitedCountriesByContinent(result)
                 .build();
     }
 }

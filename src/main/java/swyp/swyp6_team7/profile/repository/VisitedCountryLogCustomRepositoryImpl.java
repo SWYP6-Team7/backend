@@ -29,7 +29,7 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
 
         // 내가 개설한 여행 중 종료된 것
         List<Tuple> createdTravels = queryFactory
-                .select(location.country.countryName, location.country.continent)
+                .select(location.country.countryName, location.country.continent, travel.startDate)
                 .from(travel)
                 .join(travel.location, location)
                 .where(
@@ -41,7 +41,7 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
 
         // 내가 companion으로 참가한 여행 중 종료된 것
         List<Tuple> participatedTravels = queryFactory
-                .select(location.country.countryName, location.country.continent)
+                .select(location.country.countryName, location.country.continent, travel.startDate)
                 .from(companion)
                 .join(companion.travel, travel)
                 .join(travel.location, location)
