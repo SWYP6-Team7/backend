@@ -28,7 +28,7 @@ public class CountryInitializer {
             countries.stream()
                     .filter(country -> country != null)
                     .forEach(countryDao::addCountry);
-            System.out.println("✅ countries.csv 적재 완료 (" + countries.size() + "건)");
+            System.out.println("countries.csv 적재 완료 (" + countries.size() + "건)");
         } catch (Exception e) {
             System.err.println("countries.csv 적재 실패: " + e.getMessage());
             e.printStackTrace();

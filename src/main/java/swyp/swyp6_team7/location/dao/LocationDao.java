@@ -43,9 +43,9 @@ public class LocationDao {
         int rows = jdbcTemplate.update(sql, countryId, locationType, locationName);
 
         if (rows > 0) {
-            System.out.println("✅ " + locationName + " 업데이트 완료 → country_id: " + countryId + ", type: " + locationType);
+            //System.out.println(locationName + " 업데이트 완료 - country_id: " + countryId + ", type: " + locationType);
         } else {
-            System.out.println("⚠️ " + locationName + " 은(는) 업데이트 대상 아님");
+            //System.out.println(locationName + " 은(는) 업데이트 대상 아님");
         }
     }
 
@@ -55,7 +55,7 @@ public class LocationDao {
 
         int rows = jdbcTemplate.update(sql, countryId, type, countryName);
         if (rows > 0) {
-            System.out.println("국가 location 업데이트됨 → " + countryName);
+            //System.out.println("국가 location 업데이트됨 → " + countryName);
         }
     }
 

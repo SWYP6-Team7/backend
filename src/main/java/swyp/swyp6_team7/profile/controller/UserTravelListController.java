@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
+import swyp.swyp6_team7.profile.dto.VisitedCountryLogResponse;
+import swyp.swyp6_team7.profile.service.VisitedCountryLogService;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 import swyp.swyp6_team7.travel.service.TravelListService;
@@ -17,6 +19,7 @@ import swyp.swyp6_team7.travel.service.TravelListService;
 public class UserTravelListController {
     private final TravelListService travelListService;
     private final TravelAppliedService travelAppliedService;
+    private final VisitedCountryLogService visitedCountryLogService;
 
     // 상대방의 만든 여행 목록 조회
     @GetMapping("/{targetUserNumber}/created-travels")
@@ -44,5 +47,13 @@ public class UserTravelListController {
         Page<TravelListResponseDto> appliedTravelList = travelAppliedService.getAppliedTripsByUser(targetUserNumber, pageable);
 
         return ApiResponse.success(appliedTravelList);
+    }
+
+    // 상대방의 방문한 여행 로그 조회
+    @GetMapping("/{targetUserNumber}/visited-countries")
+    public ApiResponse<VisitedCountryLogResponse> getVisitedCountries(
+            @PathVariable("targetUserNumber") Integer targetUserNumber,
+            @RequireUserNumber Integer userNumber) {
+        return ApiResponse.success(visitedCountryLogService.getVisitedCountriesByUser(targetUserNumber));
     }
 }
