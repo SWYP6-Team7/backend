@@ -17,8 +17,8 @@ public class Country {
     @Column(name = "country_name",nullable = false, unique = true)
     private String countryName;
 
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
 
     @Enumerated(EnumType.STRING)
     private Continent continent;

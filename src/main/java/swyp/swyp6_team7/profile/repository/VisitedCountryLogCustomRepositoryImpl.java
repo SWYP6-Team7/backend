@@ -58,4 +58,49 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
 
         return new ArrayList<>(result);
     }
+
+    @Override
+    public List<Tuple> findVisitedCountriesWithStartDate(Integer userNumber) {
+        LocalDate today = LocalDate.now();
+
+        List<Tuple> created = queryFactory
+                .select(
+                        country.countryName,
+                        country.continent,
+                        country
+                )
+                .from(travel)
+                .join(travel.location, location)
+                .join(location.country, country)
+                .where(
+                        travel.userNumber.eq(userNumber),
+                        travel.endDate.before(today)
+                )
+                .distinct()
+                .fetch();
+
+        List<Tuple> participated = queryFactory
+                .select(
+                        country.countryName,
+                        country.continent,
+                        country
+                )
+                .from(companion)
+                .join(companion.travel, travel)
+                .join(travel.location, location)
+                .join(location.country, country)
+                .where(
+                        companion.userNumber.eq(userNumber),
+                        travel.endDate.before(today)
+                )
+                .distinct()
+                .fetch();
+
+        Set<Tuple> result = new LinkedHashSet<>();
+        result.addAll(created);
+        result.addAll(participated);
+
+        return new ArrayList<>(result);
+    }
+
 }

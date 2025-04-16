@@ -81,23 +81,5 @@ public class ProfileController {
         }
     }
 
-    // 상대방 프로필 조회
-    @GetMapping("/{targetUserNumber}")
-    public ApiResponse<TargetUserProfileResponse> viewOtherUserProfile(
-            @RequireUserNumber Integer userNumber,
-            @PathVariable("targetUserNumber") Integer targetUserNumber
-    ){
-        try {
-            log.info("상대방 프로필 조회 요청 - 요청자 userNumber: {}, 대상 otherUserNumber: {}", userNumber, targetUserNumber);
-            TargetUserProfileResponse response = profileService.getOtherUserProfile(targetUserNumber);
-            return ApiResponse.success(response);
-        } catch (IllegalArgumentException e) {
-            String errorMessage = e.getMessage() != null ? e.getMessage() : "잘못된 요청입니다.";
-            log.warn("Invalid request: {}", errorMessage);
-            throw new MoingApplicationException(errorMessage);
-        } catch (Exception e) {
-            log.error("Error fetching other user profile ", e);
-            throw e;
-        }
-    }
+
 }

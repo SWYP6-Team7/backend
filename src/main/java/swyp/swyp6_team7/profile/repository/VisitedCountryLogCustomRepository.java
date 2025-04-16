@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface VisitedCountryLogCustomRepository {
     List<Tuple> findVisitedCountriesWithContinentByUser(Integer userNumber);
+    List<Tuple> findVisitedCountriesWithStartDate(Integer userNumber);
 }
