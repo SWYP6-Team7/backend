@@ -19,6 +19,7 @@ import java.util.List;
 public class TravelCreateRequest {
 
     private String locationName; // 여행지 이름
+    private String countryName; // 여행지 국가 이름
     @NotNull
     private LocalDate startDate; // 여행 시작 일자
     @NotNull

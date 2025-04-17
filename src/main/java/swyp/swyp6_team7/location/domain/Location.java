@@ -28,8 +28,9 @@ public class Location {
 
 
     @Builder
-    public Location(String locationName,LocationType locationType) {
+    public Location(String locationName,LocationType locationType, Country country) {
         this.locationName = locationName;
         this.locationType = locationType;
+        this.country = country;
     }
 }

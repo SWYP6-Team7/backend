@@ -15,13 +15,22 @@ public class VisitedCountryLogResponse {
     private Integer userNumber;
     private Integer visitedCountriesCount;
     // 대륙별 (국가명, 시작일자) 목록
-    private Map<Continent, List<CountryVisits>> visitedCountriesByContinent;
+    private Map<Continent, List<CountryVisits>> internationalLogs;
+    private List<DomesticVisit> domesticLogs;
 
     @Getter
     @Builder
     @AllArgsConstructor
     public static class CountryVisits {
         private String countryName;
+        private List<LocalDate> visitDates;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class DomesticVisit {
+        private String locationName;
         private List<LocalDate> visitDates;
     }
 }

@@ -11,9 +11,13 @@ import swyp.swyp6_team7.enrollment.repository.EnrollmentRepository;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.image.repository.ImageRepository;
 import swyp.swyp6_team7.image.service.ImageProfileService;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
+import swyp.swyp6_team7.location.service.CountryService;
 import swyp.swyp6_team7.plan.service.PlanService;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
@@ -52,6 +56,7 @@ public class TravelService {
     private final ImageRepository imageRepository;
     private final LocationRepository locationRepository;
     private final CommentRepository commentRepository;
+    private final CountryService countryService;
 
     private static String defaultProfileImageUrl;
 
@@ -71,8 +76,10 @@ public class TravelService {
         }
 
         try {
-            Location location = getLocation(request.getLocationName());
+
+            Location location = getLocation(request.getLocationName(), request.getCountryName());
             log.info("Location: {}", location.getLocationName());
+
             List<Tag> tags = getTags(request.getTags());
 
             Travel createdTravel = travelRepository.save(
@@ -99,16 +106,29 @@ public class TravelService {
                 .toList();
     }
 
+
     // TODO: Location 디렉토리로 이동?
-    private Location getLocation(String locationName) {
+    private Location getLocation(String locationName, String countryName) {
+        Country country = countryService.InsertCountry(countryName, Continent.ASIA);
+
+        LocationType locationType;
+        if (countryName == null) {
+            locationType = LocationType.UNKNOWN;
+        } else if ("대한민국".equals(countryName)) {
+            locationType = LocationType.DOMESTIC;
+        } else {
+            locationType = LocationType.INTERNATIONAL;
+        }
+
         Location location = locationRepository.findByLocationName(locationName)
                 .orElseGet(() -> {
-                    // Location 정보가 없으면 새로운 Location 추가 (locationType은 UNKNOWN으로 설정)
                     Location newLocation = Location.builder()
                             .locationName(locationName)
-                            .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
+                            .locationType(locationType)
+                            .country(country)
                             .build();
-                    log.info("Location 생성: locationName={}", newLocation.getLocationName());
+                    log.info("Location 생성: locationName={}, countryName={}, locationType={}",
+                            newLocation.getLocationName(), countryName, locationType.name());
                     return locationRepository.save(newLocation);
                 });
         return location;
@@ -203,7 +223,7 @@ public class TravelService {
             throw new MoingApplicationException("잘못된 여행 일정 개수입니다.");
         }
 
-        Location location = getLocation(request.getLocationName());
+        Location location = getLocation(request.getLocationName(), request.getCountryName());
         List<String> requestTagsName = request.getTags().stream()
                 .distinct().limit(TRAVEL_TAG_MAX_COUNT)
                 .toList();

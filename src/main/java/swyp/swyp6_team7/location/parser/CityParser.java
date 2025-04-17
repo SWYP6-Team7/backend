@@ -60,7 +60,11 @@ public class CityParser implements Parser<Location> {
         if (locationDao.existsByLocationName(cityName)) {
             locationDao.updateLocationWithCountry(cityName, country.getCountryName(), country.getId());
         } else {
-            Location location = new Location(cityName, locationType);
+            Location location = Location.builder()
+                    .locationName(cityName)
+                    .locationType(locationType)
+                    .country(country)
+                    .build();
             locationDao.addCity(location, country);
         }
         return null;

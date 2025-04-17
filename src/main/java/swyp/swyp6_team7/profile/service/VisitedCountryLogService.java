@@ -21,43 +21,53 @@ public class VisitedCountryLogService {
     private final VisitedCountryLogRepository visitedCountryLogRepository;
 
     public VisitedCountryLogResponse getVisitedCountriesByUser(Integer userNumber) {
-        List<Tuple> rawResult = visitedCountryLogRepository.findVisitedCountriesWithContinentByUser(userNumber);
+        List<Tuple> international = visitedCountryLogRepository.findInternationalVisits(userNumber);
+        List<Tuple> domestic = visitedCountryLogRepository.findDomesticVisits(userNumber);
 
-        // Map<continent, Map<countryName, List<startDate>>>
-        Map<Continent, Map<String, List<LocalDate>>> grouped = rawResult.stream()
+        // 국제 로그 그룹핑
+        Map<Continent, Map<String, List<LocalDate>>> groupedInternational = international.stream()
                 .collect(Collectors.groupingBy(
                         tuple -> tuple.get(1, Continent.class),
                         Collectors.groupingBy(
                                 tuple -> tuple.get(0, String.class),
-                                Collectors.mapping(
-                                        tuple -> tuple.get(2, LocalDate.class),
-                                        Collectors.toList()
-                                )
+                                Collectors.mapping(t -> t.get(2, LocalDate.class), Collectors.toList())
                         )
                 ));
 
-        // Map<continent, List<CountryVisits>>로 변환
-        Map<Continent, List<VisitedCountryLogResponse.CountryVisits>> result =
-                grouped.entrySet().stream()
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                entry -> entry.getValue().entrySet().stream()
-                                        .map(e -> VisitedCountryLogResponse.CountryVisits.builder()
-                                                .countryName(e.getKey())
-                                                .visitDates(e.getValue())
-                                                .build())
-                                        .toList()
-                        ));
+        Map<Continent, List<VisitedCountryLogResponse.CountryVisits>> internationalLogs = groupedInternational.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().entrySet().stream()
+                                .map(e -> VisitedCountryLogResponse.CountryVisits.builder()
+                                        .countryName(e.getKey())
+                                        .visitDates(e.getValue())
+                                        .build())
+                                .collect(Collectors.toList())
+                ));
 
-        int totalCount = result.values().stream()
-                .mapToInt(List::size)
-                .sum();
+        // 국내 로그 그룹핑
+        Map<String, List<LocalDate>> groupedDomestic = domestic.stream()
+                .collect(Collectors.groupingBy(
+                        tuple -> tuple.get(0, String.class),
+                        Collectors.mapping(t -> t.get(1, LocalDate.class), Collectors.toList())
+                ));
+
+        List<VisitedCountryLogResponse.DomesticVisit> domesticLogs = groupedDomestic.entrySet().stream()
+                .map(e -> VisitedCountryLogResponse.DomesticVisit.builder()
+                        .locationName(e.getKey())
+                        .visitDates(e.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        int visitedCountryCount = internationalLogs.values().stream().mapToInt(List::size).sum();
 
         return VisitedCountryLogResponse.builder()
                 .userNumber(userNumber)
-                .visitedCountriesCount(totalCount)
-                .visitedCountriesByContinent(result)
+                .visitedCountriesCount(visitedCountryCount)
+                .internationalLogs(internationalLogs)
+                .domesticLogs(domesticLogs)
                 .build();
+
     }
 
     // 여행 거리, 방문한 국가 수 계산
