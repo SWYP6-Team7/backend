@@ -218,6 +218,8 @@ public class MemberBlockService {
         }
         Integer userNumber = Integer.parseInt(userNumberStr);
 
+        log.info("UserNumber={}", userNumber);
+
         Users user = userRepository.findById(userNumber)
                 .orElseThrow(() -> new IllegalArgumentException("일반 회원 정보를 찾을 수 없습니다."));
 
@@ -225,9 +227,18 @@ public class MemberBlockService {
             return new UserBlockDetailResponse(userNumber, user.getUserEmail(), user.getUserName(), false, null, null);
         }
 
-        UserBlock userBlock = userBlockRepository.findAllByUserNumberOrderByRegTs(userNumber)
-                .stream().filter(UserBlock::isValidBlock)
+        List<UserBlock> userBlocks = userBlockRepository.findAllByUserNumberOrderByRegTs(userNumber);
+        log.info("UserBlocks={}", userBlocks.size());
+
+        if (userBlocks.isEmpty()) {
+            log.warn("계정 정지 이력이 없습니다. 해당 유저에 대한 확인이 필요합니다.");
+            return new UserBlockDetailResponse(userNumber, user.getUserEmail(), user.getUserName(), false, null, null);
+        }
+
+        UserBlock userBlock = userBlocks.stream().filter(UserBlock::isValidBlock)
                 .toList().getLast();
+
+        log.info("User Block={}", userBlock.getBlockType());
 
         if (userBlock != null && userBlock.getBlockType() == BlockType.BLOCK) {
             log.info("계정 정지 이력이 존재합니다.");
