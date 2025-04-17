@@ -22,7 +22,7 @@ spring:
 cloud:
   aws:
     s3:
-      bucket: moing-dev-content
+      bucket: moing-develop-content
       base-folder: images/
     region:
       static: ap-northeast-2
