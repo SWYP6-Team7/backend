@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
-import swyp.swyp6_team7.profile.dto.TargetUserProfileResponse;
+import swyp.swyp6_team7.profile.dto.response.TargetUserProfileResponse;
 import swyp.swyp6_team7.profile.service.TargetUserProfileService;
 
 @RestController

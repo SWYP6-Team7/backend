@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
-import swyp.swyp6_team7.profile.dto.VisitedCountryLogResponse;
+import swyp.swyp6_team7.profile.dto.response.VisitedCountryLogResponse;
 import swyp.swyp6_team7.profile.service.VisitedCountryLogService;
 import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;

@@ -1,11 +1,9 @@
-package swyp.swyp6_team7.profile.dto;
+package swyp.swyp6_team7.profile.dto.response;
 
 import lombok.Getter;
-import lombok.Setter;
 import swyp.swyp6_team7.member.entity.Users;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 

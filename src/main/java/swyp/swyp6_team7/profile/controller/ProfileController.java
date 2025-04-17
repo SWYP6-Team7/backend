@@ -8,9 +8,8 @@ import swyp.swyp6_team7.global.exception.MoingApplicationException;
 import swyp.swyp6_team7.global.utils.api.ApiResponse;
 import swyp.swyp6_team7.global.utils.auth.RequireUserNumber;
 import swyp.swyp6_team7.member.entity.Users;
-import swyp.swyp6_team7.profile.dto.TargetUserProfileResponse;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
-import swyp.swyp6_team7.profile.dto.ProfileViewResponse;
+import swyp.swyp6_team7.profile.dto.response.ProfileViewResponse;
 import swyp.swyp6_team7.profile.service.ProfileService;
 
 import java.util.Optional;

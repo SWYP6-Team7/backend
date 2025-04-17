@@ -1,4 +1,4 @@
-package swyp.swyp6_team7.profile.dto;
+package swyp.swyp6_team7.profile.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

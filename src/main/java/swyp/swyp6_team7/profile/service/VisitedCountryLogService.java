@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.location.domain.Continent;
 import swyp.swyp6_team7.location.domain.Country;
-import swyp.swyp6_team7.profile.dto.VisitedCountryLogResponse;
+import swyp.swyp6_team7.profile.dto.response.VisitedCountryLogResponse;
 import swyp.swyp6_team7.profile.dto.VisitedCountryStats;
 import swyp.swyp6_team7.profile.repository.VisitedCountryLogRepository;
 import swyp.swyp6_team7.profile.util.DistanceCalculator;

@@ -15,6 +15,7 @@ import swyp.swyp6_team7.member.repository.UserBlockReportRepository;
 import swyp.swyp6_team7.member.repository.UserBlockRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.notification.service.UserBlockWarnNotificationService;
+import swyp.swyp6_team7.profile.dto.UserReportStats;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -258,4 +259,17 @@ public class MemberBlockService {
 
         return tempToken;
     }
+
+    public UserReportStats getUserReportStats(int targetUserNumber) {
+        int totalReports = userBlockReportRepository.countByReportedUserNumber(targetUserNumber);
+
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        int recentReportCount = userBlockReportRepository.countByReportedUserNumberAndRegTsAfter(targetUserNumber, oneWeekAgo);
+
+        boolean recentlyReported = recentReportCount > 0;
+
+
+        return new UserReportStats(recentlyReported, totalReports,recentReportCount);
+    }
+
 }
