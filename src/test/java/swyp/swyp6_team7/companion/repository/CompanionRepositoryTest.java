@@ -7,8 +7,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
@@ -32,6 +35,9 @@ class CompanionRepositoryTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private TravelRepository travelRepository;
 
 
@@ -39,7 +45,7 @@ class CompanionRepositoryTest {
     @Test
     void findUserNumberByTravelNumber() {
         // given
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(createTravel(location));
         Companion companion = companionRepository.save(createCompanion(travel, 1));
         Companion companion2 = companionRepository.save(createCompanion(travel, 5));
@@ -51,11 +57,18 @@ class CompanionRepositoryTest {
         assertThat(companionUserNumbers).hasSize(2)
                 .contains(1, 5);
     }
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
 
-    private Location createLocation() {
+    private Location createLocation(Country country) {
         return Location.builder()
                 .locationName("Seoul")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build();
     }
 

@@ -10,8 +10,11 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.service.BookmarkService;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.repository.TagRepository;
@@ -59,6 +62,9 @@ class TravelHomeServiceTest {
     @Autowired
     private LocationRepository locationRepository;
 
+    @Autowired
+    private CountryRepository countryRepository;
+
     @MockBean
     private UserTagPreferenceRepository userTagPreferenceRepository;
 
@@ -74,6 +80,7 @@ class TravelHomeServiceTest {
         travelRepository.deleteAllInBatch();
         tagRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
+        countryRepository.deleteAllInBatch();
     }
 
     @DisplayName("최근 생성된 순서로 정렬된 여행 목록을 가져오고 로그인 상태라면 사용자의 북마크 여부를 추가로 설정한다.")
@@ -81,7 +88,7 @@ class TravelHomeServiceTest {
     void getTravelsSortedByCreatedAt() {
         // given
         Integer loginUserNumber = 1;
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, createCountry()));
         Travel travel1 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
@@ -113,7 +120,7 @@ class TravelHomeServiceTest {
     void getTravelsSortedByCreatedAtWhenNotLogin() {
         // given
         Integer loginUserNumber = null;
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, createCountry()));
         Travel travel1 = travelRepository.save(createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList()));
@@ -143,7 +150,7 @@ class TravelHomeServiceTest {
         Tag tag4 = Tag.of("즉흥");
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, createCountry()));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
@@ -179,7 +186,7 @@ class TravelHomeServiceTest {
         Tag tag2 = Tag.of("자연");
         tagRepository.saveAll(List.of(tag1, tag2));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, createCountry()));
         Travel travel1 = createTravel(
                 1, location, "여행-나", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
@@ -203,11 +210,18 @@ class TravelHomeServiceTest {
                         tuple(travel1.getNumber(), Arrays.asList("쇼핑", "자연"), 2, "여행-나")
                 );
     }
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
 
-    private Location createLocation(String locationName, LocationType locationType) {
+    private Location createLocation(String locationName, LocationType locationType, Country country) {
         return Location.builder()
                 .locationName(locationName)
                 .locationType(locationType)
+                .country(country)
                 .build();
     }
 

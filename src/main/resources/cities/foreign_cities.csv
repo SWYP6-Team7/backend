@@ -49,7 +49,7 @@
 85,북아메리카,미국,애슐랜드,Ashland
 86,북아메리카,미국,애틀란타,Atlanta
 87,북아메리카,미국,어바인,Irvine
-88,북아메리카,미국,"워싱턴, D.C.","Washington, D.C."
+88,북아메리카,미국,워싱턴, D.C.","Washington, D.C."
 89,북아메리카,미국,콜럼버스,Columbus
 90,북아메리카,미국,포틀랜드,Portland
 91,북아메리카,미국,피츠버그,Pittsburgh
@@ -60,7 +60,7 @@
 95,남아메리카,베네수엘라,카라카스,Caracas
 96,동남아시아,베트남,하노이,Hanoi
 97,유럽,벨기에,브뤼헤,Brugge
-98,유럽,벨기에,앤트워프,"Antwerp(Antwerpen, Anvers)"
+98,유럽,벨기에,앤트워프,Antwerp(Antwerpen, Anvers)"
 43,남아메리카,볼리비아,라파스,La Paz
 41,남아메리카,브라질,브라질리아,brasilia
 99,남아메리카,브라질,꾸리찌바,Curitiba
@@ -156,7 +156,6 @@
 164,동아프리카,케냐,나이로비,Nairobi
 10,남아메리카,콜롬비아,카르타헤나,Cartagena
 35,북아프리카,쿠바,아바나(하바나),La habana
-165,북아프리카,쿠바,아바나(하바나),La habana
 1,유럽,크로아티아,자그레브,Zagreb
 19,동아프리카,탄자니아,다르에스살람,Dar es Salaam
 4,동남아시아,태국,방콕,Bangkok

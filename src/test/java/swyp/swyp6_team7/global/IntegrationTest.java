@@ -16,8 +16,11 @@ import swyp.swyp6_team7.auth.dto.LoginRequestDto;
 import swyp.swyp6_team7.auth.dto.LoginTokenResponse;
 import swyp.swyp6_team7.auth.service.LoginFacade;
 import swyp.swyp6_team7.config.RedisContainerConfig;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.dto.UserRequestDto;
 import swyp.swyp6_team7.member.entity.AgeGroup;
@@ -75,6 +78,9 @@ public class IntegrationTest {
     @Autowired
     private LocationRepository locationRepository;
 
+    @Autowired
+    private CountryRepository countryRepository;
+
     protected Users createUser(
             String userName,
             String password
@@ -121,6 +127,15 @@ public class IntegrationTest {
         LoginTokenResponse tokenResponse = loginFacade.login(loginRequestDto);
         return tokenResponse;
     }
+    protected Country getOrCreateCountry(String countryName) {
+        return countryRepository.findByCountryName(countryName)
+                .orElseGet(() -> countryRepository.save(
+                        Country.builder()
+                                .countryName(countryName)
+                                .continent(Continent.ASIA)
+                                .build()
+                ));
+    }
 
     protected Location createLocation(String locationName) {
         Optional<Location> locationPrev = locationRepository.findByLocationName(locationName);
@@ -128,9 +143,12 @@ public class IntegrationTest {
             return locationPrev.get();
         }
 
+        Country country = getOrCreateCountry("countryName");
+
         Location newLocation = Location.builder()
                 .locationName(locationName)
                 .locationType(LocationType.UNKNOWN) // UNKNOWN으로 설정
+                .country(country)
                 .build();
 
         return locationRepository.save(newLocation);

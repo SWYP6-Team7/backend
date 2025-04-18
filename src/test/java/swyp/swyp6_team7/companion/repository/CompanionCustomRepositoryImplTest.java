@@ -10,8 +10,11 @@ import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
 import swyp.swyp6_team7.config.DataConfig;
 import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.repository.ImageRepository;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
@@ -47,6 +50,9 @@ class CompanionCustomRepositoryImplTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private TravelRepository travelRepository;
 
 
@@ -61,7 +67,7 @@ class CompanionCustomRepositoryImplTest {
         Image image2 = createImage(user2.getUserNumber(), "user2-profile-image");
         imageRepository.saveAll(List.of(image1, image2));
 
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(createTravel(location));
 
         Companion companion1 = createCompanion(travel, user1.getUserNumber());
@@ -88,10 +94,18 @@ class CompanionCustomRepositoryImplTest {
                 .build();
     }
 
-    private Location createLocation() {
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
+
+    private Location createLocation(Country country) {
         return Location.builder()
                 .locationName("Seoul")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build();
     }
 

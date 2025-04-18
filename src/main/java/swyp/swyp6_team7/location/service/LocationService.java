@@ -5,6 +5,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import swyp.swyp6_team7.location.dao.LocationDao;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 import swyp.swyp6_team7.location.parser.CityParser;
@@ -24,13 +25,7 @@ public class LocationService {
 
     public void importCities(InputStream inputStream, LocationType locationType) throws IOException {
         List<Location> cities = csvReader.readByLine(inputStream, cityParser, locationType);
-        cities.forEach(city -> {
-            if (city != null && city.getLocationName() != null && !city.getLocationName().trim().isEmpty()) {
-                locationDao.addCity(city);
-            } else {
-                System.out.println("Invalid location data: " + city);
-            }
-        });
+        System.out.println("location 데이터 적재 완료: " + cities.size() + "건");
     }
 
     public void loadAllLocations() throws IOException {

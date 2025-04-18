@@ -5,8 +5,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.TravelTag;
@@ -45,12 +48,16 @@ class TravelTagServiceTest {
     @Autowired
     private LocationRepository locationRepository;
 
+    @Autowired
+    private CountryRepository countryRepository;
+
     @AfterEach
     void tearDown() {
         travelTagRepository.deleteAllInBatch();
         travelRepository.deleteAllInBatch();
         tagRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
+        countryRepository.deleteAllInBatch();
     }
 
     @DisplayName("update: 여행과 태그 이름 리스트가 주어지면, 변경된 TravelTag 리스트를 얻을 수 있다.")
@@ -95,11 +102,22 @@ class TravelTagServiceTest {
                 .containsExactlyInAnyOrder("자연", "쇼핑");
     }
 
+    private Country getOrCreateCountry(String countryName) {
+        return countryRepository.findByCountryName(countryName)
+                .orElseGet(() -> countryRepository.save(
+                        Country.builder()
+                                .countryName(countryName)
+                                .continent(Continent.ASIA)
+                                .build()
+                ));
+    }
 
     private Travel createTravel(List<Tag> tags) {
+        Country country = getOrCreateCountry("국가명");
         Location location = locationRepository.save(Location.builder()
                 .locationName("여행지명")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build());
 
         return Travel.builder()

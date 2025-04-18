@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
@@ -28,6 +31,9 @@ class TravelRepositoryTest {
 
     @Autowired
     private LocationRepository locationRepository;
+
+    @Autowired
+    private CountryRepository countryRepository;
 
 
     @DisplayName("TravelNumber가 주어질 때, 해당 Travel의 enrollmentLastViewedAt를 가져올 수 있다.")
@@ -63,11 +69,22 @@ class TravelRepositoryTest {
                 .contains(LocalDateTime.of(2024, 11, 8, 15, 0));
     }
 
+    private Country getOrCreateCountry(String countryName) {
+        return countryRepository.findByCountryName(countryName)
+                .orElseGet(() -> countryRepository.save(
+                        Country.builder()
+                                .countryName(countryName)
+                                .continent(Continent.ASIA)
+                                .build()
+                ));
+    }
 
     private Travel createTravel(int nowViewCount, LocalDateTime enrollmentLastViewdAt) {
+        Country country = getOrCreateCountry("국가명");
         Location location = locationRepository.save(Location.builder()
                 .locationName("여행지명")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build());
 
         return Travel.builder()
