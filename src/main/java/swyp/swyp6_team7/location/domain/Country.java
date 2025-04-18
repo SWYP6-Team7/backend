@@ -1,12 +1,13 @@
 package swyp.swyp6_team7.location.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name ="countries")
 public class Country {
     @Id
@@ -22,4 +23,10 @@ public class Country {
 
     @Enumerated(EnumType.STRING)
     private Continent continent;
+
+    @Builder
+    public Country(String countryName, Continent continent) {
+        this.countryName = countryName;
+        this.continent = continent;
+    }
 }

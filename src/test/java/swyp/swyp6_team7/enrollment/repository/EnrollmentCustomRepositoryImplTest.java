@@ -12,8 +12,11 @@ import swyp.swyp6_team7.enrollment.domain.EnrollmentStatus;
 import swyp.swyp6_team7.enrollment.dto.EnrollmentResponse;
 import swyp.swyp6_team7.image.domain.Image;
 import swyp.swyp6_team7.image.repository.ImageRepository;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
@@ -50,6 +53,9 @@ class EnrollmentCustomRepositoryImplTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private ImageRepository imageRepository;
 
 
@@ -65,7 +71,7 @@ class EnrollmentCustomRepositoryImplTest {
                 createImage(user1.getUserNumber(), "user1-profile-image")
         );
 
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(
                 createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
@@ -94,7 +100,7 @@ class EnrollmentCustomRepositoryImplTest {
         Users user1 = userRepository.save(createUser("user1"));
         Users user2 = userRepository.save(createUser("user2"));
 
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(
                 createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
@@ -122,7 +128,7 @@ class EnrollmentCustomRepositoryImplTest {
         Users user2 = userRepository.save(createUser("user2"));
         Users user3 = userRepository.save(createUser("user3"));
 
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(
                 createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
@@ -145,7 +151,7 @@ class EnrollmentCustomRepositoryImplTest {
     void findPendingEnrollmentNumberByTravelNumberAndUserNumber() {
         // given
         Users user = userRepository.save(createUser("user1"));
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(
                 createTravel(3, 2, location, TravelStatus.IN_PROGRESS)
         );
@@ -178,11 +184,18 @@ class EnrollmentCustomRepositoryImplTest {
                 .url(url)
                 .build();
     }
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
 
-    private Location createLocation() {
+    private Location createLocation(Country country) {
         return Location.builder()
                 .locationName("Seoul")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build();
     }
 

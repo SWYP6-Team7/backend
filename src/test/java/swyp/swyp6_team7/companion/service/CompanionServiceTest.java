@@ -8,8 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import swyp.swyp6_team7.companion.domain.Companion;
 import swyp.swyp6_team7.companion.dto.CompanionInfoDto;
 import swyp.swyp6_team7.companion.repository.CompanionRepository;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
@@ -45,6 +48,9 @@ class CompanionServiceTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private TravelRepository travelRepository;
     @Autowired
     private UserLoginHistoryRepository userLoginHistoryRepository;
@@ -66,7 +72,7 @@ class CompanionServiceTest {
         Users user1 = userRepository.save(createUser("user1", AgeGroup.TEEN));
         Users user2 = userRepository.save(createUser("user2", AgeGroup.TWENTY));
 
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel = travelRepository.save(createTravel(location));
 
         Companion companion1 = createCompanion(travel, user1.getUserNumber());
@@ -92,10 +98,18 @@ class CompanionServiceTest {
                 .build();
     }
 
-    private Location createLocation() {
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
+
+    private Location createLocation(Country country) {
         return Location.builder()
                 .locationName("Seoul")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build();
     }
 

@@ -10,8 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import swyp.swyp6_team7.bookmark.entity.Bookmark;
 import swyp.swyp6_team7.bookmark.repository.BookmarkRepository;
 import swyp.swyp6_team7.config.DataConfig;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.member.entity.AgeGroup;
 import swyp.swyp6_team7.member.entity.Gender;
@@ -57,6 +60,8 @@ class TravelCustomRepositoryImplTest {
     @Autowired
     private LocationRepository locationRepository;
     @Autowired
+    private CountryRepository countryRepository;
+    @Autowired
     private BookmarkRepository bookmarkRepository;
 
 
@@ -70,7 +75,8 @@ class TravelCustomRepositoryImplTest {
         Tag tag2 = Tag.of("자연");
         List<Tag> tags = tagRepository.saveAll(Arrays.asList(tag1, tag2));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 2, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, tags);
@@ -90,7 +96,8 @@ class TravelCustomRepositoryImplTest {
     public void findAllSortedByCreatedAt() {
         // given
         Users host = userRepository.save(createHostUser());
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
 
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행", 0, 2, GenderType.MIXED,
@@ -125,7 +132,8 @@ class TravelCustomRepositoryImplTest {
         Tag tag4 = Tag.of("즉흥");
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1));
@@ -168,7 +176,8 @@ class TravelCustomRepositoryImplTest {
         Tag tag4 = Tag.of("즉흥");
         tagRepository.saveAll(List.of(tag1, tag2, tag3, tag4));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
 
         LocalDate startDate1 = LocalDate.of(2024, 11, 22);
         LocalDate endDate = LocalDate.of(2024, 11, 28);
@@ -209,7 +218,8 @@ class TravelCustomRepositoryImplTest {
     void findAllByBookmarkNumberAndTitle() {
         // given
         Users host = userRepository.save(createHostUser());
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행1", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -246,7 +256,8 @@ class TravelCustomRepositoryImplTest {
     void findAllByBookmarkNumberAndTitleWhenSameBookmarkNumber() {
         // given
         Users host = userRepository.save(createHostUser());
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 host.getUserNumber(), location, "여행갸", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -282,7 +293,8 @@ class TravelCustomRepositoryImplTest {
     void findAllByBookmarkNumberAndTitleWithDate() {
         // given
         Users host = userRepository.save(createHostUser());
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
 
         LocalDate startDate1 = LocalDate.of(2024, 11, 22);
         LocalDate endDate = LocalDate.of(2024, 11, 28);
@@ -321,7 +333,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithKeyword() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "Seoul 여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -348,8 +361,10 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithKeywordThroughTitleAndLocation() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        Location location2 = locationRepository.save(createLocation("Busan", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
+        Location location2 = locationRepository.save(createLocation("Busan", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행1", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -377,7 +392,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithoutKeyword() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "Seoul 여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -401,7 +417,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchOnlyActivated() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, DELETED, new ArrayList<>());
@@ -434,7 +451,8 @@ class TravelCustomRepositoryImplTest {
         Tag tag2 = Tag.of("자연");
         tagRepository.saveAll(Arrays.asList(tag1, tag2));
 
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, Arrays.asList(tag1, tag2));
@@ -462,7 +480,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithGenderFilter() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -492,7 +511,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithPeriodFilter() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
@@ -523,7 +543,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithPersonRangeFilter() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 2, GenderType.MIXED,
                 PeriodType.MORE_THAN_MONTH, IN_PROGRESS, new ArrayList<>());
@@ -556,9 +577,11 @@ class TravelCustomRepositoryImplTest {
     @DisplayName("search: 국내 카테고리(DOMESTIC)에 해당하는 여행을 검색할 수 있다.")
     @Test
     public void searchDomesticTravelWithLocationFilter() {
-        // given
-        Location domesticLocation = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        Location internationalLocation = locationRepository.save(createLocation("London", LocationType.INTERNATIONAL));
+        Country korea = createCountry("대한민국",Continent.ASIA);
+        Country england = createCountry("영국",Continent.EUROPE);
+
+        Location domesticLocation = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,korea));
+        Location internationalLocation = locationRepository.save(createLocation("London", LocationType.INTERNATIONAL,england));
 
         LocalDate dueDate = LocalDate.of(2024, 11, 7);
         Travel travel1 = createTravel(
@@ -590,8 +613,11 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchInternationalTravelWithLocationFilter() {
         // given
-        Location domesticLocation = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
-        Location internationalLocation = locationRepository.save(createLocation("London", LocationType.INTERNATIONAL));
+        Country korea = createCountry("대한민국",Continent.ASIA);
+        Country england = createCountry("영국",Continent.EUROPE);
+
+        Location domesticLocation = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, korea));
+        Location internationalLocation = locationRepository.save(createLocation("London", LocationType.INTERNATIONAL, england));
 
         Travel travel1 = createTravel(
                 1, domesticLocation, "여행", 0, 0, GenderType.MIXED,
@@ -622,7 +648,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithoutSortingType() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -651,7 +678,9 @@ class TravelCustomRepositoryImplTest {
     @Test
     public void searchWithRecommendSorting() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC, country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -687,7 +716,8 @@ class TravelCustomRepositoryImplTest {
     @Test
     void searchWithRecommendSorting2() {
         // given
-        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC));
+        Country country = createCountry("대한민국",Continent.ASIA);
+        Location location = locationRepository.save(createLocation("Seoul", LocationType.DOMESTIC,country));
         Travel travel1 = createTravel(
                 1, location, "여행", 0, 0, GenderType.MIXED,
                 PeriodType.ONE_WEEK, IN_PROGRESS, new ArrayList<>());
@@ -732,10 +762,18 @@ class TravelCustomRepositoryImplTest {
                 .build();
     }
 
-    private Location createLocation(String locationName, LocationType locationType) {
+    private Country createCountry(String name, Continent continent){
+        return countryRepository.save(Country.builder()
+                .countryName(name)
+                .continent(continent)
+                .build());
+    }
+
+    private Location createLocation(String locationName, LocationType locationType, Country country) {
         return Location.builder()
                 .locationName(locationName)
                 .locationType(locationType)
+                .country(country)
                 .build();
     }
 
