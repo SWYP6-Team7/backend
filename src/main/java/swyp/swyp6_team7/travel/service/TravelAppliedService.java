@@ -74,4 +74,16 @@ public class TravelAppliedService {
 
         companionRepository.deleteByTravelAndUserNumber(travel, userNumber);
     }
+
+    @Transactional(readOnly = true)
+    public int countAppliedTrpsByUser(Integer userNumber) {
+        // 사용자가 동반자로 등록된 여행 목록 조회
+        List<Companion> companions = companionRepository.findByUserNumber(userNumber);
+        // 삭제된 여행은 제외한 실제 참가한 여행 수 계산
+        int count = (int) companions.stream()
+                .map(Companion::getTravel)
+                .filter(travel -> travel.getStatus() != TravelStatus.DELETED)
+                .count();
+        return count;
+    }
 }

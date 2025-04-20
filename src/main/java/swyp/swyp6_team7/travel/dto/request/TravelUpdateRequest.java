@@ -18,6 +18,7 @@ import java.util.List;
 public class TravelUpdateRequest {
 
     private String locationName;
+    private String countryName;
     @NotNull
     private LocalDate startDate;
     @NotNull

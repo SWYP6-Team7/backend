@@ -71,6 +71,9 @@ public class Users {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<UserTagPreference> tagPreferences;  // user_tagpreferences 참조
 
+    @Column(name = "total_distance")
+    private Double totalDistance = 0.0;
+
     @Builder
     public Users(Integer userNumber, String userEmail, String userPw, String userName, Gender userGender, AgeGroup userAgeGroup, Set<Tag> preferredTags) {
         this.userNumber = userNumber;

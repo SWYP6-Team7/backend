@@ -13,8 +13,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 import swyp.swyp6_team7.config.RedisContainerConfig;
+import swyp.swyp6_team7.location.domain.Continent;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
+import swyp.swyp6_team7.location.repository.CountryRepository;
 import swyp.swyp6_team7.location.repository.LocationRepository;
 import swyp.swyp6_team7.travel.domain.GenderType;
 import swyp.swyp6_team7.travel.domain.PeriodType;
@@ -55,12 +58,16 @@ class TravelViewCountServiceTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private CountryRepository countryRepository;
+
+    @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     @AfterEach
     void tearDown() {
         travelRepository.deleteAllInBatch();
         locationRepository.deleteAllInBatch();
+        countryRepository.deleteAllInBatch();
         redisTemplate.delete(redisTemplate.keys(VIEW_COUNT_KEY_PREFIX + "*"));
         redisTemplate.delete(redisTemplate.keys(VIEWED_INFO_KEY_PREFIX + "*"));
     }
@@ -189,7 +196,7 @@ class TravelViewCountServiceTest {
     @Test
     void combineViewCountToDatabase() {
         // given
-        Location location = locationRepository.save(createLocation());
+        Location location = locationRepository.save(createLocation(createCountry()));
         Travel travel1 = travelRepository.save(createTravel(5, location));
         Travel travel2 = travelRepository.save(createTravel(7, location));
 
@@ -253,10 +260,18 @@ class TravelViewCountServiceTest {
         }
     }
 
-    private Location createLocation() {
+    private Country createCountry(){
+        return countryRepository.save(Country.builder()
+                .countryName("대한민국")
+                .continent(Continent.ASIA)
+                .build());
+    }
+
+    private Location createLocation(Country country) {
         return Location.builder()
                 .locationName("Seoul")
                 .locationType(LocationType.DOMESTIC)
+                .country(country)
                 .build();
     }
 

@@ -3,6 +3,7 @@ package swyp.swyp6_team7.location.dao;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import swyp.swyp6_team7.location.domain.Country;
 import swyp.swyp6_team7.location.domain.Location;
 import swyp.swyp6_team7.location.domain.LocationType;
 
@@ -14,29 +15,48 @@ public class LocationDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void addCity(Location location) {
-        if (location == null || location.getLocationName() == null) {
-            throw new IllegalArgumentException("Invalid location data: location or locationName is null");
-        }
-
-        // 중복 데이터 체크
-        if (isLocationExists(location.getLocationName(), location.getLocationType())) {
-            System.out.println("Duplicate entry found for: " + location.getLocationName());
-            return; // 이미 존재하는 경우 삽입하지 않음
-        }
-
-        String sql = "INSERT INTO locations (location_name, location_type) VALUES (?, ?)";
+    public void addCity(Location location, Country country) {
+        String sql = "INSERT INTO locations (location_name, location_type, country_id) VALUES (?, ?, ?)";
         try {
-            jdbcTemplate.update(sql, location.getLocationName(), location.getLocationType().name());
+            jdbcTemplate.update(sql,
+                    location.getLocationName(),
+                    location.getLocationType().name(),
+                    country.getId());
         } catch (DuplicateKeyException e) {
-            System.out.println("Duplicate entry found for: " + location.getLocationName());
+            System.out.println("중복으로 삽입 불가 : " + location.getLocationName());
         }
     }
 
-    public boolean isLocationExists(String locationName, LocationType locationType) {
-        // locationName과 locationType을 기준으로 DB에 해당 레코드가 있는지 체크합니다.
-        String sql = "SELECT COUNT(*) FROM locations WHERE location_name = ? AND location_type = ?";
-        int count = jdbcTemplate.queryForObject(sql, new Object[]{locationName, locationType.name()}, Integer.class);
-        return count > 0;
+    public boolean existsByLocationName(String locationName) {
+        String sql = "SELECT COUNT(*) FROM locations WHERE location_name = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, new Object[]{locationName}, Integer.class);
+        return count != null && count > 0;
     }
+
+    public void updateLocationWithCountry(String locationName, String countryName, Integer countryId) {
+        String locationType = countryName.equals("대한민국") ? "DOMESTIC" : "INTERNATIONAL";
+
+        String sql = "UPDATE locations " +
+                "SET country_id = ?, location_type = ? " +
+                "WHERE location_name = ?";
+
+        int rows = jdbcTemplate.update(sql, countryId, locationType, locationName);
+
+        if (rows > 0) {
+            //System.out.println(locationName + " 업데이트 완료 - country_id: " + countryId + ", type: " + locationType);
+        } else {
+            //System.out.println(locationName + " 은(는) 업데이트 대상 아님");
+        }
+    }
+
+    public void updateCountryIdForMatchingLocationName(String countryName, Integer countryId) {
+        String sql = "UPDATE locations SET country_id = ?, location_type = ? WHERE location_name = ?";
+        String type = countryName.equals("대한민국") ? "DOMESTIC" : "INTERNATIONAL";
+
+        int rows = jdbcTemplate.update(sql, countryId, type, countryName);
+        if (rows > 0) {
+            //System.out.println("국가 location 업데이트됨 → " + countryName);
+        }
+    }
+
 }

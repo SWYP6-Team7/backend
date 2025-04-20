@@ -21,9 +21,16 @@ public class Location {
     @Column(name = "location_type")
     private LocationType locationType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id", nullable = false)
+    private Country country;
+
+
+
     @Builder
-    public Location(String locationName,LocationType locationType) {
+    public Location(String locationName,LocationType locationType, Country country) {
         this.locationName = locationName;
         this.locationType = locationType;
+        this.country = country;
     }
 }

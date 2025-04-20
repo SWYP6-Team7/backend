@@ -287,4 +287,14 @@ public class MemberService {
         return userRepository.findById(userNumber)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
     }
+
+    @Transactional
+    public void updateUserTravelDistance(Integer userNumber, double travelDistance) {
+        Users user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new RuntimeException("사용자 없음"));
+        user.setTotalDistance(travelDistance); // 누적 저장
+    }
+
+
+
 }

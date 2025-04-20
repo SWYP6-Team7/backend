@@ -86,4 +86,14 @@ public class TravelListService {
         }
         return new PageImpl<>(dtos.subList(start, end), pageable, dtos.size());
     }
+
+    // 사용자가 만든 여행(삭제되지 않은)의 총 개수를 반환하는 메서드
+    @Transactional(readOnly = true)
+    public int countCreatedTravelsByUser(Integer userNumber) {
+        // 여행 리스트 조회 시, 삭제되지 않은 여행만 카운트
+        List<Travel> travels = travelRepository.findByUserNumber(userNumber).stream()
+                .filter(travel -> travel.getStatus() != TravelStatus.DELETED)
+                .collect(Collectors.toList());
+        return travels.size();
+    }
 }
