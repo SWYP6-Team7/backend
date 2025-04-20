@@ -30,7 +30,7 @@ public class ProfileViewResponse {
         this.ageGroup = user.getUserAgeGroup().getValue();
         this.userSocialTF = user.getUserSocialTF();
 
-        this.travelDistance = user.getTotalDistance() != null ? travelDistance : 0.0;
+        this.travelDistance = user.getTotalDistance() != null ? user.getTotalDistance() : 0.0;
         this.visitedCountryCount = visitedCountryCount != null ? visitedCountryCount : 0;
         this.travelBadgeCount = travelBadgeCount != null ? travelBadgeCount : 0;
 
