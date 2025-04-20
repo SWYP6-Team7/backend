@@ -9,7 +9,6 @@ import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.member.service.MemberBlockService;
 import swyp.swyp6_team7.profile.dto.UserReportStats;
 import swyp.swyp6_team7.profile.dto.response.TargetUserProfileResponse;
-import swyp.swyp6_team7.profile.dto.VisitedCountryStats;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 import swyp.swyp6_team7.travel.service.TravelListService;
 
@@ -39,11 +38,9 @@ public class TargetUserProfileService {
             Integer createdTravelCount = travelListService.countCreatedTravelsByUser(userNumber);      // 사용자가 만든 여행 개수
             Integer participatedTravelCount = travelAppliedService.countAppliedTrpsByUser(userNumber); // 사용자가 참가한 여행 개수
 
-            VisitedCountryStats stats = visitedCountryLogService.calculateVisitedCountryStats(userNumber);
-            Double travelDistance = stats.getTravelDistance(); // 계산된 여행 거리(Km)
-            Integer visitedCountryCount = stats.getVisitedCountryCount(); // 방문한 국가 수
+            Integer visitedCountryCount = visitedCountryLogService.calculateVisitedCountryCount(userNumber); // 방문한 국가 수
 
-            // 추가 정보는 아직 구현되지 않았으므로 기본값을 사용합니다.
+            // TODO
             Integer travelBadgeCount = 0; // 획득한 여행 뱃지 수
 
             UserReportStats reportStats = memberBlockService.getUserReportStats(userNumber);
@@ -57,7 +54,6 @@ public class TargetUserProfileService {
                     profileImageUrl,
                     createdTravelCount,
                     participatedTravelCount,
-                    travelDistance,
                     visitedCountryCount,
                     travelBadgeCount,
                     recentlyReported,

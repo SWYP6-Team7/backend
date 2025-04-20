@@ -9,6 +9,7 @@ import swyp.swyp6_team7.profile.dto.response.ProfileViewResponse;
 import swyp.swyp6_team7.profile.repository.UserProfileRepository;
 import swyp.swyp6_team7.member.repository.UserRepository;
 import swyp.swyp6_team7.profile.dto.ProfileUpdateRequest;
+import swyp.swyp6_team7.profile.repository.VisitedCountryLogRepository;
 import swyp.swyp6_team7.tag.domain.Tag;
 import swyp.swyp6_team7.tag.domain.UserTagPreference;
 import swyp.swyp6_team7.tag.repository.TagRepository;
@@ -31,6 +32,7 @@ public class ProfileService {
     private final UserTagPreferenceRepository userTagPreferenceRepository;
     private final TravelAppliedService travelAppliedService;
     private final TravelListService travelListService;
+    private final VisitedCountryLogService visitedCountryLogService;
 
 
     @Transactional
@@ -93,12 +95,13 @@ public class ProfileService {
     public ProfileViewResponse getProfileView(Integer userNumber) {
         try {
             log.info("내 프로필 조회 시작 - userNumber: {}", userNumber);
-            Double travelDistance=0.0;
-            Integer visitedCountryCount=0;
+            Integer visitedCountryCount=visitedCountryLogService.calculateVisitedCountryCount(userNumber);
+            //TODO
             Integer travelBadgeCount=0;
+
             Users user = userRepository.findUserWithTags(userNumber)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            return new ProfileViewResponse(user, travelDistance, visitedCountryCount, travelBadgeCount);
+            return new ProfileViewResponse(user, visitedCountryCount, travelBadgeCount);
         } catch (Exception e) {
             log.error("내 프로필 조회 중 에러 발생 - userNumber: {}", userNumber, e);
             throw e;

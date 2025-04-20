@@ -9,4 +9,5 @@ public interface VisitedCountryLogCustomRepository {
     List<Tuple> findVisitedCountriesWithStartDate(Integer userNumber);
     List<Tuple> findInternationalVisits(Integer userNumber);
     List<Tuple> findDomesticVisits(Integer userNumber);
+    List<Integer> findAllUserNumbersWithTravelLog();
 }

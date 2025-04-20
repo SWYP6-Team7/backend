@@ -12,6 +12,7 @@ public class TargetUserProfileResponse {
     // 기본 정보
     private String name;
     private String userRegDate; // 예: "2025년 2월"
+    private String ageGroup;
     private String[] preferredTags;
     // 프로필 이미지
     private String profileImageUrl;
@@ -21,6 +22,7 @@ public class TargetUserProfileResponse {
     private Integer participatedTravelCount; // 참가한 여행 수
     private Double travelDistance; // 계산된 여행 거리
     private Integer visitedCountryCount; // 방문한 국가 수
+    //TODO
     private Integer travelBadgeCount; // 획득한 여행 뱃지 수
 
     private Boolean recentlyReported; // 최근 신고 여부
@@ -31,17 +33,17 @@ public class TargetUserProfileResponse {
                                      String profileImageUrl,
                                      Integer createdTravelCount,
                                      Integer participatedTravelCount,
-                                     Double travelDistance,
                                      Integer visitedCountryCount,
                                      Integer travelBadgeCount,
                                      Boolean recentlyReported,
                                      Integer totalReportCount,
                                      Integer recentReportCount) {
         this.name = user.getUserName();
+        this.ageGroup = user.getUserAgeGroup().getValue();
         this.profileImageUrl = profileImageUrl;
         this.createdTravelCount = createdTravelCount != null ? createdTravelCount : 0;
         this.participatedTravelCount = participatedTravelCount != null ? participatedTravelCount : 0;
-        this.travelDistance = travelDistance != null ? travelDistance : 0.0;
+        this.travelDistance = user.getTotalDistance();
         this.visitedCountryCount = visitedCountryCount != null ? visitedCountryCount : 0;
         this.travelBadgeCount = travelBadgeCount != null ? travelBadgeCount : 0;
         this.recentlyReported = recentlyReported != null ? recentlyReported : false;

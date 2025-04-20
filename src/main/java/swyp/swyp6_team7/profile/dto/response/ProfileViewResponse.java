@@ -22,7 +22,6 @@ public class ProfileViewResponse {
     private Integer travelBadgeCount;         // 획득한 여행 뱃지 개수
 
     public ProfileViewResponse(Users user,
-                               Double travelDistance,
                                Integer visitedCountryCount,
                                Integer travelBadgeCount) {
         this.email = user.getUserEmail();
@@ -31,7 +30,7 @@ public class ProfileViewResponse {
         this.ageGroup = user.getUserAgeGroup().getValue();
         this.userSocialTF = user.getUserSocialTF();
 
-        this.travelDistance = travelDistance != null ? travelDistance : 0.0;
+        this.travelDistance = user.getTotalDistance() != null ? travelDistance : 0.0;
         this.visitedCountryCount = visitedCountryCount != null ? visitedCountryCount : 0;
         this.travelBadgeCount = travelBadgeCount != null ? travelBadgeCount : 0;
 

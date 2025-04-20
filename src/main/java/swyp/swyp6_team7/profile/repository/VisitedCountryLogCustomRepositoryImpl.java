@@ -147,4 +147,31 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
                 )
                 .fetch();
     }
+
+    @Override
+    public List<Integer> findAllUserNumbersWithTravelLog() {
+        LocalDate today = LocalDate.now();
+
+        List<Integer> created = queryFactory
+                .select(travel.userNumber)
+                .from(travel)
+                .where(travel.endDate.before(today))
+                .distinct()
+                .fetch();
+
+        List<Integer> participated = queryFactory
+                .select(companion.userNumber)
+                .from(companion)
+                .join(companion.travel, travel)
+                .where(travel.endDate.before(today))
+                .distinct()
+                .fetch();
+
+        Set<Integer> result = new LinkedHashSet<>();
+        result.addAll(created);
+        result.addAll(participated);
+
+        return new ArrayList<>(result);
+    }
+
 }

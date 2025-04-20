@@ -64,7 +64,6 @@ public class ProfileController {
             // DTO 생성자에 맞춰서 값 전달
             ProfileViewResponse response = new ProfileViewResponse(
                     userOpt.get(),
-                    travelDistance,
                     visitedCountryCount,
                     travelBadgeCount
             );
