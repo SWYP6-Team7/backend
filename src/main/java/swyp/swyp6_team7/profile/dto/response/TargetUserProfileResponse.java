@@ -43,7 +43,7 @@ public class TargetUserProfileResponse {
         this.profileImageUrl = profileImageUrl;
         this.createdTravelCount = createdTravelCount != null ? createdTravelCount : 0;
         this.participatedTravelCount = participatedTravelCount != null ? participatedTravelCount : 0;
-        this.travelDistance = user.getTotalDistance();
+        this.travelDistance = user.getTotalDistance() != null ? user.getTotalDistance() : 0.0;
         this.visitedCountryCount = visitedCountryCount != null ? visitedCountryCount : 0;
         this.travelBadgeCount = travelBadgeCount != null ? travelBadgeCount : 0;
         this.recentlyReported = recentlyReported != null ? recentlyReported : false;
