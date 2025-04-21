@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.travel.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TravelAppliedService {
 
     private final TravelRepository travelRepository;
@@ -33,29 +35,47 @@ public class TravelAppliedService {
     // 주최자가 수락한 신청 리스트
     @Transactional(readOnly = true)
     public Page<TravelListResponseDto> getAppliedTripsByUser(Integer userNumber, Pageable pageable) {
-        // 사용자가 승인된 동반자 목록 조회
-        List<Companion> companions = companionRepository.findByUserNumber(userNumber);
+        try {
+            // 사용자가 승인된 동반자 목록 조회
+            List<Companion> companions = companionRepository.findByUserNumber(userNumber);
 
-        List<TravelListResponseDto> dtos = companions.stream()
-                .map(Companion::getTravel)
-                .filter(travel -> travel.getStatus() != TravelStatus.DELETED) // 삭제된 여행 제외
-                .map(travel -> {
-                    Users host = userRepository.findByUserNumber(travel.getUserNumber())
-                            .orElseThrow(() -> new IllegalArgumentException("작성자 정보를 찾을 수 없습니다."));
-                    int currentApplicants = travel.getCompanions().size();
-                    boolean isBookmarked = bookmarkRepository.existsByUserNumberAndTravelNumber(userNumber, travel.getNumber());
-                    return TravelListResponseDto.fromEntity(travel, host, currentApplicants, isBookmarked);
-                })
-                .collect(Collectors.toList());
+            List<TravelListResponseDto> dtos = companions.stream()
+                    .map(Companion::getTravel)
+                    .filter(travel -> travel.getStatus() != TravelStatus.DELETED) // 삭제된 여행 제외
+                    .map(travel -> {
+                        try {
+                            Users host = userRepository.findByUserNumber(travel.getUserNumber())
+                                    .orElseThrow(() -> {
+                                        String msg = String.format("작성자 정보를 찾을 수 없습니다. travelNumber=%d, hostUserNumber=%d",
+                                                travel.getNumber(), travel.getUserNumber());
+                                        log.error("[User Fetch ERROR - AppliedTravel] {}", msg);
+                                        return new IllegalArgumentException(msg);
+                                    });
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), dtos.size());
+                            int currentApplicants = travel.getCompanions().size();
+                            boolean isBookmarked = bookmarkRepository.existsByUserNumberAndTravelNumber(userNumber, travel.getNumber());
 
-        if (start > end || start > dtos.size()) {
-            return new PageImpl<>(List.of(), pageable, dtos.size());
+                            return TravelListResponseDto.fromEntity(travel, host, currentApplicants, isBookmarked);
+                        } catch (Exception e) {
+                            log.error("신청한 여행 dto 변환 ERROR travelNumber={}, userNumber={}, error={}",
+                                    travel.getNumber(), userNumber, e.getMessage(), e);
+                            throw e;
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), dtos.size());
+
+            if (start > end || start > dtos.size()) {
+                return new PageImpl<>(List.of(), pageable, dtos.size());
+            }
+
+            return new PageImpl<>(dtos.subList(start, end), pageable, dtos.size());
+        } catch (Exception e) {
+            log.error("getAppliedTripsByUser() ERROR : userNumber={}, error={}", userNumber, e.getMessage(), e);
+            throw e;
         }
-
-        return new PageImpl<>(dtos.subList(start, end), pageable, dtos.size());
     }
 
 
