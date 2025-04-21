@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.travel.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TravelListService {
 
     private final TravelRepository travelRepository;
@@ -28,18 +30,30 @@ public class TravelListService {
 
     @Transactional(readOnly = true)
     public Page<TravelListResponseDto> getTravelListByUser(Integer userNumber, Pageable pageable) {
-        // 사용자 번호를 통해 여행 게시글 조회 (최신 등록순으로 정렬)
-        List<Travel> travels = travelRepository.findByUserNumber(userNumber).stream()
-                .filter(travel -> travel.getStatus() != TravelStatus.DELETED) // 삭제된 여행 제외
-                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt())) // 최신순으로 정렬
-                .collect(Collectors.toList());
+        try {
+            // 사용자 번호를 통해 여행 게시글 조회 (최신 등록순으로 정렬)
+            List<Travel> travels = travelRepository.findByUserNumber(userNumber).stream()
+                    .filter(travel -> travel.getStatus() != TravelStatus.DELETED) // 삭제된 여행 제외
+                    .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt())) // 최신순으로 정렬
+                    .collect(Collectors.toList());
 
-        // 여행 엔티티를 DTO로 변환하여 반환
-        List<TravelListResponseDto> dtos = travels.stream()
-                .map(travel -> toTravelListResponseDto(travel, userNumber))
-                .collect(Collectors.toList());
+            // 여행 엔티티를 DTO로 변환하여 반환
+            List<TravelListResponseDto> dtos = travels.stream()
+                    .map(travel -> {
+                        try {
+                            return toTravelListResponseDto(travel, userNumber);
+                        } catch (Exception e) {
+                            log.error("TravelListResponseDto로 변환 도중 에러 : travelNumber={}, userNumber{}, error={}",
+                                    travel.getNumber(), userNumber, e.getMessage(), e);
+                            throw e;
+                        }
+                    }).collect(Collectors.toList());
 
-        return toPage(dtos, pageable);
+            return toPage(dtos, pageable);
+        } catch (Exception e){
+            log.error("getTravelListByUser() error : userNumber={}, error={}", userNumber, e.getMessage(), e);
+            throw e;
+        }
     }
 
     // Travel 엔티티를 TravelListResponseDto로 변환하는 메서드
@@ -49,8 +63,13 @@ public class TravelListService {
             int currentApplicants = travel.getCompanions().size();
 
             // 사용자의 이름을 가져오기 위해 userNumber로 사용자 조회
-            Users host = userRepository.findByUserNumber(travel.getUserNumber())
-                .orElseThrow(() -> new IllegalArgumentException("작성자 정보를 찾을 수 없습니다."));
+        Users host = userRepository.findByUserNumber(travel.getUserNumber())
+                .orElseThrow(() -> {
+                    String errorMsg = String.format("작성자 정보를 찾을 수 없습니다. travelNumber=%d, userNumber=%d",
+                            travel.getNumber(), travel.getUserNumber());
+                    log.error("[User Fetch ERROR] {}", errorMsg);
+                    return new IllegalArgumentException(errorMsg);
+                });
 
 
             // 태그 리스트 추출

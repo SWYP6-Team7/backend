@@ -58,7 +58,8 @@ public class SecurityConfig {
                                 "/api/community/posts",
                                 "/api/community/posts/{postNumber}",
                                 "/api/{relatedType}/{relatedNumber}/comments",
-                                "/api/autocomplete"
+                                "/api/autocomplete",
+                                "/api/users/*/profile"
                         ).permitAll()
 
                         // 기타 경로
