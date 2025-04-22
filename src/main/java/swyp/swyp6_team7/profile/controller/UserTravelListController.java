@@ -1,6 +1,7 @@
 package swyp.swyp6_team7.profile.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import swyp.swyp6_team7.travel.dto.response.TravelListResponseDto;
 import swyp.swyp6_team7.travel.service.TravelAppliedService;
 import swyp.swyp6_team7.travel.service.TravelListService;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -29,10 +31,15 @@ public class UserTravelListController {
             @RequestParam(value = "size", defaultValue = "5") int size,
             @RequireUserNumber Integer userNumber
     ){
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TravelListResponseDto> createdTravelList = travelListService.getTravelListByUser(targetUserNumber, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TravelListResponseDto> createdTravelList = travelListService.getTravelListByUser(targetUserNumber, pageable);
 
-        return ApiResponse.success(createdTravelList);
+            return ApiResponse.success(createdTravelList);
+        } catch (Exception e){
+            log.error("만든 여행 조회 실패 - 상대 userNumber={}, error={}",targetUserNumber, e.getMessage());
+            throw e;
+        }
     }
 
     // 상대방의 참가한 여행 목록 조회
@@ -43,10 +50,15 @@ public class UserTravelListController {
             @RequestParam(value = "size", defaultValue = "5") int size,
             @RequireUserNumber Integer userNumber
     ){
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TravelListResponseDto> appliedTravelList = travelAppliedService.getAppliedTripsByUser(targetUserNumber, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<TravelListResponseDto> appliedTravelList = travelAppliedService.getAppliedTripsByUser(targetUserNumber, pageable);
 
-        return ApiResponse.success(appliedTravelList);
+            return ApiResponse.success(appliedTravelList);
+        } catch (Exception e){
+            log.error("신청한 여행 조회 실패 - 상대 userNumber={}, error={}",targetUserNumber, e.getMessage());
+            throw e;
+        }
     }
 
     // 상대방의 방문한 여행 로그 조회
@@ -54,6 +66,11 @@ public class UserTravelListController {
     public ApiResponse<VisitedCountryLogResponse> getVisitedCountries(
             @PathVariable("targetUserNumber") Integer targetUserNumber,
             @RequireUserNumber Integer userNumber) {
-        return ApiResponse.success(visitedCountryLogService.getVisitedCountriesByUser(targetUserNumber));
+        try {
+            return ApiResponse.success(visitedCountryLogService.getVisitedCountriesByUser(targetUserNumber));
+        } catch (Exception e){
+            log.error("여행 로그 조회 실패 - 상대 userNumber={}, error={}",targetUserNumber, e.getMessage());
+            throw e;
+        }
     }
 }

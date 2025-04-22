@@ -50,7 +50,7 @@ public class TravelListService {
                     }).collect(Collectors.toList());
 
             return toPage(dtos, pageable);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("getTravelListByUser() error : userNumber={}, error={}", userNumber, e.getMessage(), e);
             throw e;
         }
@@ -59,10 +59,10 @@ public class TravelListService {
     // Travel 엔티티를 TravelListResponseDto로 변환하는 메서드
     private TravelListResponseDto toTravelListResponseDto(Travel travel, Integer userNumber) {
 
-            // 동반자 수 계산
-            int currentApplicants = travel.getCompanions().size();
+        // 동반자 수 계산
+        int currentApplicants = travel.getCompanions().size();
 
-            // 사용자의 이름을 가져오기 위해 userNumber로 사용자 조회
+        // 사용자의 이름을 가져오기 위해 userNumber로 사용자 조회
         Users host = userRepository.findByUserNumber(travel.getUserNumber())
                 .orElseThrow(() -> {
                     String errorMsg = String.format("작성자 정보를 찾을 수 없습니다. travelNumber=%d, userNumber=%d",
@@ -72,28 +72,28 @@ public class TravelListService {
                 });
 
 
-            // 태그 리스트 추출
-            List<String> tags = travel.getTravelTags().stream()
-                    .map(travelTag -> travelTag.getTag().getName())
-                    .collect(Collectors.toList());
+        // 태그 리스트 추출
+        List<String> tags = travel.getTravelTags().stream()
+                .map(travelTag -> travelTag.getTag().getName())
+                .collect(Collectors.toList());
 
-            // 북마크 여부 확인
-            boolean isBookmarked = bookmarkRepository.existsByUserNumberAndTravelNumber(userNumber, travel.getNumber());
+        // 북마크 여부 확인
+        boolean isBookmarked = bookmarkRepository.existsByUserNumberAndTravelNumber(userNumber, travel.getNumber());
 
 
-            return new TravelListResponseDto(
-                    travel.getNumber(),
-                    travel.getTitle(),
-                    travel.getLocationName(),
-                    host.getUserNumber(),
-                    host.getUserName(),
-                    tags,
-                    currentApplicants,
-                    travel.getMaxPerson(),
-                    travel.getCreatedAt(),
-                    isBookmarked
-            );
-        }
+        return new TravelListResponseDto(
+                travel.getNumber(),
+                travel.getTitle(),
+                travel.getLocationName(),
+                host.getUserNumber(),
+                host.getUserName(),
+                tags,
+                currentApplicants,
+                travel.getMaxPerson(),
+                travel.getCreatedAt(),
+                isBookmarked
+        );
+    }
 
     // Page 객체를 생성하는 메서드
     private Page<TravelListResponseDto> toPage(List<TravelListResponseDto> dtos, Pageable pageable) {
