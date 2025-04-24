@@ -68,7 +68,9 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
                 .select(
                         country.countryName,
                         country.continent,
-                        country
+                        country,
+                        travel.endDate
+
                 )
                 .from(travel)
                 .join(travel.location, location)
@@ -84,7 +86,8 @@ public class VisitedCountryLogCustomRepositoryImpl implements VisitedCountryLogC
                 .select(
                         country.countryName,
                         country.continent,
-                        country
+                        country,
+                        travel.endDate
                 )
                 .from(companion)
                 .join(companion.travel, travel)

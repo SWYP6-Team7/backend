@@ -95,12 +95,13 @@ public class ProfileService {
     public ProfileViewResponse getProfileView(Integer userNumber) {
         try {
             log.info("내 프로필 조회 시작 - userNumber: {}", userNumber);
+            Users user = userRepository.findUserWithTags(userNumber)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
             Integer visitedCountryCount=visitedCountryLogService.calculateVisitedCountryCount(userNumber);
             //TODO
             Integer travelBadgeCount=0;
 
-            Users user = userRepository.findUserWithTags(userNumber)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             return new ProfileViewResponse(user, visitedCountryCount, travelBadgeCount);
         } catch (Exception e) {
             log.error("내 프로필 조회 중 에러 발생 - userNumber: {}", userNumber, e);
