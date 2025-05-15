@@ -33,4 +33,9 @@ public class CommunityCreateRequestDto {
                 .viewCount(0)
                 .build();
     }
+
+    @Override
+    public String toString() {
+        return "CommunityCreateRequestDto(categoryName=" + categoryName + ", title=" + title + ", content=" + content + ")";
+    }
 }
