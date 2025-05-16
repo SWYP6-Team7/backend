@@ -70,10 +70,10 @@ public class TokenController {
             );
             return ApiResponse.success(loginResponse);
         } catch (JwtException e) {
-            log.error("유효하지 않은 Refresh Token 사용 시도: {}", refreshToken, e);
+            log.warn("유효하지 않은 Refresh Token 사용 시도: {}", refreshToken, e);
             throw new MoingApplicationException("Refresh Token이 유효하지 않습니다.");
         } catch (Exception e) {
-            log.error("Access Token 재발급 중 알 수 없는 오류 발생", e);
+            log.error("Access Token 재발급 중 알 수 없는 오류 발생 : {}", e.getMessage(), e);
             throw e;
         }
     }
