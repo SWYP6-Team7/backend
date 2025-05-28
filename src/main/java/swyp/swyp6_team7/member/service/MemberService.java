@@ -292,7 +292,9 @@ public class MemberService {
     public void updateUserTravelDistance(Integer userNumber, double travelDistance) {
         Users user = userRepository.findById(userNumber)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-        user.setTotalDistance(travelDistance); // 누적 저장
+        double roundedDistance = Math.round(travelDistance * 100.0) / 100.0;
+
+        user.setTotalDistance(roundedDistance); // 누적 저장
     }
 
 
