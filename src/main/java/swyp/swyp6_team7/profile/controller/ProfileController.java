@@ -56,17 +56,7 @@ public class ProfileController {
                 throw new MoingApplicationException("사용자를 찾을 수 없음");
             }
 
-            // 실제 계산 로직이 없으므로, 0 또는 기본값으로 설정
-            double travelDistance = 0.0;
-            int visitedCountryCount = 0;
-            int travelBadgeCount = 0;
-
-            // DTO 생성자에 맞춰서 값 전달
-            ProfileViewResponse response = new ProfileViewResponse(
-                    userOpt.get(),
-                    visitedCountryCount,
-                    travelBadgeCount
-            );
+            ProfileViewResponse response = profileService.getProfileView(userNumber);
 
             return ApiResponse.success(response);
         } catch (IllegalArgumentException e) {
