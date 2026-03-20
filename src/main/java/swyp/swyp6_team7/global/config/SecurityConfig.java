@@ -108,7 +108,8 @@ public class SecurityConfig {
                 "https://release-back.vercel.app",
                 "https://www.moing.shop",
                 "https://www.moing.io",
-                "https://www.alpha.moing.io"
+                "https://www.alpha.moing.io",
+                "http://localhost:8080"
         );
 
         CorsConfiguration configuration = new CorsConfiguration();
